@@ -1,0 +1,40 @@
+{
+  "name": "@front-finance/frontfinance-rn-sdk",
+  "version": "1.0.3",
+  "description": "Front Finance React Native Gateway.",
+  "main": "dist/index.js",
+  "types": "index.d.ts",
+  "directories": {
+    "example": "example"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "babel example/frontFinanceModule/** -d ./dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FrontFin/front-b2b-link-rn.git"
+  },
+  "keywords": [
+    "front-finance"
+  ],
+  "author": "Eric Ahlqvist Scott",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/FrontFin/front-b2b-link-rn/issues"
+  },
+  "homepage": "https://github.com/FrontFin/front-b2b-link-rn#readme",
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.17.6",
+    "@babel/core": "^7.17.5",
+    "metro-react-native-babel-preset": "^0.68.0"
+  },
+  "dependencies": {
+    "react-native-webview": "11.26.0",
+    "@front-finance/api": "^1.0.7"
+  }
+}
