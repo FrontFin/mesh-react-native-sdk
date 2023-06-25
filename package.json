@@ -1,6 +1,6 @@
 {
   "name": "@front-finance/frontfinance-rn-sdk",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "description": "Front Finance React Native Gateway.",
   "main": "dist/index.js",
   "types": "index.d.ts",
@@ -26,7 +26,8 @@
   "homepage": "https://github.com/FrontFin/front-b2b-link-rn#readme",
   "peerDependencies": {
     "react": "*",
-    "react-native": "*"
+    "react-native": "*",
+    "react-native-webview": "11.26.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.17.6",

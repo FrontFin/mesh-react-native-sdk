@@ -9,7 +9,8 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@front-finance/frontfinance-rn-sdk": "file:..",
+    "@front-finance/api": "^1.0.7",
+    "@front-finance/frontfinance-rn-sdk": "1.0.4",
     "axios": "^1.4.0",
     "expo": "~48.0.18",
     "expo-status-bar": "~1.4.4",

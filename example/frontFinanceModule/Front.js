@@ -1,58 +1,40 @@
-import React, { useCallback, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
   StatusBar,
   StyleSheet,
   Text,
-  TouchableOpacity,
   useColorScheme,
   View,
 } from "react-native";
 import { WebView } from "react-native-webview";
-import { FrontApi } from "@front-finance/api";
 
 const FrontFinance = (props) => {
-
   const isDarkMode = useColorScheme?.() === "dark";
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? "#000000" : "#ffffff",
   };
   const [iframeLink, setIframeLink] = useState(null);
-  const [error, setError] = useState(null);
   const [payload, setPayload] = useState(null);
   const [showWebView, setShowWebView] = useState(false);
 
-  const getAuthLink = useCallback(async () => {
-    setError(null);
-    setIframeLink(null);
-    const api = new FrontApi({
-      baseURL: "https://integration-api.getfront.com",
-      headers: {
-        "x-client-id": props.client_id,
-        "x-client-secret": props.client_secret,
-      },
-    });
-    setShowWebView(true);
-
-    // this request should be performed from the backend side
-    const response = await api.managedAccountAuthentication.v1CataloglinkList({
-      // callbackUrl: window.location.href // insert your callback URL here
-      userId: props.userId,
-    });
-
-    const data = response.data;
-    if (response.status !== 200 || !data?.content) {
-      const error = (data?.message) || response.statusText;
-      setError(error);
-      props.onError(error);
-    } else if (!data.content.url) {
-      setError("Iframe url is empty");
-      props.onError("Iframe url is empty");
+  useEffect(() => {
+    console.log(props, "P");
+    if (props.url.length) {
+      setIframeLink(props.url);
+      setShowWebView(true);
     } else {
-      setIframeLink(data.content.url);
+      props.onError("Invalid iframeUrl");
     }
-  }, []);
+
+    return () => {
+      setIframeLink(null);
+      setShowWebView(null);
+    };
+  }, [props]);
+
+  console.log(props, "PS");
 
   const handleNavState = (event) => {
     console.log("Nav", event);
@@ -69,7 +51,7 @@ const FrontFinance = (props) => {
     }
     if (type === "brokerageAccountAccessToken") {
       setPayload(payload);
-      props.onReceive(payload)
+      props.onReceive(payload);
       setShowWebView(false);
     }
   };
@@ -147,14 +129,6 @@ const FrontFinance = (props) => {
                 use Front and authenticate
               </Text>
             )}
-
-            {error && <Text style={{ color: "red" }}>Error: {error}</Text>}
-
-            <View style={{ width: "100%", alignItems: "center" }}>
-              <TouchableOpacity style={styles.button} onPress={getAuthLink}>
-                <Text style={styles.btnText}>Front Broker Connection</Text>
-              </TouchableOpacity>
-            </View>
           </>
         )}
         {showWebView && iframeLink && (

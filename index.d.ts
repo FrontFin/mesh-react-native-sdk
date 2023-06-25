@@ -1,9 +1,7 @@
 import React from 'react';
 
 export interface FrontFinanceProps {
-    client_id: string;
-    client_secret: string;
-    userId: string;
+    url: string
     onReceive?: () => any;
     onError?: () => any;
 }
