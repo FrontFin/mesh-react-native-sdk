@@ -5,14 +5,12 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
 } from "react-native";
 import FrontFinance from "@front-finance/frontfinance-rn-sdk";
-import { useCallback, useEffect, useState } from "react";
-import { FrontApi } from "@front-finance/api";
+import { useEffect, useState } from "react";
 import FormControl from "./components/form";
 import Reports from "./components/reports";
-import { production_url, sandbox_url } from "./utility/constants";
+// import { production_url, sandbox_url } from "./utility/constants";
 
 const env_options = [
   { index: 0, name: "sandbox" },
@@ -28,39 +26,6 @@ export default function App() {
   const [error, setError] = useState(null);
   const [iframeLink, setIframeLink] = useState("");
   const [env, setEnv] = useState("sandbox");
-
-  const getAuthLink = useCallback(async () => {
-    setError(null);
-    const api = new FrontApi({
-      baseURL: env === "sandbox" ? sandbox_url : production_url,
-      headers: {
-        "x-client-id": client_id,
-        "x-client-secret": client_secret,
-      },
-    });
-    try {
-      console.log(user_id, "UID");
-      // this request should be performed from the backend side
-      const response = await api.managedAccountAuthentication.v1CataloglinkList(
-        {
-          // callbackUrl: window.location.href // insert your callback URL here
-          userId: user_id,
-        }
-      );
-
-      const data = response.data;
-      if (response.status !== 200 || !data?.content) {
-        const error = data?.message || response.statusText;
-        setError(error);
-      } else if (!data.content.url) {
-        setError("Iframe url is empty");
-      } else {
-        setIframeLink(data.content.url);
-      }
-    } catch (error) {
-      console.log(error, "CATE");
-    }
-  }, []);
 
   useEffect(() => {
     if (iframeLink.length) {
@@ -114,7 +79,7 @@ export default function App() {
             setClientSecret={setClientSecret}
             setUserId={setUserId}
             setEnv={setEnv}
-            getAuthLink={getAuthLink}
+            getAuthLink={() => {}}
           />
           {data && <Reports data={data} />}
           {error && <Text style={{ color: "red" }}>Error: {error}</Text>}
