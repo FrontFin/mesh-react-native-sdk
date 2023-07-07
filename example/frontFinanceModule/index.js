@@ -1,3 +1,3 @@
-import FrontFinance from './Front';
+import FrontFinance, { b2bCatalog } from "./Front";
 
-export default FrontFinance;
+export { FrontFinance, b2bCatalog };

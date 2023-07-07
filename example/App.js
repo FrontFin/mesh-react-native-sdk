@@ -6,11 +6,10 @@ import {
   StyleSheet,
   Text,
 } from "react-native";
-import FrontFinance from "@front-finance/frontfinance-rn-sdk";
+import { FrontFinance, b2bCatalog } from "./frontFinanceModule";
 import { useEffect, useState } from "react";
 import FormControl from "./components/form";
 import Reports from "./components/reports";
-// import { production_url, sandbox_url } from "./utility/constants";
 
 const env_options = [
   { index: 0, name: "sandbox" },
@@ -32,6 +31,16 @@ export default function App() {
       setView(true);
     }
   }, [iframeLink]);
+
+  const getUrl = async () => {
+    try {
+      const response = await b2bCatalog(client_id, client_secret, user_id);
+      console.log(response.content,"CONTENT");
+      setIframeLink(response.content.url);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   if (view && iframeLink.length) {
     console.log(iframeLink, "URL");
@@ -79,7 +88,7 @@ export default function App() {
             setClientSecret={setClientSecret}
             setUserId={setUserId}
             setEnv={setEnv}
-            getAuthLink={() => {}}
+            getAuthLink={getUrl}
           />
           {data && <Reports data={data} />}
           {error && <Text style={{ color: "red" }}>Error: {error}</Text>}

@@ -1,6 +1,6 @@
 {
   "name": "@front-finance/frontfinance-rn-sdk",
-  "version": "1.0.6",
+  "version": "1.0.8",
   "description": "Front Finance React Native Gateway.",
   "main": "dist/index.js",
   "types": "index.d.ts",

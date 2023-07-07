@@ -8,6 +8,31 @@ import {
   View,
 } from "react-native";
 import { WebView } from "react-native-webview";
+import axios from "axios";
+import { test_data } from "../utility/constants";
+
+export const b2bCatalog = async (client_id, client_secret, user_id) => {
+  try {
+    const response = await axios.post(
+      `https://front-b2b-api-test.azurewebsites.net/api/v1/cataloglink?userId=${user_id}&enableTransfers=true`,
+      test_data,
+      {
+        headers: {
+          "X-Client-Id": client_id,
+          "X-Client-Secret": client_secret,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    console.log(response, "REPOSE");
+    return response.data;
+  } catch (error) {
+    console.log("Request", error.request);
+    console.log("RESPONSE", error.response);
+    console.log("GENERIC", error);
+    return error
+  }
+};
 
 const FrontFinance = (props) => {
   const isDarkMode = useColorScheme?.() === "dark";
