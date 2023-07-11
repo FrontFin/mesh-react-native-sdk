@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@front-finance/api": "^1.0.7",
-    "@front-finance/frontfinance-rn-sdk": "^1.0.6",
+    "@front-finance/frontfinance-rn-sdk": "^1.0.9",
     "axios": "^1.4.0",
     "expo": "~48.0.18",
     "expo-status-bar": "~1.4.4",

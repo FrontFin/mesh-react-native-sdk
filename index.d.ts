@@ -2,8 +2,8 @@ import React from "react";
 
 export interface FrontFinanceProps {
   url: string;
-  onReceive?: () => any;
-  onError?: () => any;
+  onReceive?: (payload: any) => any;
+  onError?: (error: any) => any;
 }
 
 declare function b2bCatalog(

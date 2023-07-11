@@ -14,6 +14,30 @@ Install with [yarn](https://www.yarnpkg.com/):
 $ yarn add @front-finance/frontfinance-rn-sdk @front-finance/api
 ```
 
+For Expo-CLI run
+
+```sh
+$ npx expo start
+```
+
+For react-native cli run
+
+ios only:
+
+```sh
+$ pod install
+```
+
+then run ios
+```sh
+npx react-native run-ios
+```
+
+for android
+```sh
+npx react-native run-android
+```
+
 Download the @front-finance from [GitHub](https://github.com/FrontFin).
 
 ## Usage

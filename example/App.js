@@ -6,7 +6,7 @@ import {
   StyleSheet,
   Text,
 } from "react-native";
-import { FrontFinance, b2bCatalog } from "./frontFinanceModule";
+import { FrontFinance, b2bCatalog } from "@front-finance/frontfinance-rn-sdk";
 import { useEffect, useState } from "react";
 import FormControl from "./components/form";
 import Reports from "./components/reports";
