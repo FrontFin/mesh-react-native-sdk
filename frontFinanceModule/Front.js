@@ -8,30 +8,6 @@ import {
   View,
 } from "react-native";
 import { WebView } from "react-native-webview";
-import axios from "axios";
-
-export const b2bCatalog = async (client_id, client_secret, user_id) => {
-  try {
-    const response = await axios.post(
-      `https://front-b2b-api-test.azurewebsites.net/api/v1/cataloglink?userId=${user_id}&enableTransfers=true`,
-      test_data,
-      {
-        headers: {
-          "X-Client-Id": client_id,
-          "X-Client-Secret": client_secret,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    console.log(response, "REPOSE");
-    return response.data;
-  } catch (error) {
-    console.log("Request", error.request);
-    console.log("RESPONSE", error.response);
-    console.log("GENERIC", error);
-    return error
-  }
-};
 
 const FrontFinance = (props) => {
   const isDarkMode = useColorScheme?.() === "dark";
@@ -44,7 +20,6 @@ const FrontFinance = (props) => {
   const [showWebView, setShowWebView] = useState(false);
 
   useEffect(() => {
-    console.log(props, "P");
     if (props.url.length) {
       setIframeLink(props.url);
       setShowWebView(true);
@@ -57,8 +32,6 @@ const FrontFinance = (props) => {
       setShowWebView(null);
     };
   }, [props]);
-
-  console.log(props, "PS");
 
   const handleNavState = (event) => {
     console.log("Nav", event);
@@ -194,28 +167,3 @@ const styles = StyleSheet.create({
 });
 
 export default FrontFinance;
-
-export const test_data = {
-  ToAddresses: [
-    {
-      NetworkId: "e3c7fdd8-b1fc-4e51-85ae-bb276e075611",
-      Symbol: "ETH",
-      Address: "0x9Bf6207f8A3f4278E0C989527015deFe10e5D7c6",
-    },
-    {
-      NetworkId: "e3c7fdd8-b1fc-4e51-85ae-bb276e075611",
-      Symbol: "USDC",
-      Address: "0x9Bf6207f8A3f4278E0C989527015deFe10e5D7c6",
-    },
-    {
-      NetworkId: "7436e9d0-ba42-4d2b-b4c0-8e4e606b2c12",
-      Symbol: "USDC",
-      Address: "0x9Bf6207f8A3f4278E0C989527015deFe10e5D7c6",
-    },
-    {
-      networkId: "7436e9d0-ba42-4d2b-b4c0-8e4e606b2c12",
-      symbol: "MATIC",
-      address: "0x9Bf6207f8A3f4278E0C989527015deFe10e5D7c6",
-    },
-  ],
-};

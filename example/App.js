@@ -6,10 +6,12 @@ import {
   StyleSheet,
   Text,
 } from "react-native";
-import { FrontFinance, b2bCatalog } from "@front-finance/frontfinance-rn-sdk";
+import { FrontFinance } from "@front-finance/frontfinance-rn-sdk";
 import { useEffect, useState } from "react";
 import FormControl from "./components/form";
 import Reports from "./components/reports";
+import axios from "axios";
+import { test_data } from "./utility/config";
 
 const env_options = [
   { index: 0, name: "sandbox" },
@@ -34,11 +36,20 @@ export default function App() {
 
   const getUrl = async () => {
     try {
-      const response = await b2bCatalog(client_id, client_secret, user_id);
-      console.log(response.content,"CONTENT");
-      setIframeLink(response.content.url);
+      const response = await axios.post(
+        `https://front-b2b-api-test.azurewebsites.net/api/v1/cataloglink?userId=${user_id}&enableTransfers=true`,
+        test_data,
+        {
+          headers: {
+            "X-Client-Id": client_id,
+            "X-Client-Secret": client_secret,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      setIframeLink(response.data.content.url);
     } catch (error) {
-      console.log(error);
+      console.log("error", error);
     }
   };
 
@@ -68,7 +79,7 @@ export default function App() {
             ]
           );
         }}
-        onError={(err) => console.log(err)}
+        onError={(err) => setError(err)}
       />
     );
   }
