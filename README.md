@@ -5,13 +5,13 @@
 Install with [npm](https://www.npmjs.com/):
 
 ```sh
-$ npm install --save @front-finance/frontfinance-rn-sdk @front-finance/api
+$ npm install --save @front-finance/frontfinance-rn-sdk
 ```
 
 Install with [yarn](https://www.yarnpkg.com/):
 
 ```sh
-$ yarn add @front-finance/frontfinance-rn-sdk @front-finance/api
+$ yarn add @front-finance/frontfinance-rn-sdk
 ```
 
 For Expo-CLI run
@@ -49,38 +49,15 @@ Download the @front-finance from [GitHub](https://github.com/FrontFin).
 2. Front-Finance-rn-sdk component is a react component which will take a url and return account details against your selected broker account for e.g. RobinHood etc...
 
 ```js
-import React, { useEffect, useState } from "react";
-import { FrontFinance, b2bCatalog } from "@front-finance/frontfinance-rn-sdk";
-import axios from 'axios'
+import React, { useState } from "react";
+import { FrontFinance } from "@front-finance/frontfinance-rn-sdk";
 
 export const App = () => {
-  const [url, setUrl] = useState();
-
-  useEffect(() => {
-    const getUrl = async () => {
-      try {
-        const response = await axios.post(
-          `https://front-b2b-api-test.azurewebsites.net/api/v1/cataloglink?userId=${user_id}&enableTransfers=true`,
-          data, //you can provide your account addresses
-          {
-            headers: {
-              "X-Client-Id": client_id,
-              "X-Client-Secret": client_secret,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        setURL(response.data.content.url);
-      } catch (error) {
-        throw error;
-      }
-    };
-  }, []);
 
   return (
     <>
       <FrontFinance
-        url={url}
+        url={"Enter Broker Connect URL"}
         onReceive={(payload) => {
           console.log(payload);
         }}
