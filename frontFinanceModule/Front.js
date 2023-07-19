@@ -20,7 +20,6 @@ const FrontFinance = (props) => {
   const [showWebView, setShowWebView] = useState(false);
 
   useEffect(() => {
-    console.log(props, "P");
     if (props.url.length) {
       setIframeLink(props.url);
       setShowWebView(true);
@@ -33,8 +32,6 @@ const FrontFinance = (props) => {
       setShowWebView(null);
     };
   }, [props]);
-
-  console.log(props, "PS");
 
   const handleNavState = (event) => {
     console.log("Nav", event);
