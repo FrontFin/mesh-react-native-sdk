@@ -4,11 +4,10 @@
   "private": true,
   "description": "Front Finance react native resources (SDK and example app)",
   "workspaces": [
-    "example/*",
+    "./example",
     "packages/*"
   ],
-  "scripts": {
-  },
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/FrontFin/front-b2b-link-rn.git"
