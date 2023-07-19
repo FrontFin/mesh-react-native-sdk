@@ -1,7 +1,7 @@
 {
   "name": "ff-expo-app",
   "version": "1.0.0",
-  "main": "node_modules/expo/AppEntry.js",
+  "main": "index.js",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@front-finance/api": "^1.0.7",
-    "@front-finance/frontfinance-rn-sdk": "^1.1.0",
+    "@front-finance/frontfinance-rn-sdk": "*",
     "axios": "^1.4.0",
     "expo": "~48.0.18",
     "expo-status-bar": "~1.4.4",
