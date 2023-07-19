@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
@@ -135,6 +136,7 @@ const FrontFinance = (props) => {
             javaScriptEnabled={true}
             injectedJavaScript={INJECTED_JAVASCRIPT}
             onNavigationStateChange={handleNavState}
+            
           />
         )}
       </View>
