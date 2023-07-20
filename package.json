@@ -7,7 +7,9 @@
     "./example",
     "packages/*"
   ],
-  "scripts": {},
+  "scripts": {
+    "lint": "eslint --ignore-path .eslintignore --ext .js,.ts,.tsx ."
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/FrontFin/front-b2b-link-rn.git"
@@ -29,7 +31,14 @@
   "devDependencies": {
     "@babel/cli": "^7.17.6",
     "@babel/core": "^7.17.5",
-    "metro-react-native-babel-preset": "^0.68.0"
+    "@typescript-eslint/eslint-plugin": "^6.1.0",
+    "@typescript-eslint/parser": "^6.1.0",
+    "eslint": "^8.45.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-prettier": "^5.0.0",
+    "metro-react-native-babel-preset": "^0.68.0",
+    "prettier": "^3.0.0"
   },
   "dependencies": {
     "typescript": "^5.1.6"
