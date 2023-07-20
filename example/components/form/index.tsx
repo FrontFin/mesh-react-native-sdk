@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 
-const FormControl = (props) => {
+const FormControl = (props: any) => {
   const {
     env_options,
     client_id,
@@ -22,7 +22,7 @@ const FormControl = (props) => {
     getAuthLink
   } = props;
 
-  const [showOptions, setShowOPtions] = useState(false);
+  const [showOptions, setShowOptions] = useState(false);
 
   return (
     <SafeAreaView>
@@ -52,7 +52,7 @@ const FormControl = (props) => {
             />
             <TouchableOpacity
               onPress={() => {
-                setShowOPtions(!showOptions);
+                setShowOptions(!showOptions);
               }}
             >
               <Text>v</Text>
@@ -69,7 +69,7 @@ const FormControl = (props) => {
                 position: "absolute",
               }}
             >
-              {env_options.map((option) => {
+              {env_options.map((option: any) => {
                 return (
                   <TouchableOpacity
                     style={{
@@ -84,7 +84,7 @@ const FormControl = (props) => {
                     }}
                     onPress={() => {
                       setEnv(option.name);
-                      setShowOPtions(false);
+                      setShowOptions(false);
                     }}
                     key={option.index}
                   >

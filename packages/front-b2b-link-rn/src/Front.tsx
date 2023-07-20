@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import { WebView } from "react-native-webview";
+import { FrontPayload } from "./Types";
 
 const FrontFinance = (props) => {
   const isDarkMode = useColorScheme?.() === "dark";
@@ -16,8 +17,8 @@ const FrontFinance = (props) => {
   const backgroundStyle = {
     backgroundColor: isDarkMode ? "#000000" : "#ffffff",
   };
-  const [iframeLink, setIframeLink] = useState(null);
-  const [payload, setPayload] = useState(null);
+  const [iframeLink, setIframeLink] = useState<string | null>(null);
+  const [payload, setPayload] = useState<FrontPayload | null>(null);
   const [showWebView, setShowWebView] = useState(false);
 
   useEffect(() => {
