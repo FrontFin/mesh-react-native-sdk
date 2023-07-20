@@ -1,8 +1,9 @@
 import React from "react";
 import { View, Text } from "react-native";
+import {AccessTokenPayload} from "@front-finance/frontfinance-rn-sdk";
 
-const Reports = (props) => {
-  const { data } = props;
+const Reports = (props: {data: AccessTokenPayload}) => {
+  const data = props.data;
   if (data) {
     return (
       <View>
@@ -32,6 +33,8 @@ const Reports = (props) => {
         </Text>
       </View>
     );
+  } else {
+    return null;
   }
 };
 
