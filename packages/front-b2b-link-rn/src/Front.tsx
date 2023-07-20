@@ -20,6 +20,7 @@ const FrontFinance = (props) => {
   const [iframeLink, setIframeLink] = useState(null)
   const [payload, setPayload] = useState(null)
   const [showWebView, setShowWebView] = useState(false)
+  const isTransferLink = iframeLink?.includes('transfer_token')
 
   useEffect(() => {
     if (props.url.length) {
@@ -36,12 +37,12 @@ const FrontFinance = (props) => {
   }, [props])
 
   const handleNavState = (event) => {
-    console.log('Nav', event)
+    //console.log('Nav', event)
   }
 
   const handleMessage = (event) => {
     const { type, payload } = JSON.parse(event.nativeEvent.data)
-    console.log('MSG ', type, payload)
+    console.log('MSG', type, payload)
     if (
       type === 'close' ||
       type === 'showClose' ||
@@ -50,10 +51,12 @@ const FrontFinance = (props) => {
     ) {
       setShowWebView(false)
     }
-    if (type === 'brokerageAccountAccessToken') {
+    if (
+      (type === 'brokerageAccountAccessToken' && !isTransferLink) ||
+      type === 'transferFinished'
+    ) {
       setPayload(payload)
       props.onReceive(payload)
-      setShowWebView(false)
     }
   }
 
