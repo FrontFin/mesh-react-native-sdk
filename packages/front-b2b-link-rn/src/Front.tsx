@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
@@ -8,16 +7,23 @@ import {
   useColorScheme,
   View,
 } from "react-native";
-import { WebView } from "react-native-webview";
+import {WebView, WebViewMessageEvent} from "react-native-webview";
+import {AccessTokenPayload} from "./Types";
+import {WebViewNativeEvent} from "react-native-webview/lib/WebViewTypes";
 
-const FrontFinance = (props) => {
+const FrontFinance = (props: {
+  url: string,
+  onReceive?: (payload: AccessTokenPayload) => void,
+  onError?: (err: string) => void,
+  onClose?: () => void,
+}) => {
   const isDarkMode = useColorScheme?.() === "dark";
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? "#000000" : "#ffffff",
   };
-  const [iframeLink, setIframeLink] = useState(null);
-  const [payload, setPayload] = useState(null);
+  const [iframeLink, setIframeLink] = useState<string | null>(null);
+  const [payload, setPayload] = useState<AccessTokenPayload | null>(null);
   const [showWebView, setShowWebView] = useState(false);
 
   useEffect(() => {
@@ -25,20 +31,20 @@ const FrontFinance = (props) => {
       setIframeLink(props.url);
       setShowWebView(true);
     } else {
-      props.onError("Invalid iframeUrl");
+      props.onError && props.onError("Invalid iframeUrl");
     }
 
     return () => {
       setIframeLink(null);
-      setShowWebView(null);
+      setShowWebView(false);
     };
   }, [props]);
 
-  const handleNavState = (event) => {
+  const handleNavState = (event: WebViewNativeEvent) => {
     console.log("Nav", event);
   };
 
-  const handleMessage = (event) => {
+  const handleMessage = (event: WebViewMessageEvent) => {
     const { type, payload } = JSON.parse(event.nativeEvent.data);
     if (
       type === "close" ||
@@ -49,7 +55,7 @@ const FrontFinance = (props) => {
     }
     if (type === "brokerageAccountAccessToken") {
       setPayload(payload);
-      props.onReceive(payload);
+      props.onReceive && props.onReceive(payload);
       setShowWebView(false);
     }
   };
