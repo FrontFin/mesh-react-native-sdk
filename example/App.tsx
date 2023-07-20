@@ -11,16 +11,16 @@ import {
   Dimensions,
   Image,
 } from "react-native";
-import { FrontFinance } from "@front-finance/frontfinance-rn-sdk";
+import { FrontFinance, FrontPayload } from "@front-finance/frontfinance-rn-sdk";
 import { useState } from "react";
 import Reports from "./components/reports";
 
 const layout_width = Dimensions.get("window").width;
 
 export default function App() {
-  const [data, setData] = useState(null);
+  const {data, setData} = useState<FrontPayload>({});
   const [view, setView] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
   const [iframeLink, setIframeLink] = useState("");
 
   if (view && iframeLink.length) {
