@@ -1,5 +1,6 @@
-import { getDefaultConfig } from 'expo/metro-config'
-import path from 'path'
+/* eslint-disable @typescript-eslint/no-var-requires */
+const { getDefaultConfig } = require('expo/metro-config')
+const path = require('path')
 
 // Find the project and workspace directories
 const projectRoot = __dirname
