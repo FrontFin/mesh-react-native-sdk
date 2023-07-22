@@ -6,6 +6,7 @@ import {
   Text,
   useColorScheme,
   View,
+  TouchableOpacity,
 } from "react-native";
 import {WebView, WebViewMessageEvent} from "react-native-webview";
 import {AccessTokenPayload} from "./Types";
@@ -28,8 +29,8 @@ const FrontFinance = (props: {
 
   useEffect(() => {
     if (props.url.length) {
-      setIframeLink(props.url);
-      setShowWebView(true);
+      setIframeLink(props.url)
+      setShowWebView(true)
     } else {
       props.onError && props.onError("Invalid iframeUrl");
     }
@@ -47,50 +48,24 @@ const FrontFinance = (props: {
   const handleMessage = (event: WebViewMessageEvent) => {
     const { type, payload } = JSON.parse(event.nativeEvent.data);
     if (
-      type === "close" ||
-      type === "done" ||
-      type === "delayedAuthentication"
+      type === 'close' ||
+      type === 'showClose' ||
+      type === 'done' ||
+      type === 'delayedAuthentication'
     ) {
-      setShowWebView(false);
+      setShowWebView(false)
     }
-    if (type === "brokerageAccountAccessToken") {
-      setPayload(payload);
-      props.onReceive && props.onReceive(payload);
-      setShowWebView(false);
+    if (type === 'brokerageAccountAccessToken') {
+      setPayload(payload)
+      props.onReceive?(payload)
+      setShowWebView(false)
     }
-  };
-
-  const INJECTED_JAVASCRIPT = `
-    window.addEventListener('message', (event) => {
-      if (event?.data?.type === 'brokerageAccountAccessToken') {
-        window.ReactNativeWebView.postMessage(JSON.stringify({
-          type: event.data.type,
-          payload: event.data.payload
-        }))
-      }
-      if (event?.data?.type === 'delayedAuthentication') {
-        window.ReactNativeWebView.postMessage(JSON.stringify({
-          type: event.data.type,
-          payload: event.data.payload
-        }))
-      }
-      if (event?.data?.type === 'close') {
-        window.ReactNativeWebView.postMessage(JSON.stringify({
-          type: event.data.type,
-        }))
-      }
-      if (event?.type === 'done') {
-        window.ReactNativeWebView.postMessage(JSON.stringify({
-          type: event.data.type,
-        }))
-      }
-    })
-  `;
+  }
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <StatusBar
-        barStyle={isDarkMode ? "light-content" : "dark-content"}
+        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={backgroundStyle.backgroundColor}
       />
 
@@ -100,55 +75,69 @@ const FrontFinance = (props: {
             {payload ? (
               <View>
                 <Text>
-                  <Text style={{ fontWeight: "bold" }}>Broker:</Text>{" "}
+                  <Text style={{ fontWeight: 'bold' }}>Broker:</Text>{' '}
                   {payload?.brokerName}
-                  {"\n"}
-                  <Text style={{ fontWeight: "bold" }}>Token:</Text>{" "}
+                  {'\n'}
+                  <Text style={{ fontWeight: 'bold' }}>Token:</Text>{' '}
                   {payload?.accountTokens[0].accessToken}
-                  {"\n"}
-                  <Text style={{ fontWeight: "bold" }}>
+                  {'\n'}
+                  <Text style={{ fontWeight: 'bold' }}>
                     Refresh Token:
-                  </Text>{" "}
+                  </Text>{' '}
                   {payload?.accountTokens[0].refreshToken}
-                  {"\n"}
-                  <Text style={{ fontWeight: "bold" }}>
+                  {'\n'}
+                  <Text style={{ fontWeight: 'bold' }}>
                     Token expires in seconds:
-                  </Text>{" "}
+                  </Text>{' '}
                   {payload?.expiresInSeconds}
-                  {"\n"}
-                  <Text style={{ fontWeight: "bold" }}>ID:</Text>{" "}
+                  {'\n'}
+                  <Text style={{ fontWeight: 'bold' }}>ID:</Text>{' '}
                   {payload?.accountTokens[0].account.accountId}
-                  {"\n"}
-                  <Text style={{ fontWeight: "bold" }}>Name:</Text>{" "}
+                  {'\n'}
+                  <Text style={{ fontWeight: 'bold' }}>Name:</Text>{' '}
                   {payload?.accountTokens[0].account.accountName}
-                  {"\n"}
-                  <Text style={{ fontWeight: "bold" }}>Cash:</Text> $
+                  {'\n'}
+                  <Text style={{ fontWeight: 'bold' }}>Cash:</Text> $
                   {payload?.accountTokens[0].account.cash}
-                  {"\n"}
+                  {'\n'}
                 </Text>
               </View>
             ) : (
-              <Text style={styles.noText}>
-                No accounts connected recently! Please press the button below to
-                use Front and authenticate
-              </Text>
+              <View style={styles.container}>
+                <Text style={styles.noText}>
+                  No accounts connected recently! Please press the button below
+                  to use Front and authenticate
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setShowWebView(true)}
+                  style={styles.button}
+                >
+                  <Text
+                    style={{
+                      textAlign: 'center',
+                      fontSize: 18,
+                      color: 'white',
+                    }}
+                  >
+                    Continue
+                  </Text>
+                </TouchableOpacity>
+              </View>
             )}
           </>
         )}
         {showWebView && iframeLink && (
           <WebView
-            source={{ uri: iframeLink ? iframeLink : "" }}
+            source={{ uri: iframeLink ? iframeLink : '' }}
             onMessage={handleMessage}
             javaScriptEnabled={true}
-            injectedJavaScript={INJECTED_JAVASCRIPT}
             onNavigationStateChange={handleNavState}
-            
           />
         )}
       </View>
     </SafeAreaView>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -156,9 +145,9 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   webView: {
-    backgroundColor: "red",
+    backgroundColor: 'red',
     flex: 1,
-    position: "absolute",
+    position: 'absolute',
   },
   noText: {
     fontSize: 20,
@@ -166,12 +155,13 @@ const styles = StyleSheet.create({
   button: {
     marginTop: 50,
     padding: 10,
-    backgroundColor: "black",
+    backgroundColor: 'black',
+    borderRadius: 50,
   },
   btnText: {
     fontSize: 15,
-    color: "white",
+    color: 'white',
   },
-});
+})
 
-export default FrontFinance;
+export default FrontFinance
