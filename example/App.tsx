@@ -11,24 +11,24 @@ import {
   Dimensions,
   Image,
 } from "react-native";
-import { FrontFinance } from "@front-finance/frontfinance-rn-sdk";
+import { FrontFinance, AccessTokenPayload } from "@front-finance/frontfinance-rn-sdk";
 import { useState } from "react";
 import Reports from "./components/reports";
 
 const layout_width = Dimensions.get("window").width;
 
 export default function App() {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState<AccessTokenPayload | null>(null);
   const [view, setView] = useState(false);
-  const [error, setError] = useState(null);
-  const [iframeLink, setIframeLink] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [iframeLink, setIframeLink] = useState<string>("");
 
   if (view && iframeLink.length) {
     console.log(iframeLink, "URL");
     return (
       <FrontFinance
         url={iframeLink}
-        onReceive={(payload) => {
+        onReceive={(payload: AccessTokenPayload) => {
           Alert.alert(
             "Success",
             `Broker: ${payload?.brokerName}
@@ -50,7 +50,7 @@ export default function App() {
           );
         }}
         onClose={() => setView(false)}
-        onError={(err) => setError(err)}
+        onError={(err: string) => setError(err)}
       />
     );
   }
@@ -88,12 +88,14 @@ export default function App() {
               Connect
             </Text>
           </TouchableOpacity>
-          {data && <Reports data={data} />}
+          {data && <Reports data={data}/>}
           {error && <Text style={{ color: "red" }}>Error: {error}</Text>}
         </ScrollView>
       </SafeAreaView>
     );
   }
+
+  return null;
 }
 
 const styles = StyleSheet.create({
