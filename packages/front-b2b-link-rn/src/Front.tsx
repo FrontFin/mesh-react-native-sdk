@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react'
 import {
   SafeAreaView,
   StatusBar,
@@ -6,44 +6,44 @@ import {
   Text,
   useColorScheme,
   View,
-  TouchableOpacity,
+  TouchableOpacity
 } from "react-native";
 import {WebView, WebViewMessageEvent} from "react-native-webview";
 import {AccessTokenPayload} from "./Types";
 import {WebViewNativeEvent} from "react-native-webview/lib/WebViewTypes";
 
 const FrontFinance = (props: {
-  url: string,
-  onReceive?: (payload: AccessTokenPayload) => void,
-  onError?: (err: string) => void,
-  onClose?: () => void,
+  url: string
+  onReceive?: (payload: AccessTokenPayload) => void
+  onError?: (err: string) => void
+  onClose?: () => void
 }) => {
-  const isDarkMode = useColorScheme?.() === "dark";
+  const isDarkMode = useColorScheme?.() === 'dark'
 
   const backgroundStyle = {
-    backgroundColor: isDarkMode ? "#000000" : "#ffffff",
-  };
-  const [iframeLink, setIframeLink] = useState<string | null>(null);
-  const [payload, setPayload] = useState<AccessTokenPayload | null>(null);
-  const [showWebView, setShowWebView] = useState(false);
+    backgroundColor: isDarkMode ? '#000000' : '#ffffff'
+  }
+  const [iframeLink, setIframeLink] = useState<string | null>(null)
+  const [payload, setPayload] = useState<AccessTokenPayload | null>(null)
+  const [showWebView, setShowWebView] = useState(false)
 
   useEffect(() => {
     if (props.url.length) {
       setIframeLink(props.url)
       setShowWebView(true)
     } else {
-      props.onError && props.onError("Invalid iframeUrl");
+      props.onError?.('Invalid iframeUrl')
     }
 
     return () => {
-      setIframeLink(null);
-      setShowWebView(false);
-    };
-  }, [props]);
+      setIframeLink(null)
+      setShowWebView(false)
+    }
+  }, [props])
 
   const handleNavState = (event: WebViewNativeEvent) => {
-    console.log("Nav", event);
-  };
+    console.log('Nav', event)
+  }
 
   const handleMessage = (event: WebViewMessageEvent) => {
     const { type, payload } = JSON.parse(event.nativeEvent.data);
@@ -61,6 +61,7 @@ const FrontFinance = (props: {
       setShowWebView(false)
     }
   }
+
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -142,7 +143,7 @@ const FrontFinance = (props: {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
+    padding: 10
   },
   webView: {
     backgroundColor: 'red',
@@ -150,18 +151,15 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   noText: {
-    fontSize: 20,
+    fontSize: 20
   },
   button: {
     marginTop: 50,
     padding: 10,
-    backgroundColor: 'black',
-    borderRadius: 50,
+    backgroundColor: "black",
   },
   btnText: {
     fontSize: 15,
-    color: 'white',
+    color: "white",
   },
-})
-
-export default FrontFinance
+});
