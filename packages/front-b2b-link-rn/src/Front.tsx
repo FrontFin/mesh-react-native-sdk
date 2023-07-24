@@ -5,11 +5,12 @@ import {
   StyleSheet,
   Text,
   useColorScheme,
-  View
-} from 'react-native'
-import { WebView, WebViewMessageEvent } from 'react-native-webview'
-import { AccessTokenPayload } from './Types'
-import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes'
+  View,
+  TouchableOpacity
+} from "react-native";
+import {WebView, WebViewMessageEvent} from "react-native-webview";
+import {AccessTokenPayload} from "./Types";
+import {WebViewNativeEvent} from "react-native-webview/lib/WebViewTypes";
 
 const FrontFinance = (props: {
   url: string
@@ -45,9 +46,10 @@ const FrontFinance = (props: {
   }
 
   const handleMessage = (event: WebViewMessageEvent) => {
-    const { type, payload } = JSON.parse(event.nativeEvent.data)
+    const { type, payload } = JSON.parse(event.nativeEvent.data);
     if (
       type === 'close' ||
+      type === 'showClose' ||
       type === 'done' ||
       type === 'delayedAuthentication'
     ) {
@@ -55,37 +57,11 @@ const FrontFinance = (props: {
     }
     if (type === 'brokerageAccountAccessToken') {
       setPayload(payload)
-      props.onReceive?.(payload)
+      props.onReceive?(payload)
       setShowWebView(false)
     }
   }
 
-  const INJECTED_JAVASCRIPT = `
-    window.addEventListener('message', (event) => {
-      if (event?.data?.type === 'brokerageAccountAccessToken') {
-        window.ReactNativeWebView.postMessage(JSON.stringify({
-          type: event.data.type,
-          payload: event.data.payload
-        }))
-      }
-      if (event?.data?.type === 'delayedAuthentication') {
-        window.ReactNativeWebView.postMessage(JSON.stringify({
-          type: event.data.type,
-          payload: event.data.payload
-        }))
-      }
-      if (event?.data?.type === 'close') {
-        window.ReactNativeWebView.postMessage(JSON.stringify({
-          type: event.data.type,
-        }))
-      }
-      if (event?.type === 'done') {
-        window.ReactNativeWebView.postMessage(JSON.stringify({
-          type: event.data.type,
-        }))
-      }
-    })
-  `
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -128,10 +104,26 @@ const FrontFinance = (props: {
                 </Text>
               </View>
             ) : (
-              <Text style={styles.noText}>
-                No accounts connected recently! Please press the button below to
-                use Front and authenticate
-              </Text>
+              <View style={styles.container}>
+                <Text style={styles.noText}>
+                  No accounts connected recently! Please press the button below
+                  to use Front and authenticate
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setShowWebView(true)}
+                  style={styles.button}
+                >
+                  <Text
+                    style={{
+                      textAlign: 'center',
+                      fontSize: 18,
+                      color: 'white',
+                    }}
+                  >
+                    Continue
+                  </Text>
+                </TouchableOpacity>
+              </View>
             )}
           </>
         )}
@@ -140,7 +132,6 @@ const FrontFinance = (props: {
             source={{ uri: iframeLink ? iframeLink : '' }}
             onMessage={handleMessage}
             javaScriptEnabled={true}
-            injectedJavaScript={INJECTED_JAVASCRIPT}
             onNavigationStateChange={handleNavState}
           />
         )}
@@ -157,7 +148,7 @@ const styles = StyleSheet.create({
   webView: {
     backgroundColor: 'red',
     flex: 1,
-    position: 'absolute'
+    position: 'absolute',
   },
   noText: {
     fontSize: 20
@@ -165,12 +156,10 @@ const styles = StyleSheet.create({
   button: {
     marginTop: 50,
     padding: 10,
-    backgroundColor: 'black'
+    backgroundColor: "black",
   },
   btnText: {
     fontSize: 15,
-    color: 'white'
-  }
-})
-
-export default FrontFinance
+    color: "white",
+  },
+});
