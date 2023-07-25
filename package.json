@@ -8,7 +8,8 @@
     "packages/*"
   ],
   "scripts": {
-    "lint": "eslint --ignore-path .eslintignore --ext .js,.ts,.tsx ."
+    "lint": "eslint --ignore-path .eslintignore --ext .js,.ts,.tsx .",
+    "start:example": "cd example && yarn expo start"
   },
   "repository": {
     "type": "git",
