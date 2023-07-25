@@ -33,7 +33,7 @@ const FrontFinance = (props: {
       setIframeLink(props.url)
       setShowWebView(true)
     } else {
-      props.onError && props.onError('Invalid iframeUrl')
+      props.onError?.('Invalid iframeUrl')
     }
 
     return () => {
@@ -48,7 +48,6 @@ const FrontFinance = (props: {
 
   const handleMessage = (event: WebViewMessageEvent) => {
     const { type, payload } = JSON.parse(event.nativeEvent.data)
-    console.log('MSG', type, payload)
     if (
       type === 'close' ||
       type === 'showClose' ||
