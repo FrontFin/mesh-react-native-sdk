@@ -3,13 +3,14 @@ import {
   SafeAreaView,
   StatusBar,
   StyleSheet,
+  Text,
   useColorScheme,
   View,
   TouchableOpacity
-} from "react-native";
-import { WebView, WebViewMessageEvent } from "react-native-webview";
-import { AccessTokenPayload } from "./Types";
-import { WebViewNativeEvent } from "react-native-webview/lib/WebViewTypes";
+} from 'react-native'
+import { WebView, WebViewMessageEvent } from 'react-native-webview'
+import { AccessTokenPayload } from './Types'
+import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes'
 
 const FrontFinance = (props: {
   url: string
@@ -45,7 +46,7 @@ const FrontFinance = (props: {
   }
 
   const handleMessage = (event: WebViewMessageEvent) => {
-    const { type, payload } = JSON.parse(event.nativeEvent.data);
+    const { type, payload } = JSON.parse(event.nativeEvent.data)
     if (
       type === 'close' ||
       type === 'showClose' ||
@@ -56,11 +57,10 @@ const FrontFinance = (props: {
     }
     if (type === 'brokerageAccountAccessToken') {
       setPayload(payload)
-      props.onReceive?(payload)
+      props.onReceive?.(payload)
       setShowWebView(false)
     }
   }
-
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -116,7 +116,7 @@ const FrontFinance = (props: {
                     style={{
                       textAlign: 'center',
                       fontSize: 18,
-                      color: 'white',
+                      color: 'white'
                     }}
                   >
                     Continue
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
   webView: {
     backgroundColor: 'red',
     flex: 1,
-    position: 'absolute',
+    position: 'absolute'
   },
   noText: {
     fontSize: 20
@@ -155,12 +155,12 @@ const styles = StyleSheet.create({
   button: {
     marginTop: 50,
     padding: 10,
-    backgroundColor: "black",
+    backgroundColor: 'black'
   },
   btnText: {
     fontSize: 15,
-    color: "white",
-  },
-});
+    color: 'white'
+  }
+})
 
-export default FrontFinance;
+export default FrontFinance
