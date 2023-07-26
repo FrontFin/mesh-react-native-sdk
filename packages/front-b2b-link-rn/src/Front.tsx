@@ -5,9 +5,9 @@ import {
   useColorScheme,
   Alert,
   View,
-  Text,
   StyleSheet,
-  TouchableOpacity
+  TouchableOpacity,
+  Image
 } from 'react-native'
 import { WebView, WebViewMessageEvent } from 'react-native-webview'
 import { AccessTokenPayload } from './Types'
@@ -28,9 +28,7 @@ const FrontFinance = (props: {
   const [showWebView, setShowWebView] = useState(false)
   const [showNativeNavbar, setShowNativeNavbar] = useState(false)
   const webViewRef = useRef<WebView>(null)
-  const goback = () => {
-    webViewRef?.current?.goBack()
-  }
+
   useEffect(() => {
     if (props.url.length) {
       setIframeLink(props.url)
@@ -47,6 +45,9 @@ const FrontFinance = (props: {
 
   const handleNavState = (event: WebViewNativeEvent) => {
     console.log('Nav', event)
+    if (event.url.endsWith('/broker-connect/catalog')) {
+      setShowNativeNavbar(false)
+    }
   }
 
   const handleMessage = (event: WebViewMessageEvent) => {
@@ -91,10 +92,24 @@ const FrontFinance = (props: {
       />
       {showNativeNavbar && (
         <View style={styles.horizontalContainer}>
-          <TouchableOpacity onPress={() => goback()} style={styles.conBtn}>
-            <Text style={{ textAlign: 'center', fontSize: 18, color: 'red' }}>
-              back
-            </Text>
+          <TouchableOpacity
+            onPress={() => {
+              webViewRef?.current?.goBack()
+            }}
+            style={styles.navBarBtn}
+          >
+            <Image source={require('../assets/back-button-icon.png')} />
+          </TouchableOpacity>
+          <Image
+            source={require('../assets/logo.png')}
+            style={{ height: 18 }}
+            resizeMode="contain"
+          />
+          <TouchableOpacity
+            onPress={() => showCloseAlert()}
+            style={styles.navBarBtn}
+          >
+            <Image source={require('../assets/close-button-icon.png')} />
           </TouchableOpacity>
         </View>
       )}
@@ -114,18 +129,13 @@ const FrontFinance = (props: {
 const styles = StyleSheet.create({
   horizontalContainer: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    height: 40
+    justifyContent: 'space-between',
+    height: 40,
+    marginLeft: 16
   },
-  conBtn: {
-    backgroundColor: 'black',
-    height: 50,
-    width: 5,
-    alignSelf: 'center',
-    borderRadius: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 50
+  navBarBtn: {
+    height: 40,
+    width: 40
   }
 })
 
