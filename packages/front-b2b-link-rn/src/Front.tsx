@@ -1,11 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import {
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  useColorScheme,
-  View
-} from 'react-native'
+import { SafeAreaView, StatusBar, useColorScheme, Alert } from 'react-native'
 import { WebView, WebViewMessageEvent } from 'react-native-webview'
 import { AccessTokenPayload, TransferFinishedPayload } from './Types'
 import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes'
@@ -47,11 +41,13 @@ const FrontFinance = (props: {
     const { type, payload } = JSON.parse(event.nativeEvent.data)
     if (
       type === 'close' ||
-      type === 'showClose' ||
       type === 'done' ||
       type === 'delayedAuthentication'
     ) {
-      setShowWebView(false)
+      props.onClose?.()
+    }
+    if (type === 'showClose') {
+      showCloseAlert()
     }
     if (type === 'brokerageAccountAccessToken') {
       props.onBrokerConnected?.(payload)
@@ -61,50 +57,35 @@ const FrontFinance = (props: {
     }
   }
 
+  const showCloseAlert = () =>
+    Alert.alert(
+      'Are you sure you want to exit?',
+      'Your progress will be lost.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel'
+        },
+        { text: 'Exit', onPress: () => props.onClose?.() }
+      ]
+    )
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <StatusBar
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={backgroundStyle.backgroundColor}
       />
-
-      <View style={styles.container}>
-        {showWebView && catalogLink && (
-          <WebView
-            source={{ uri: catalogLink ? catalogLink : '' }}
-            onMessage={handleMessage}
-            javaScriptEnabled={true}
-            onNavigationStateChange={handleNavState}
-          />
-        )}
-      </View>
+      {showWebView && catalogLink && (
+        <WebView
+          source={{ uri: catalogLink ? catalogLink : '' }}
+          onMessage={handleMessage}
+          javaScriptEnabled={true}
+          onNavigationStateChange={handleNavState}
+        />
+      )}
     </SafeAreaView>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 10
-  },
-  webView: {
-    backgroundColor: 'red',
-    flex: 1,
-    position: 'absolute'
-  },
-  noText: {
-    fontSize: 20
-  },
-  button: {
-    marginTop: 50,
-    padding: 10,
-    backgroundColor: 'black',
-    borderRadius: 50
-  },
-  btnText: {
-    fontSize: 15,
-    color: 'white'
-  }
-})
 
 export default FrontFinance
