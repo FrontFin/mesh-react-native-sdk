@@ -13,7 +13,8 @@ import {
 } from 'react-native'
 import {
   FrontFinance,
-  AccessTokenPayload
+  AccessTokenPayload,
+  FrontPayload
 } from '@front-finance/frontfinance-rn-sdk'
 import { useState } from 'react'
 import Reports from './components/reports'
@@ -26,31 +27,31 @@ export default function App() {
   const [error, setError] = useState<string | null>(null)
   const [iframeLink, setIframeLink] = useState<string>('')
 
+  function showBrokerConnectedAlert(payload: AccessTokenPayload) {
+    Alert.alert(
+      `${payload.brokerName} connected!`,
+      `accountId: ${payload.accountTokens[0].account.accountId}`,
+      [
+        {
+          text: 'Ok',
+          onPress: () => {
+            setData(payload)
+            setView(false)
+          }
+        }
+      ]
+    )
+  }
+
   if (view && iframeLink.length) {
     console.log(iframeLink, 'URL')
     return (
       <FrontFinance
         url={iframeLink}
-        onReceive={(payload: AccessTokenPayload) => {
-          Alert.alert(
-            'Success',
-            `Broker: ${payload?.brokerName}
-          Token: ${payload?.accountTokens[0].accessToken}
-          Refresh Token: ${payload?.accountTokens[0].refreshToken}
-          Token expiry: ${payload?.expiresInSeconds}
-          ID: ${payload?.accountTokens[0].account.accountId}
-          Name: ${payload?.accountTokens[0].account.accountName}
-          Cash: ${payload?.accountTokens[0].account.cash}`,
-            [
-              {
-                text: 'back to app',
-                onPress: () => {
-                  setData(payload)
-                  setView(false)
-                }
-              }
-            ]
-          )
+        onBrokerConnected={(payload: FrontPayload) => {
+          if (payload.accessToken) {
+            showBrokerConnectedAlert(payload.accessToken)
+          }
         }}
         onClose={() => setView(false)}
         onError={(err: string) => setError(err)}
@@ -61,44 +62,40 @@ export default function App() {
   if (!view) {
     return (
       <SafeAreaView style={styles.container}>
-        <StatusBar backgroundColor="red" translucent style="auto" />
+        <StatusBar backgroundColor="#cecece83" translucent style="auto" />
         <ScrollView contentContainerStyle={{ padding: 10 }}>
           <View
             style={{
-              height: 100,
+              marginTop: 20,
+              height: 80,
               width: layout_width,
-              padding: 10,
               alignItems: 'center',
               justifyContent: 'center'
             }}
           >
             <Image source={require('./assets/logo.png')} resizeMode="contain" />
           </View>
-          <Text
-            style={{
-              color: '#000000',
-              fontSize: 16,
-              fontWeight: 'bold',
-              marginTop: 20
-            }}
-          >
-            Enter Broker Connect URL:
-          </Text>
+
           <View style={styles.inputContainer}>
             <TextInput
               value={iframeLink}
               onChangeText={e => setIframeLink(e)}
               style={{ width: '95%', height: 40, left: 10 }}
-              placeholder="Enter broker Connect Url"
+              placeholder="Catalog Link"
               placeholderTextColor={'#363636'}
             />
           </View>
+
           <TouchableOpacity onPress={() => setView(true)} style={styles.conBtn}>
-            <Text style={{ textAlign: 'center', fontSize: 18, color: 'red' }}>
+            <Text style={{ textAlign: 'center', fontSize: 18, color: 'white' }}>
               Connect
             </Text>
           </TouchableOpacity>
-          {data && <Reports data={data} />}
+
+          <View style={{ marginTop: 30 }}>
+            {data && <Reports data={data} />}
+          </View>
+
           {error && <Text style={{ color: 'red' }}>Error: {error}</Text>}
         </ScrollView>
       </SafeAreaView>
@@ -127,11 +124,11 @@ const styles = StyleSheet.create({
   conBtn: {
     backgroundColor: 'black',
     height: 50,
-    width: layout_width * 0.8,
+    width: layout_width * 0.9,
     alignSelf: 'center',
     borderRadius: 50,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 50
+    marginTop: 30
   }
 })
