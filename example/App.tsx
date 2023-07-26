@@ -14,6 +14,7 @@ import {
 import {
   FrontFinance,
   AccessTokenPayload,
+  FrontPayload,
   TransferFinishedPayload,
   TransferFinishedSuccessPayload,
   TransferFinishedErrorPayload
@@ -32,54 +33,56 @@ export default function App() {
   const [catalogLink, setCatalogLink] = useState<string>('')
   const isTransferLink = catalogLink?.includes('transfer_token')
 
+  function showBrokerConnectedAlert(payload: AccessTokenPayload) {
+    Alert.alert(
+      `${payload.brokerName} connected!`,
+      `accountId: ${payload.accountTokens[0].account.accountId}`,
+      [
+        {
+          text: 'Ok',
+          onPress: () => {
+            setData(payload)
+            setView(false)
+          }
+        }
+      ]
+    )
+  }
+
+  function showTransferFinishedAlert(payload: TransferFinishedSuccessPayload) {
+    Alert.alert(
+      'Transfer Finished',
+      `From Address: ${payload?.fromAddress}
+      To Address: ${payload?.toAddress}
+      Symbol: ${payload?.symbol}
+      Amount: ${payload?.amount}`,
+      [
+        {
+          text: 'Ok',
+          onPress: () => {
+            setData(payload)
+            setView(false)
+          }
+        }
+      ]
+    )
+  }
+
   if (view && catalogLink.length) {
     console.log(catalogLink, 'URL')
     return (
       <FrontFinance
         url={catalogLink}
-        onBrokerConnected={(payload: AccessTokenPayload) => {
+        onBrokerConnected={(payload: FrontPayload) => {
           if (isTransferLink) return
-          Alert.alert(
-            'Success',
-            `Broker: ${payload?.brokerName}
-          Token: ${payload?.accountTokens[0].accessToken}
-          Refresh Token: ${payload?.accountTokens[0].refreshToken}
-          Token expiry: ${payload?.expiresInSeconds}
-          ID: ${payload?.accountTokens[0].account.accountId}
-          Name: ${payload?.accountTokens[0].account.accountName}
-          Cash: ${payload?.accountTokens[0].account.cash}`,
-            [
-              {
-                text: 'back to app',
-                onPress: () => {
-                  setData(payload)
-                  setView(false)
-                }
-              }
-            ]
-          )
+          if (payload.accessToken) {
+            showBrokerConnectedAlert(payload.accessToken)
+          }
         }}
         onTransferFinished={(payload: TransferFinishedPayload) => {
           const successPayload = payload as TransferFinishedSuccessPayload
           if (successPayload) {
-            Alert.alert(
-              'Transfer Success',
-              `Transaction Id: ${successPayload?.txId}
-              From Address: ${successPayload?.fromAddress}
-              To Address: ${successPayload?.toAddress}
-              Symbol: ${successPayload?.symbol}
-              Amount: ${successPayload?.amount}
-              Network Id: ${successPayload?.networkId}`,
-              [
-                {
-                  text: 'back to app',
-                  onPress: () => {
-                    setData(successPayload)
-                    setView(false)
-                  }
-                }
-              ]
-            )
+            showTransferFinishedAlert(successPayload)
           }
           const errorPayload = payload as TransferFinishedErrorPayload
           if (errorPayload) {
@@ -95,44 +98,40 @@ export default function App() {
   if (!view) {
     return (
       <SafeAreaView style={styles.container}>
-        <StatusBar backgroundColor="red" translucent style="auto" />
+        <StatusBar backgroundColor="#cecece83" translucent style="auto" />
         <ScrollView contentContainerStyle={{ padding: 10 }}>
           <View
             style={{
-              height: 100,
+              marginTop: 20,
+              height: 80,
               width: layout_width,
-              padding: 10,
               alignItems: 'center',
               justifyContent: 'center'
             }}
           >
             <Image source={require('./assets/logo.png')} resizeMode="contain" />
           </View>
-          <Text
-            style={{
-              color: '#000000',
-              fontSize: 16,
-              fontWeight: 'bold',
-              marginTop: 20
-            }}
-          >
-            Enter Broker Connect URL:
-          </Text>
+
           <View style={styles.inputContainer}>
             <TextInput
               value={catalogLink}
               onChangeText={e => setCatalogLink(e)}
               style={{ width: '95%', height: 40, left: 10 }}
-              placeholder="Enter broker Connect Url"
+              placeholder="Catalog Link"
               placeholderTextColor={'#363636'}
             />
           </View>
+
           <TouchableOpacity onPress={() => setView(true)} style={styles.conBtn}>
-            <Text style={{ textAlign: 'center', fontSize: 18, color: 'red' }}>
+            <Text style={{ textAlign: 'center', fontSize: 18, color: 'white' }}>
               Connect
             </Text>
           </TouchableOpacity>
-          {data && <Reports data={data} />}
+
+          <View style={{ marginTop: 30 }}>
+            {data && <Reports data={data} />}
+          </View>
+
           {error && <Text style={{ color: 'red' }}>Error: {error}</Text>}
         </ScrollView>
       </SafeAreaView>
@@ -161,11 +160,11 @@ const styles = StyleSheet.create({
   conBtn: {
     backgroundColor: 'black',
     height: 50,
-    width: layout_width * 0.8,
+    width: layout_width * 0.9,
     alignSelf: 'center',
     borderRadius: 50,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 50
+    marginTop: 30
   }
 })

@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView, StatusBar, useColorScheme, Alert } from 'react-native'
 import { WebView, WebViewMessageEvent } from 'react-native-webview'
-import { AccessTokenPayload, TransferFinishedPayload } from './Types'
+import { FrontPayload, TransferFinishedPayload } from './Types'
 import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes'
 
 const FrontFinance = (props: {
   url: string
-  onBrokerConnected?: (payload: AccessTokenPayload) => void
+  onBrokerConnected?: (payload: FrontPayload) => void
   onTransferFinished?: (payload: TransferFinishedPayload) => void
   onError?: (err: string) => void
   onClose?: () => void
@@ -39,18 +39,21 @@ const FrontFinance = (props: {
 
   const handleMessage = (event: WebViewMessageEvent) => {
     const { type, payload } = JSON.parse(event.nativeEvent.data)
-    if (
-      type === 'close' ||
-      type === 'done' ||
-      type === 'delayedAuthentication'
-    ) {
+
+    if (type === 'close' || type === 'done') {
       props.onClose?.()
     }
+
     if (type === 'showClose') {
       showCloseAlert()
     }
+
     if (type === 'brokerageAccountAccessToken') {
-      props.onBrokerConnected?.(payload)
+      props.onBrokerConnected?.({ accessToken: payload })
+    }
+
+    if (type === 'delayedAuthentication') {
+      props.onBrokerConnected?.({ delayedAuth: payload })
     }
     if (type === 'transferFinished') {
       props.onTransferFinished?.(payload)
