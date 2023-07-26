@@ -3,18 +3,17 @@ import {
   SafeAreaView,
   StatusBar,
   StyleSheet,
-  Text,
   useColorScheme,
-  View,
-  TouchableOpacity
+  View
 } from 'react-native'
 import { WebView, WebViewMessageEvent } from 'react-native-webview'
-import { AccessTokenPayload } from './Types'
+import { AccessTokenPayload, TransferFinishedPayload } from './Types'
 import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes'
 
 const FrontFinance = (props: {
   url: string
-  onReceive?: (payload: AccessTokenPayload) => void
+  onBrokerConnected?: (payload: AccessTokenPayload) => void
+  onTransferFinished?: (payload: TransferFinishedPayload) => void
   onError?: (err: string) => void
   onClose?: () => void
 }) => {
@@ -23,21 +22,19 @@ const FrontFinance = (props: {
   const backgroundStyle = {
     backgroundColor: isDarkMode ? '#000000' : '#ffffff'
   }
-  const [iframeLink, setIframeLink] = useState<string | null>(null)
-  const [payload, setPayload] = useState<AccessTokenPayload | null>(null)
+  const [catalogLink, setCatalogLink] = useState<string | null>(null)
   const [showWebView, setShowWebView] = useState(false)
-  const isTransferLink = iframeLink?.includes('transfer_token')
 
   useEffect(() => {
     if (props.url.length) {
-      setIframeLink(props.url)
+      setCatalogLink(props.url)
       setShowWebView(true)
     } else {
       props.onError?.('Invalid iframeUrl')
     }
 
     return () => {
-      setIframeLink(null)
+      setCatalogLink(null)
       setShowWebView(false)
     }
   }, [props])
@@ -56,12 +53,11 @@ const FrontFinance = (props: {
     ) {
       setShowWebView(false)
     }
-    if (
-      (type === 'brokerageAccountAccessToken' && !isTransferLink) ||
-      type === 'transferFinished'
-    ) {
-      setPayload(payload)
-      props.onReceive?.(payload)
+    if (type === 'brokerageAccountAccessToken') {
+      props.onBrokerConnected?.(payload)
+    }
+    if (type === 'transferFinished') {
+      props.onTransferFinished?.(payload)
     }
   }
 
@@ -73,65 +69,9 @@ const FrontFinance = (props: {
       />
 
       <View style={styles.container}>
-        {!showWebView && (
-          <>
-            {payload ? (
-              <View>
-                <Text>
-                  <Text style={{ fontWeight: 'bold' }}>Broker:</Text>{' '}
-                  {payload?.brokerName}
-                  {'\n'}
-                  <Text style={{ fontWeight: 'bold' }}>Token:</Text>{' '}
-                  {payload?.accountTokens[0].accessToken}
-                  {'\n'}
-                  <Text style={{ fontWeight: 'bold' }}>
-                    Refresh Token:
-                  </Text>{' '}
-                  {payload?.accountTokens[0].refreshToken}
-                  {'\n'}
-                  <Text style={{ fontWeight: 'bold' }}>
-                    Token expires in seconds:
-                  </Text>{' '}
-                  {payload?.expiresInSeconds}
-                  {'\n'}
-                  <Text style={{ fontWeight: 'bold' }}>ID:</Text>{' '}
-                  {payload?.accountTokens[0].account.accountId}
-                  {'\n'}
-                  <Text style={{ fontWeight: 'bold' }}>Name:</Text>{' '}
-                  {payload?.accountTokens[0].account.accountName}
-                  {'\n'}
-                  <Text style={{ fontWeight: 'bold' }}>Cash:</Text> $
-                  {payload?.accountTokens[0].account.cash}
-                  {'\n'}
-                </Text>
-              </View>
-            ) : (
-              <View style={styles.container}>
-                <Text style={styles.noText}>
-                  No accounts connected recently! Please press the button below
-                  to use Front and authenticate
-                </Text>
-                <TouchableOpacity
-                  onPress={() => setShowWebView(true)}
-                  style={styles.button}
-                >
-                  <Text
-                    style={{
-                      textAlign: 'center',
-                      fontSize: 18,
-                      color: 'white'
-                    }}
-                  >
-                    Continue
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </>
-        )}
-        {showWebView && iframeLink && (
+        {showWebView && catalogLink && (
           <WebView
-            source={{ uri: iframeLink ? iframeLink : '' }}
+            source={{ uri: catalogLink ? catalogLink : '' }}
             onMessage={handleMessage}
             javaScriptEnabled={true}
             onNavigationStateChange={handleNavState}

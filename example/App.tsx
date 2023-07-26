@@ -13,7 +13,10 @@ import {
 } from 'react-native'
 import {
   FrontFinance,
-  AccessTokenPayload
+  AccessTokenPayload,
+  TransferFinishedPayload,
+  TransferFinishedSuccessPayload,
+  TransferFinishedErrorPayload
 } from '@front-finance/frontfinance-rn-sdk'
 import { useState } from 'react'
 import Reports from './components/reports'
@@ -21,17 +24,21 @@ import Reports from './components/reports'
 const layout_width = Dimensions.get('window').width
 
 export default function App() {
-  const [data, setData] = useState<AccessTokenPayload | null>(null)
+  const [data, setData] = useState<
+    AccessTokenPayload | TransferFinishedSuccessPayload | null
+  >(null)
   const [view, setView] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [iframeLink, setIframeLink] = useState<string>('')
+  const [catalogLink, setCatalogLink] = useState<string>('')
+  const isTransferLink = catalogLink?.includes('transfer_token')
 
-  if (view && iframeLink.length) {
-    console.log(iframeLink, 'URL')
+  if (view && catalogLink.length) {
+    console.log(catalogLink, 'URL')
     return (
       <FrontFinance
-        url={iframeLink}
-        onReceive={(payload: AccessTokenPayload) => {
+        url={catalogLink}
+        onBrokerConnected={(payload: AccessTokenPayload) => {
+          if (isTransferLink) return
           Alert.alert(
             'Success',
             `Broker: ${payload?.brokerName}
@@ -51,6 +58,33 @@ export default function App() {
               }
             ]
           )
+        }}
+        onTransferFinished={(payload: TransferFinishedPayload) => {
+          const successPayload = payload as TransferFinishedSuccessPayload
+          if (successPayload) {
+            Alert.alert(
+              'Transfer Success',
+              `Transaction Id: ${successPayload?.txId}
+              From Address: ${successPayload?.fromAddress}
+              To Address: ${successPayload?.toAddress}
+              Symbol: ${successPayload?.symbol}
+              Amount: ${successPayload?.amount}
+              Network Id: ${successPayload?.networkId}`,
+              [
+                {
+                  text: 'back to app',
+                  onPress: () => {
+                    setData(successPayload)
+                    setView(false)
+                  }
+                }
+              ]
+            )
+          }
+          const errorPayload = payload as TransferFinishedErrorPayload
+          if (errorPayload) {
+            setError(errorPayload.errorMessage)
+          }
         }}
         onClose={() => setView(false)}
         onError={(err: string) => setError(err)}
@@ -86,8 +120,8 @@ export default function App() {
           </Text>
           <View style={styles.inputContainer}>
             <TextInput
-              value={iframeLink}
-              onChangeText={e => setIframeLink(e)}
+              value={catalogLink}
+              onChangeText={e => setCatalogLink(e)}
               style={{ width: '95%', height: 40, left: 10 }}
               placeholder="Enter broker Connect Url"
               placeholderTextColor={'#363636'}
