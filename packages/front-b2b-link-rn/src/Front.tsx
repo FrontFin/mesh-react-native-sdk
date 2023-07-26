@@ -6,7 +6,8 @@ import {
   Text,
   useColorScheme,
   View,
-  TouchableOpacity
+  TouchableOpacity,
+  Alert
 } from 'react-native'
 import { WebView, WebViewMessageEvent } from 'react-native-webview'
 import { AccessTokenPayload } from './Types'
@@ -49,18 +50,32 @@ const FrontFinance = (props: {
     const { type, payload } = JSON.parse(event.nativeEvent.data)
     if (
       type === 'close' ||
-      type === 'showClose' ||
       type === 'done' ||
       type === 'delayedAuthentication'
     ) {
-      setShowWebView(false)
+      props?.onClose?.()
+    }
+    if (type === 'showClose') {
+      showCloseAlert()
     }
     if (type === 'brokerageAccountAccessToken') {
       setPayload(payload)
       props.onReceive?.(payload)
-      setShowWebView(false)
     }
   }
+
+  const showCloseAlert = () =>
+    Alert.alert(
+      'Are you sure you want to exit?',
+      'Your progress will be lost.',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel'
+        },
+        { text: 'Exit', onPress: () => props?.onClose?.() }
+      ]
+    )
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
