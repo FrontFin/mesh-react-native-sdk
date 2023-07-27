@@ -32,6 +32,9 @@ export default function App() {
   const [error, setError] = useState<string | null>(null)
   const [catalogLink, setCatalogLink] = useState<string>('')
   const isTransferLink = catalogLink?.includes('transfer_token')
+  const connectButtonTitle = isTransferLink
+    ? 'Connect origin account'
+    : 'Connect account'
 
   function showBrokerConnectedAlert(payload: AccessTokenPayload) {
     Alert.alert(
@@ -52,9 +55,7 @@ export default function App() {
   function showTransferFinishedAlert(payload: TransferFinishedSuccessPayload) {
     Alert.alert(
       'Transfer Finished',
-      `From Address: ${payload?.fromAddress}
-      To Address: ${payload?.toAddress}
-      Symbol: ${payload?.symbol}
+      `Symbol: ${payload?.symbol}
       Amount: ${payload?.amount}`,
       [
         {
@@ -80,12 +81,11 @@ export default function App() {
           }
         }}
         onTransferFinished={(payload: TransferFinishedPayload) => {
-          const successPayload = payload as TransferFinishedSuccessPayload
-          if (successPayload) {
+          if (payload.status === 'success') {
+            const successPayload = payload as TransferFinishedSuccessPayload
             showTransferFinishedAlert(successPayload)
-          }
-          const errorPayload = payload as TransferFinishedErrorPayload
-          if (errorPayload) {
+          } else {
+            const errorPayload = payload as TransferFinishedErrorPayload
             setError(errorPayload.errorMessage)
           }
         }}
@@ -99,17 +99,20 @@ export default function App() {
     return (
       <SafeAreaView style={styles.container}>
         <StatusBar backgroundColor="#cecece83" translucent style="auto" />
-        <ScrollView contentContainerStyle={{ padding: 10 }}>
+        <ScrollView contentContainerStyle={{}}>
           <View
             style={{
-              marginTop: 20,
               height: 80,
               width: layout_width,
               alignItems: 'center',
               justifyContent: 'center'
             }}
           >
-            <Image source={require('./assets/logo.png')} resizeMode="contain" />
+            <Image
+              source={require('./assets/logo.png')}
+              style={{ height: 18 }}
+              resizeMode="contain"
+            />
           </View>
 
           <View style={styles.inputContainer}>
@@ -124,7 +127,7 @@ export default function App() {
 
           <TouchableOpacity onPress={() => setView(true)} style={styles.conBtn}>
             <Text style={{ textAlign: 'center', fontSize: 18, color: 'white' }}>
-              Connect
+              {connectButtonTitle}
             </Text>
           </TouchableOpacity>
 

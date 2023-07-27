@@ -9,9 +9,9 @@ const Reports = (props: {
   data: AccessTokenPayload | TransferFinishedSuccessPayload
 }) => {
   const data = props.data as AccessTokenPayload
-  if (data) {
+  if (data.accountTokens !== undefined) {
     return (
-      <View>
+      <View style={{ padding: 10 }}>
         <Text>
           <Text style={{ fontWeight: 'bold' }}>Broker:</Text> {data?.brokerName}
           {'\n'}
@@ -40,18 +40,18 @@ const Reports = (props: {
     )
   }
   const transferData = props.data as TransferFinishedSuccessPayload
-  if (transferData) {
+  if (transferData.txId !== undefined) {
     return (
-      <View>
+      <View style={{ padding: 10 }}>
         <Text>
           <Text style={{ fontWeight: 'bold' }}>Transaction Id:</Text>{' '}
           {transferData?.txId}
           {'\n'}
           <Text style={{ fontWeight: 'bold' }}>From Addres:</Text>{' '}
-          {transferData?.fromAddress}
+          {transferData?.fromAddress || ''}
           {'\n'}
           <Text style={{ fontWeight: 'bold' }}>To Address:</Text>{' '}
-          {transferData?.toAddress}
+          {transferData?.toAddress || ''}
           {'\n'}
           <Text style={{ fontWeight: 'bold' }}>Symbol:</Text>{' '}
           {transferData.symbol}
