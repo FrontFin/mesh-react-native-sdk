@@ -11,9 +11,9 @@
     "build:esm": "tsc --outDir dist",
     "build:cjs": "tsc --module commonjs --outDir dist/cjs",
     "typecheck": "tsc --noEmit",
+    "lint": "eslint --ext .js,.ts,.tsx .",
     "copy": "node ./tools/copy",
-    "publish:npm": "yarn build && cd dist && yarn publish --access public",
-    "lint": "eslint --ext .js,.ts,.tsx ."
+    "publish:npm": "yarn build && cd dist && yarn publish --access public"
   },
   "repository": {
     "type": "git",
