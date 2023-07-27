@@ -17,6 +17,8 @@ on:
       - 'packages.json'
       - 'yarn.lock'
       - 'example/**'
+  push:
+    branches: [B2B-1162-rn-sdk-add-lint-check-to-git-hub-flow]
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
