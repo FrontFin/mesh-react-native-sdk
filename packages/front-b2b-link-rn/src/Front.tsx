@@ -10,12 +10,13 @@ import {
   Image
 } from 'react-native'
 import { WebView, WebViewMessageEvent } from 'react-native-webview'
-import { AccessTokenPayload } from './Types'
+import { FrontPayload, TransferFinishedPayload } from './Types'
 import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes'
 
 const FrontFinance = (props: {
   url: string
-  onReceive?: (payload: AccessTokenPayload) => void
+  onBrokerConnected?: (payload: FrontPayload) => void
+  onTransferFinished?: (payload: TransferFinishedPayload) => void
   onError?: (err: string) => void
   onClose?: () => void
 }) => {
@@ -24,21 +25,21 @@ const FrontFinance = (props: {
   const backgroundStyle = {
     backgroundColor: isDarkMode ? '#000000' : '#ffffff'
   }
-  const [iframeLink, setIframeLink] = useState<string | null>(null)
+  const [catalogLink, setCatalogLink] = useState<string | null>(null)
   const [showWebView, setShowWebView] = useState(false)
   const [showNativeNavbar, setShowNativeNavbar] = useState(false)
   const webViewRef = useRef<WebView>(null)
 
   useEffect(() => {
     if (props.url.length) {
-      setIframeLink(props.url)
+      setCatalogLink(props.url)
       setShowWebView(true)
     } else {
       props.onError?.('Invalid iframeUrl')
     }
 
     return () => {
-      setIframeLink(null)
+      setCatalogLink(null)
       setShowWebView(false)
     }
   }, [props])
@@ -52,14 +53,11 @@ const FrontFinance = (props: {
 
   const handleMessage = (event: WebViewMessageEvent) => {
     const { type, payload } = JSON.parse(event.nativeEvent.data)
-    console.log('Msg', type, payload)
-    if (
-      type === 'close' ||
-      type === 'done' ||
-      type === 'delayedAuthentication'
-    ) {
+
+    if (type === 'close' || type === 'done') {
       props.onClose?.()
     }
+
     if (type === 'showClose') {
       showCloseAlert()
     }
@@ -67,7 +65,14 @@ const FrontFinance = (props: {
       setShowNativeNavbar(payload)
     }
     if (type === 'brokerageAccountAccessToken') {
-      props.onReceive?.(payload)
+      props.onBrokerConnected?.({ accessToken: payload })
+    }
+
+    if (type === 'delayedAuthentication') {
+      props.onBrokerConnected?.({ delayedAuth: payload })
+    }
+    if (type === 'transferFinished') {
+      props.onTransferFinished?.(payload)
     }
   }
 
@@ -113,10 +118,10 @@ const FrontFinance = (props: {
           </TouchableOpacity>
         </View>
       )}
-      {showWebView && iframeLink && (
+      {showWebView && catalogLink && (
         <WebView
           ref={webViewRef}
-          source={{ uri: iframeLink ? iframeLink : '' }}
+          source={{ uri: catalogLink ? catalogLink : '' }}
           onMessage={handleMessage}
           javaScriptEnabled={true}
           onNavigationStateChange={handleNavState}
