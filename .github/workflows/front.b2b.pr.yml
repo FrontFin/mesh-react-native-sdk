@@ -36,6 +36,6 @@ jobs:
       - name: Checking for linting errors
         run: yarn lint
       - name: Yarn build
-        run: yarn build
+        run: yarn build .
       - name: Yarn test
         run: yarn test
