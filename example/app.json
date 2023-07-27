@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "ff-expo-app",
-    "slug": "ff-expo-app",
+    "name": "front-b2b-rn-sdk-example",
+    "slug": "front-b2b-rn-sdk-example",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -33,6 +33,12 @@
     },
     "updates": {
       "url": "https://u.expo.dev/c6dbdef0-d3be-489a-bcaa-fe0bc016abaa"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a9150e77-7049-4d7b-8671-80470e307a90"
+      }
+    },
+    "owner": "vitaliimovchan-front"
   }
 }
