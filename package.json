@@ -8,6 +8,7 @@
     "packages/*"
   ],
   "scripts": {
+    "typecheck": "lerna run typecheck",
     "lint": "eslint --ignore-path .eslintignore --ext .js,.ts,.tsx .",
     "start:example": "cd example && yarn expo start"
   },
@@ -38,6 +39,7 @@
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-prettier": "^5.0.0",
+    "lerna": "^6.6.2",
     "metro-react-native-babel-preset": "^0.68.0",
     "prettier": "^3.0.0"
   },
