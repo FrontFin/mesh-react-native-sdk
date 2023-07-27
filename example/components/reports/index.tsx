@@ -1,12 +1,17 @@
 import React from 'react'
 import { View, Text } from 'react-native'
-import { AccessTokenPayload } from '@front-finance/frontfinance-rn-sdk'
+import {
+  AccessTokenPayload,
+  TransferFinishedSuccessPayload
+} from '@front-finance/frontfinance-rn-sdk'
 
-const Reports = (props: { data: AccessTokenPayload }) => {
-  const data = props.data
-  if (data) {
+const Reports = (props: {
+  data: AccessTokenPayload | TransferFinishedSuccessPayload
+}) => {
+  const data = props.data as AccessTokenPayload
+  if (data.accountTokens !== undefined) {
     return (
-      <View>
+      <View style={{ padding: 10 }}>
         <Text>
           <Text style={{ fontWeight: 'bold' }}>Broker:</Text> {data?.brokerName}
           {'\n'}
@@ -33,9 +38,35 @@ const Reports = (props: { data: AccessTokenPayload }) => {
         </Text>
       </View>
     )
-  } else {
-    return null
   }
+  const transferData = props.data as TransferFinishedSuccessPayload
+  if (transferData.txId !== undefined) {
+    return (
+      <View style={{ padding: 10 }}>
+        <Text>
+          <Text style={{ fontWeight: 'bold' }}>Transaction Id:</Text>{' '}
+          {transferData?.txId}
+          {'\n'}
+          <Text style={{ fontWeight: 'bold' }}>From Addres:</Text>{' '}
+          {transferData?.fromAddress || ''}
+          {'\n'}
+          <Text style={{ fontWeight: 'bold' }}>To Address:</Text>{' '}
+          {transferData?.toAddress || ''}
+          {'\n'}
+          <Text style={{ fontWeight: 'bold' }}>Symbol:</Text>{' '}
+          {transferData.symbol}
+          {'\n'}
+          <Text style={{ fontWeight: 'bold' }}>Amount:</Text>{' '}
+          {transferData.amount}
+          {'\n'}
+          <Text style={{ fontWeight: 'bold' }}>Network Id:</Text>{' '}
+          {transferData.networkId}
+          {'\n'}
+        </Text>
+      </View>
+    )
+  }
+  return null
 }
 
 export default Reports

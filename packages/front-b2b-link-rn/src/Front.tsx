@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView, StatusBar, useColorScheme, Alert } from 'react-native'
 import { WebView, WebViewMessageEvent } from 'react-native-webview'
-import { FrontPayload } from './Types'
+import { FrontPayload, TransferFinishedPayload } from './Types'
 import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes'
 
 const FrontFinance = (props: {
   url: string
   onBrokerConnected?: (payload: FrontPayload) => void
+  onTransferFinished?: (payload: TransferFinishedPayload) => void
   onError?: (err: string) => void
   onClose?: () => void
 }) => {
@@ -15,19 +16,19 @@ const FrontFinance = (props: {
   const backgroundStyle = {
     backgroundColor: isDarkMode ? '#000000' : '#ffffff'
   }
-  const [iframeLink, setIframeLink] = useState<string | null>(null)
+  const [catalogLink, setCatalogLink] = useState<string | null>(null)
   const [showWebView, setShowWebView] = useState(false)
 
   useEffect(() => {
     if (props.url.length) {
-      setIframeLink(props.url)
+      setCatalogLink(props.url)
       setShowWebView(true)
     } else {
       props.onError?.('Invalid iframeUrl')
     }
 
     return () => {
-      setIframeLink(null)
+      setCatalogLink(null)
       setShowWebView(false)
     }
   }, [props])
@@ -54,6 +55,9 @@ const FrontFinance = (props: {
     if (type === 'delayedAuthentication') {
       props.onBrokerConnected?.({ delayedAuth: payload })
     }
+    if (type === 'transferFinished') {
+      props.onTransferFinished?.(payload)
+    }
   }
 
   const showCloseAlert = () =>
@@ -75,9 +79,9 @@ const FrontFinance = (props: {
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={backgroundStyle.backgroundColor}
       />
-      {showWebView && iframeLink && (
+      {showWebView && catalogLink && (
         <WebView
-          source={{ uri: iframeLink ? iframeLink : '' }}
+          source={{ uri: catalogLink ? catalogLink : '' }}
           onMessage={handleMessage}
           javaScriptEnabled={true}
           onNavigationStateChange={handleNavState}

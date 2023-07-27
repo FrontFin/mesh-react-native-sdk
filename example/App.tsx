@@ -14,7 +14,10 @@ import {
 import {
   FrontFinance,
   AccessTokenPayload,
-  FrontPayload
+  FrontPayload,
+  TransferFinishedPayload,
+  TransferFinishedSuccessPayload,
+  TransferFinishedErrorPayload
 } from '@front-finance/frontfinance-rn-sdk'
 import { useState } from 'react'
 import Reports from './components/reports'
@@ -22,10 +25,16 @@ import Reports from './components/reports'
 const layout_width = Dimensions.get('window').width
 
 export default function App() {
-  const [data, setData] = useState<AccessTokenPayload | null>(null)
+  const [data, setData] = useState<
+    AccessTokenPayload | TransferFinishedSuccessPayload | null
+  >(null)
   const [view, setView] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [iframeLink, setIframeLink] = useState<string>('')
+  const [catalogLink, setCatalogLink] = useState<string>('')
+  const isTransferLink = catalogLink?.includes('transfer_token')
+  const connectButtonTitle = isTransferLink
+    ? 'Connect origin account'
+    : 'Connect account'
 
   function showBrokerConnectedAlert(payload: AccessTokenPayload) {
     Alert.alert(
@@ -43,14 +52,41 @@ export default function App() {
     )
   }
 
-  if (view && iframeLink.length) {
-    console.log(iframeLink, 'URL')
+  function showTransferFinishedAlert(payload: TransferFinishedSuccessPayload) {
+    Alert.alert(
+      'Transfer Finished',
+      `Symbol: ${payload?.symbol}
+      Amount: ${payload?.amount}`,
+      [
+        {
+          text: 'Ok',
+          onPress: () => {
+            setData(payload)
+            setView(false)
+          }
+        }
+      ]
+    )
+  }
+
+  if (view && catalogLink.length) {
+    console.log(catalogLink, 'URL')
     return (
       <FrontFinance
-        url={iframeLink}
+        url={catalogLink}
         onBrokerConnected={(payload: FrontPayload) => {
+          if (isTransferLink) return
           if (payload.accessToken) {
             showBrokerConnectedAlert(payload.accessToken)
+          }
+        }}
+        onTransferFinished={(payload: TransferFinishedPayload) => {
+          if (payload.status === 'success') {
+            const successPayload = payload as TransferFinishedSuccessPayload
+            showTransferFinishedAlert(successPayload)
+          } else {
+            const errorPayload = payload as TransferFinishedErrorPayload
+            setError(errorPayload.errorMessage)
           }
         }}
         onClose={() => setView(false)}
@@ -63,23 +99,26 @@ export default function App() {
     return (
       <SafeAreaView style={styles.container}>
         <StatusBar backgroundColor="#cecece83" translucent style="auto" />
-        <ScrollView contentContainerStyle={{ padding: 10 }}>
+        <ScrollView contentContainerStyle={{}}>
           <View
             style={{
-              marginTop: 20,
               height: 80,
               width: layout_width,
               alignItems: 'center',
               justifyContent: 'center'
             }}
           >
-            <Image source={require('./assets/logo.png')} resizeMode="contain" />
+            <Image
+              source={require('./assets/logo.png')}
+              style={{ height: 18 }}
+              resizeMode="contain"
+            />
           </View>
 
           <View style={styles.inputContainer}>
             <TextInput
-              value={iframeLink}
-              onChangeText={e => setIframeLink(e)}
+              value={catalogLink}
+              onChangeText={e => setCatalogLink(e)}
               style={{ width: '95%', height: 40, left: 10 }}
               placeholder="Catalog Link"
               placeholderTextColor={'#363636'}
@@ -88,7 +127,7 @@ export default function App() {
 
           <TouchableOpacity onPress={() => setView(true)} style={styles.conBtn}>
             <Text style={{ textAlign: 'center', fontSize: 18, color: 'white' }}>
-              Connect
+              {connectButtonTitle}
             </Text>
           </TouchableOpacity>
 
