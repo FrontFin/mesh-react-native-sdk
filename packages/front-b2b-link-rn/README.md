@@ -18,7 +18,7 @@ yarn add @front-finance/frontfinance-rn-sdk
 
 ### Getting connection link
 
-Connection link should be obtained from the GET `/api/v1/cataloglink` endpoint. Api reference for this request is available [here](https://integration-api.getfront.com/apireference#tag/Integrations/paths/~1api~1v1~1cataloglink/get). Request must be preformed from the server side because it requires the client secret. You will get the response in the following format:
+The connection link for brokerage connection should be obtained from the [Get catalog link](https://integration-api.getfront.com/apireference#tag/Managed-Account-Authentication/paths/~1api~1v1~1cataloglink/get) endpoint. Request must be performed from the server side because it requires the client secret. You will get the response in the following format:
 
 ```json
 {
