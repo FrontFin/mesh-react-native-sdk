@@ -103,7 +103,10 @@ const FrontFinance = (props: {
             }}
             style={styles.navBarBtn}
           >
-            <Image source={require('../assets/back-button-icon.png')} />
+            <Image
+              source={require('../assets/back-button-icon.png')}
+              resizeMode="center"
+            />
           </TouchableOpacity>
           <Image
             source={require('../assets/logo.png')}
@@ -114,7 +117,10 @@ const FrontFinance = (props: {
             onPress={() => showCloseAlert()}
             style={styles.navBarBtn}
           >
-            <Image source={require('../assets/close-button-icon.png')} />
+            <Image
+              source={require('../assets/close-button-icon.png')}
+              resizeMode="center"
+            />
           </TouchableOpacity>
         </View>
       )}
@@ -135,12 +141,14 @@ const styles = StyleSheet.create({
   horizontalContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    height: 40,
-    marginLeft: 16
+    alignItems: 'center',
+    height: 40
   },
   navBarBtn: {
     height: 40,
-    width: 40
+    width: 40,
+    alignItems: 'center',
+    justifyContent: 'center'
   }
 })
 
