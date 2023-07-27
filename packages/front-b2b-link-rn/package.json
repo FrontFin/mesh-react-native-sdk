@@ -12,7 +12,8 @@
     "build:cjs": "tsc --module commonjs --outDir dist/cjs",
     "typecheck": "tsc --noEmit",
     "copy": "node ./tools/copy",
-    "publish:npm": "yarn build && cd dist && yarn publish --access public"
+    "publish:npm": "yarn build && cd dist && yarn publish --access public",
+    "lint": "eslint --ext .js,.ts,.tsx ."
   },
   "repository": {
     "type": "git",

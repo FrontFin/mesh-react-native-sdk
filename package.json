@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "typecheck": "lerna run typecheck",
-    "lint": "eslint --ignore-path .eslintignore --ext .js,.ts,.tsx .",
+    "lint": "lerna run lint",
     "start:example": "cd example && yarn expo start"
   },
   "repository": {
