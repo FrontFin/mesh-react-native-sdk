@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "ff-expo-app",
-    "slug": "ff-expo-app",
+    "name": "front-b2b-rn-sdk-example",
+    "slug": "front-b2b-rn-sdk-example",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

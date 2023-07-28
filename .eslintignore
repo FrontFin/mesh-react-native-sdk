@@ -1,7 +1,0 @@
-{
-  "ignorePatterns": [
-    "**/*.test.ts",
-    "**/*.test.tsx",
-    "**/dist/**"
-  ]
-}
