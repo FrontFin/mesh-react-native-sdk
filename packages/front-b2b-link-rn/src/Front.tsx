@@ -140,13 +140,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 64,
     paddingTop: 12,
-    paddingStart: 14,
-    paddingEnd: 16
+    paddingStart: 6,
+    paddingEnd: 8
   },
   navBarImgButton: {
     resizeMode: 'center',
-    width: 24,
-    height: 24
+    width: 40,
+    height: 40
   },
   navBarLogo: {
     resizeMode: 'center',
