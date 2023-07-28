@@ -1,5 +1,14 @@
-import React, { useEffect, useState } from 'react'
-import { SafeAreaView, StatusBar, useColorScheme, Alert } from 'react-native'
+import React, { useEffect, useState, useRef } from 'react'
+import {
+  SafeAreaView,
+  StatusBar,
+  useColorScheme,
+  Alert,
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Image
+} from 'react-native'
 import { WebView, WebViewMessageEvent } from 'react-native-webview'
 import { FrontPayload, TransferFinishedPayload } from './Types'
 import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes'
@@ -18,6 +27,8 @@ const FrontFinance = (props: {
   }
   const [catalogLink, setCatalogLink] = useState<string | null>(null)
   const [showWebView, setShowWebView] = useState(false)
+  const [showNativeNavbar, setShowNativeNavbar] = useState(false)
+  const webViewRef = useRef<WebView>(null)
 
   useEffect(() => {
     if (props.url.length) {
@@ -35,6 +46,9 @@ const FrontFinance = (props: {
 
   const handleNavState = (event: WebViewNativeEvent) => {
     console.log('Nav', event)
+    if (event.url.endsWith('/broker-connect/catalog')) {
+      setShowNativeNavbar(false)
+    }
   }
 
   const handleMessage = (event: WebViewMessageEvent) => {
@@ -47,7 +61,9 @@ const FrontFinance = (props: {
     if (type === 'showClose') {
       showCloseAlert()
     }
-
+    if (type === 'showNativeNavbar') {
+      setShowNativeNavbar(payload)
+    }
     if (type === 'brokerageAccountAccessToken') {
       props.onBrokerConnected?.({ accessToken: payload })
     }
@@ -55,10 +71,13 @@ const FrontFinance = (props: {
     if (type === 'delayedAuthentication') {
       props.onBrokerConnected?.({ delayedAuth: payload })
     }
+
     if (type === 'transferFinished') {
       props.onTransferFinished?.(payload)
     }
   }
+
+  const goBack = () => webViewRef?.current?.goBack()
 
   const showCloseAlert = () =>
     Alert.alert(
@@ -79,8 +98,31 @@ const FrontFinance = (props: {
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={backgroundStyle.backgroundColor}
       />
+      {showNativeNavbar && (
+        <View style={styles.navBarContainer}>
+          <TouchableOpacity onPress={goBack}>
+            <Image
+              source={require('../assets/ic_back.png')}
+              style={styles.navBarImgButton}
+            />
+          </TouchableOpacity>
+
+          <Image
+            source={require('../assets/front_logo.png')}
+            style={styles.navBarLogo}
+          />
+
+          <TouchableOpacity onPress={showCloseAlert}>
+            <Image
+              source={require('../assets/ic_close.png')}
+              style={styles.navBarImgButton}
+            />
+          </TouchableOpacity>
+        </View>
+      )}
       {showWebView && catalogLink && (
         <WebView
+          ref={webViewRef}
           source={{ uri: catalogLink ? catalogLink : '' }}
           onMessage={handleMessage}
           javaScriptEnabled={true}
@@ -90,5 +132,26 @@ const FrontFinance = (props: {
     </SafeAreaView>
   )
 }
+
+const styles = StyleSheet.create({
+  navBarContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    height: 64,
+    paddingTop: 12,
+    paddingStart: 6,
+    paddingEnd: 8
+  },
+  navBarImgButton: {
+    resizeMode: 'center',
+    width: 40,
+    height: 40
+  },
+  navBarLogo: {
+    resizeMode: 'center',
+    height: 18
+  }
+})
 
 export default FrontFinance
