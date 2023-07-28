@@ -71,10 +71,13 @@ const FrontFinance = (props: {
     if (type === 'delayedAuthentication') {
       props.onBrokerConnected?.({ delayedAuth: payload })
     }
+
     if (type === 'transferFinished') {
       props.onTransferFinished?.(payload)
     }
   }
+
+  const goBack = () => webViewRef?.current?.goBack()
 
   const showCloseAlert = () =>
     Alert.alert(
@@ -96,30 +99,23 @@ const FrontFinance = (props: {
         backgroundColor={backgroundStyle.backgroundColor}
       />
       {showNativeNavbar && (
-        <View style={styles.horizontalContainer}>
-          <TouchableOpacity
-            onPress={() => {
-              webViewRef?.current?.goBack()
-            }}
-            style={styles.navBarBtn}
-          >
+        <View style={styles.navBarContainer}>
+          <TouchableOpacity onPress={goBack}>
             <Image
-              source={require('../assets/back-button-icon.png')}
-              resizeMode="center"
+              source={require('../assets/ic_back.png')}
+              style={styles.navBarImgButton}
             />
           </TouchableOpacity>
+
           <Image
-            source={require('../assets/logo.png')}
-            style={{ height: 18 }}
-            resizeMode="contain"
+            source={require('../assets/front_logo.png')}
+            style={styles.navBarLogo}
           />
-          <TouchableOpacity
-            onPress={() => showCloseAlert()}
-            style={styles.navBarBtn}
-          >
+
+          <TouchableOpacity onPress={showCloseAlert}>
             <Image
-              source={require('../assets/close-button-icon.png')}
-              resizeMode="center"
+              source={require('../assets/ic_close.png')}
+              style={styles.navBarImgButton}
             />
           </TouchableOpacity>
         </View>
@@ -138,17 +134,23 @@ const FrontFinance = (props: {
 }
 
 const styles = StyleSheet.create({
-  horizontalContainer: {
+  navBarContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    height: 40
+    height: 64,
+    paddingTop: 12,
+    paddingStart: 14,
+    paddingEnd: 16
   },
-  navBarBtn: {
-    height: 40,
-    width: 40,
-    alignItems: 'center',
-    justifyContent: 'center'
+  navBarImgButton: {
+    resizeMode: 'center',
+    width: 24,
+    height: 24
+  },
+  navBarLogo: {
+    resizeMode: 'center',
+    height: 18
   }
 })
 
