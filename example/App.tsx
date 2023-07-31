@@ -46,6 +46,7 @@ export default function App() {
           onPress: () => {
             setData(payload)
             setView(false)
+            setCatalogLink('')
           }
         }
       ]
@@ -63,6 +64,7 @@ export default function App() {
           onPress: () => {
             setData(payload)
             setView(false)
+            setCatalogLink('')
           }
         }
       ]
@@ -89,7 +91,10 @@ export default function App() {
             setError(errorPayload.errorMessage)
           }
         }}
-        onClose={() => setView(false)}
+        onClose={() => {
+          setView(false)
+          setCatalogLink('')
+        }}
         onError={(err: string) => setError(err)}
       />
     )
@@ -99,7 +104,7 @@ export default function App() {
     return (
       <SafeAreaView style={styles.container}>
         <StatusBar backgroundColor="#cecece83" translucent style="auto" />
-        <ScrollView contentContainerStyle={{}}>
+        <ScrollView>
           <View
             style={{
               height: 80,
@@ -110,7 +115,7 @@ export default function App() {
           >
             <Image
               source={require('./assets/logo.png')}
-              style={{ height: 18 }}
+              style={{ height: 30, width: 120 }}
               resizeMode="contain"
             />
           </View>

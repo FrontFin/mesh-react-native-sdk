@@ -105,18 +105,21 @@ const FrontFinance = (props: {
             <Image
               source={require('@front-finance/frontfinance-rn-sdk/assets/ic_back.png')}
               style={styles.navBarImgButton}
+              resizeMode="contain"
             />
           </TouchableOpacity>
 
           <Image
             source={require('@front-finance/frontfinance-rn-sdk/assets/front_logo.png')}
             style={styles.navBarLogo}
+            resizeMode="contain"
           />
 
           <TouchableOpacity onPress={showCloseAlert}>
             <Image
               source={require('@front-finance/frontfinance-rn-sdk/assets/ic_close.png')}
               style={styles.navBarImgButton}
+              resizeMode="contain"
             />
           </TouchableOpacity>
         </View>
@@ -145,13 +148,12 @@ const styles = StyleSheet.create({
     paddingEnd: 8
   },
   navBarImgButton: {
-    resizeMode: 'center',
-    width: 40,
-    height: 40
+    width: 30,
+    height: 30
   },
   navBarLogo: {
-    resizeMode: 'center',
-    height: 18
+    height: 30,
+    width: 120
   }
 })
 
