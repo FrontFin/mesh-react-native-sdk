@@ -14,7 +14,8 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.getfront.rn-sdk-example"
+      "bundleIdentifier": "com.getfront.rn-sdk-example",
+      "buildNumber": "2"
     },
     "android": {
       "adaptiveIcon": {
