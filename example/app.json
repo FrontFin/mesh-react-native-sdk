@@ -14,14 +14,15 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.getfront.rn-sdk-example"
+      "bundleIdentifier": "com.getfront.rn-sdk-example",
+      "buildNumber": "2"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.getfront.rn-sdk-example"
+      "package": "com.getfront.react.example"
     },
     "web": {
       "favicon": "./assets/favicon.png"
