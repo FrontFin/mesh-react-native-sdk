@@ -45,7 +45,6 @@ const FrontFinance = (props: {
   }, [props])
 
   const handleNavState = (event: WebViewNativeEvent) => {
-    console.log('Nav', event)
     if (event.url.endsWith('/broker-connect/catalog')) {
       setShowNativeNavbar(false)
     }

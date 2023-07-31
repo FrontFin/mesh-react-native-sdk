@@ -11,19 +11,17 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.easy.ffexpoapp"
+      "bundleIdentifier": "com.getfront.rn-sdk-example"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.easy.ffexpoapp"
+      "package": "com.getfront.rn-sdk-example"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -33,6 +31,11 @@
     },
     "updates": {
       "url": "https://u.expo.dev/c6dbdef0-d3be-489a-bcaa-fe0bc016abaa"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "27a08fdc-2c2a-4db0-be43-f90ed52c1f30"
+      }
     }
   }
 }
