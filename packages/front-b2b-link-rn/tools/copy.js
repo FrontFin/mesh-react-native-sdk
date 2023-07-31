@@ -19,4 +19,5 @@ console.log('package.json.dist was copied to ./dist folder')
 fs.copyFileSync('README.md', 'dist/README.md')
 console.log('README.md was copied to ./dist folder')
 
-fs.cpSync('link-rn', 'dist/link-rn')
+fs.cpSync('assets', 'dist/assets', { recursive: true })
+console.log('assets was copied to ./dist folder')
