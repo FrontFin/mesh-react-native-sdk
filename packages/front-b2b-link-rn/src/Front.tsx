@@ -103,19 +103,19 @@ const FrontFinance = (props: {
         <View style={styles.navBarContainer}>
           <TouchableOpacity onPress={goBack}>
             <Image
-              source={require('@front/assets/link-rn/ic_back.png')}
+              source={require('@front-finance/frontfinance-rn-sdk/assets/ic_back.png')}
               style={styles.navBarImgButton}
             />
           </TouchableOpacity>
 
           <Image
-            source={require('@front/assets/link-rn/front_logo.png')}
+            source={require('@front-finance/frontfinance-rn-sdk/assets/front_logo.png')}
             style={styles.navBarLogo}
           />
 
           <TouchableOpacity onPress={showCloseAlert}>
             <Image
-              source={require('@front/assets/link-rn/ic_close.png')}
+              source={require('@front-finance/frontfinance-rn-sdk/assets/ic_close.png')}
               style={styles.navBarImgButton}
             />
           </TouchableOpacity>
