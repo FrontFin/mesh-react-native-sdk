@@ -12,7 +12,7 @@
     "lint": "lerna run lint",
     "build": "lerna run build",
     "test": "lerna run test",
-    "start:example": "cd example && yarn expo start"
+    "start:ex": "cd example && yarn expo start"
   },
   "repository": {
     "type": "git",

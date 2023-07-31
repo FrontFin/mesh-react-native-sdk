@@ -60,9 +60,11 @@ const FrontFinance = (props: {
     if (type === 'showClose') {
       showCloseAlert()
     }
+
     if (type === 'showNativeNavbar') {
       setShowNativeNavbar(payload)
     }
+
     if (type === 'brokerageAccountAccessToken') {
       props.onBrokerConnected?.({ accessToken: payload })
     }
@@ -101,19 +103,19 @@ const FrontFinance = (props: {
         <View style={styles.navBarContainer}>
           <TouchableOpacity onPress={goBack}>
             <Image
-              source={require('../assets/ic_back.png')}
+              source={require('@front-finance/frontfinance-rn-sdk/assets/ic_back.png')}
               style={styles.navBarImgButton}
             />
           </TouchableOpacity>
 
           <Image
-            source={require('../assets/front_logo.png')}
+            source={require('@front-finance/frontfinance-rn-sdk/assets/front_logo.png')}
             style={styles.navBarLogo}
           />
 
           <TouchableOpacity onPress={showCloseAlert}>
             <Image
-              source={require('../assets/ic_close.png')}
+              source={require('@front-finance/frontfinance-rn-sdk/assets/ic_close.png')}
               style={styles.navBarImgButton}
             />
           </TouchableOpacity>
