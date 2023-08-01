@@ -110,7 +110,8 @@ export default function App() {
               height: 80,
               width: layout_width,
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              marginTop: 24
             }}
           >
             <Image
@@ -164,7 +165,7 @@ const styles = StyleSheet.create({
     borderColor: '#363636',
     height: 45,
     borderRadius: 30,
-    marginTop: 20
+    marginTop: 4
   },
   conBtn: {
     backgroundColor: 'black',
