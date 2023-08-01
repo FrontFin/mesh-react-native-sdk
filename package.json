@@ -1,6 +1,6 @@
 {
   "name": "@front-finance/front-react-native",
-  "version": "1.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Front Finance react native resources (SDK and example app)",
   "workspaces": [
@@ -10,6 +10,7 @@
   "scripts": {
     "typecheck": "lerna run typecheck",
     "lint": "lerna run lint",
+    "version": "lerna version --no-private",
     "build": "lerna run build",
     "test": "lerna run test",
     "start:ex": "cd example && yarn expo start"
@@ -21,7 +22,7 @@
   "keywords": [
     "front-finance"
   ],
-  "author": "Eric Ahlqvist Scott",
+  "author": "Front Finance, Inc",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/FrontFin/front-b2b-link-rn/issues"

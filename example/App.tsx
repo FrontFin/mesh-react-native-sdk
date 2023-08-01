@@ -46,6 +46,7 @@ export default function App() {
           onPress: () => {
             setData(payload)
             setView(false)
+            setCatalogLink('')
           }
         }
       ]
@@ -63,6 +64,7 @@ export default function App() {
           onPress: () => {
             setData(payload)
             setView(false)
+            setCatalogLink('')
           }
         }
       ]
@@ -89,7 +91,10 @@ export default function App() {
             setError(errorPayload.errorMessage)
           }
         }}
-        onClose={() => setView(false)}
+        onClose={() => {
+          setView(false)
+          setCatalogLink('')
+        }}
         onError={(err: string) => setError(err)}
       />
     )
@@ -99,18 +104,19 @@ export default function App() {
     return (
       <SafeAreaView style={styles.container}>
         <StatusBar backgroundColor="#cecece83" translucent style="auto" />
-        <ScrollView contentContainerStyle={{}}>
+        <ScrollView>
           <View
             style={{
               height: 80,
               width: layout_width,
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              marginTop: 24
             }}
           >
             <Image
               source={require('./assets/logo.png')}
-              style={{ height: 18 }}
+              style={{ height: 30, width: 120 }}
               resizeMode="contain"
             />
           </View>
@@ -119,6 +125,7 @@ export default function App() {
             <TextInput
               value={catalogLink}
               onChangeText={e => setCatalogLink(e)}
+              onSubmitEditing={() => setView(true)}
               style={{ width: '95%', height: 40, left: 10 }}
               placeholder="Catalog Link"
               placeholderTextColor={'#363636'}
@@ -158,7 +165,7 @@ const styles = StyleSheet.create({
     borderColor: '#363636',
     height: 45,
     borderRadius: 30,
-    marginTop: 20
+    marginTop: 4
   },
   conBtn: {
     backgroundColor: 'black',

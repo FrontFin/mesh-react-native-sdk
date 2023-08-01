@@ -101,7 +101,7 @@ const FrontFinance = (props: {
       />
       {showNativeNavbar && (
         <View style={styles.navBarContainer}>
-          <TouchableOpacity onPress={goBack}>
+          <TouchableOpacity onPress={goBack} style={styles.navBarImgContainer}>
             <Image
               source={require('@front-finance/frontfinance-rn-sdk/assets/ic_back.png')}
               style={styles.navBarImgButton}
@@ -113,7 +113,10 @@ const FrontFinance = (props: {
             style={styles.navBarLogo}
           />
 
-          <TouchableOpacity onPress={showCloseAlert}>
+          <TouchableOpacity
+            onPress={showCloseAlert}
+            style={styles.navBarImgContainer}
+          >
             <Image
               source={require('@front-finance/frontfinance-rn-sdk/assets/ic_close.png')}
               style={styles.navBarImgButton}
@@ -144,14 +147,20 @@ const styles = StyleSheet.create({
     paddingStart: 6,
     paddingEnd: 8
   },
-  navBarImgButton: {
-    resizeMode: 'center',
+  navBarImgContainer: {
     width: 40,
-    height: 40
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  navBarImgButton: {
+    width: 24,
+    height: 24,
+    resizeMode: 'contain'
   },
   navBarLogo: {
-    resizeMode: 'center',
-    height: 18
+    height: 18,
+    resizeMode: 'contain'
   }
 })
 

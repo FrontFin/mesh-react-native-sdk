@@ -1,10 +1,15 @@
 import React from 'react'
-import { AccessTokenPayload } from '@front-finance/frontfinance-rn-sdk'
+import {
+  FrontPayload,
+  TransferFinishedPayload
+} from '@front-finance/frontfinance-rn-sdk'
 
 export interface FrontFinanceProps {
   url: string
-  onReceive?: (payload: AccessTokenPayload) => void
-  onError?: (error: string) => void
+  onBrokerConnected?: (payload: FrontPayload) => void
+  onTransferFinished?: (payload: TransferFinishedPayload) => void
+  onError?: (err: string) => void
+  onClose?: () => void
 }
 
 declare const FrontFinance: React.FC<FrontFinanceProps>

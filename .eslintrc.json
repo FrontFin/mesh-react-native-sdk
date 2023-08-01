@@ -12,20 +12,16 @@
     }
   },
   "parser": "@typescript-eslint/parser",
-  "plugins": [
-    "@typescript-eslint",
-    "prettier",
-    "import"
-  ],
+  "plugins": ["@typescript-eslint", "prettier", "import"],
   "rules": {
     "no-undef": "warn",
     "no-console": "off",
     "@typescript-eslint/explicit-function-return-type": "off",
-    "@typescript-eslint/no-explicit-any": "warn",
-    "@typescript-eslint/no-unused-vars": "warn",
-    "prettier/prettier": ["error", { "endOfLine": "auto" }, {
-      "usePrettierrc": true
-    }]
+    "prettier/prettier": [
+      "error",
+      { "endOfLine": "auto" },
+      { "usePrettierrc": true }
+    ]
   },
   "extends": [
     "eslint:recommended",
