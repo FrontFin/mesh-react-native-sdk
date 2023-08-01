@@ -9,8 +9,7 @@ import {
   View,
   TouchableOpacity,
   Dimensions,
-  Image,
-  Linking
+  Image
 } from 'react-native'
 import {
   FrontFinance,
