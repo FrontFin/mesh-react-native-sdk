@@ -8,7 +8,7 @@ Execute `yarn` to install all dependencies.
 
 ### Launch
 
-Execute `yarn start:example` to launch the app using [Expo](https://docs.expo.dev/).
+Execute `yarn start:ex` to launch the app using [Expo](https://docs.expo.dev/).
 
 Now, you can install the example app on your device or simulator. For example, press `i` to run the example app on the iOS simulator.
 
