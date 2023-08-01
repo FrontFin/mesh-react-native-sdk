@@ -72,12 +72,6 @@ export default function App() {
     )
   }
 
-  function checkCanOpenURL() {
-    Linking.canOpenURL(catalogLink).then(supported => {
-      setView(supported)
-    })
-  }
-
   if (view && catalogLink.length) {
     console.log(catalogLink, 'URL')
     return (
@@ -131,17 +125,14 @@ export default function App() {
             <TextInput
               value={catalogLink}
               onChangeText={e => setCatalogLink(e)}
-              onSubmitEditing={() => checkCanOpenURL()}
+              onSubmitEditing={() => setView(true)}
               style={{ width: '95%', height: 40, left: 10 }}
               placeholder="Catalog Link"
               placeholderTextColor={'#363636'}
             />
           </View>
 
-          <TouchableOpacity
-            onPress={() => checkCanOpenURL()}
-            style={styles.conBtn}
-          >
+          <TouchableOpacity onPress={() => setView(true)} style={styles.conBtn}>
             <Text style={{ textAlign: 'center', fontSize: 18, color: 'white' }}>
               {connectButtonTitle}
             </Text>
