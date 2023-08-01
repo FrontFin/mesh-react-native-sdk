@@ -1,6 +1,6 @@
 {
   "name": "@front-finance/frontfinance-rn-sdk",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Front Finance React Native SDK.",
   "main": "./src/index.ts",
   "module": "./src/index.ts",
@@ -17,7 +17,9 @@
   },
   "peerDependencies": {
     "react": "^18.2.0",
-    "react-native": "^0.72.3",
+    "react-native": "^0.72.3"
+  },
+  "dependencies": {
     "react-native-webview": "11.26.0"
   },
   "scripts": {
