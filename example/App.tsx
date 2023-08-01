@@ -9,7 +9,8 @@ import {
   View,
   TouchableOpacity,
   Dimensions,
-  Image
+  Image,
+  Linking
 } from 'react-native'
 import {
   FrontFinance,
@@ -71,6 +72,12 @@ export default function App() {
     )
   }
 
+  function checkCanOpenURL() {
+    Linking.canOpenURL(catalogLink).then(supported => {
+      setView(supported)
+    })
+  }
+
   if (view && catalogLink.length) {
     console.log(catalogLink, 'URL')
     return (
@@ -124,13 +131,17 @@ export default function App() {
             <TextInput
               value={catalogLink}
               onChangeText={e => setCatalogLink(e)}
+              onSubmitEditing={() => checkCanOpenURL()}
               style={{ width: '95%', height: 40, left: 10 }}
               placeholder="Catalog Link"
               placeholderTextColor={'#363636'}
             />
           </View>
 
-          <TouchableOpacity onPress={() => setView(true)} style={styles.conBtn}>
+          <TouchableOpacity
+            onPress={() => checkCanOpenURL()}
+            style={styles.conBtn}
+          >
             <Text style={{ textAlign: 'center', fontSize: 18, color: 'white' }}>
               {connectButtonTitle}
             </Text>
