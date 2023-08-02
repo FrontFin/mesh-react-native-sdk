@@ -30,8 +30,7 @@
   "homepage": "https://github.com/FrontFin/front-b2b-link-rn#readme",
   "peerDependencies": {
     "react": "*",
-    "react-native": "*",
-    "react-native-webview": "11.26.0"
+    "react-native": "*"
   },
   "devDependencies": {
     "@babel/cli": "^7.17.6",
@@ -47,6 +46,7 @@
     "prettier": "^3.0.0"
   },
   "dependencies": {
-    "typescript": "^5.1.6"
+    "typescript": "^5.1.6",
+    "react-native-webview": "11.26.0"
   }
 }
