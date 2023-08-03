@@ -1,7 +1,5 @@
 # Front Finance React Native SDK
 
-JS library for integrating with Front Finance.
-
 ### Install
 
 With `npm`:
@@ -10,7 +8,7 @@ With `npm`:
 npm install --save @front-finance/frontfinance-rn-sdk
 ```
 
-With `yarn`
+With `yarn`:
 
 ```
 yarn add @front-finance/frontfinance-rn-sdk
@@ -18,7 +16,7 @@ yarn add @front-finance/frontfinance-rn-sdk
 
 ### Getting connection link
 
-The connection link for brokerage connection should be obtained from the [Get catalog link](https://integration-api.getfront.com/apireference#tag/Managed-Account-Authentication/paths/~1api~1v1~1cataloglink/get) endpoint. Request must be performed from the server side because it requires the client secret. You will get the response in the following format:
+The connection link for brokerage connection should be obtained from the [Get catalog link](https://docs.getfront.com/reference/get_api-v1-cataloglink) endpoint. Request must be performed from the server side because it requires the client secret. You will get the response in the following format:
 
 ```json
 {
@@ -31,9 +29,9 @@ The connection link for brokerage connection should be obtained from the [Get ca
 }
 ```
 
-You can use `iFrameUrl` from this response to run the `FrontFinance` component.
+You should use `url` from this response to run the `FrontFinance` component.
 
-#### `FrontFinance` component usage
+### Using the `FrontFinance` component
 
 ```tsx
 import {
@@ -45,7 +43,7 @@ import {
 // ...
 
 <FrontFinance
-  url={iFrameUrl}
+  url={url}
   onBrokerConnected={(payload: FrontPayload) => {
     // use broker account data
   },
@@ -81,8 +79,8 @@ import {
 
 #### Using tokens
 
-You can use broker tokens to perform requests to get current balance, assets and execute transactions. Full API reference can be found [here](https://integration-api.getfront.com/apireference).
+You can use broker tokens to perform requests to get current balance, assets and execute transactions. Full API reference can be found [here](https://docs.getfront.com/reference).
 
-## Typescript support
+#### Typescript support
 
 TypeScript definitions for `@front-finance/frontfinance-rn-sdk` are built into the npm package.
