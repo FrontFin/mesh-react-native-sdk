@@ -50,7 +50,13 @@ import {
     // use broker account data
   },
   onTransferFinished={(payload: TransferFinishedPayload) => {
-    // use transfer finished data
+    if (payload.status === 'success') {
+      const successPayload = payload as TransferFinishedSuccessPayload
+      // use transfer finished data
+    } else {
+      const errorPayload = payload as TransferFinishedErrorPayload
+      // handle transfer error
+    }
   },
   onClose={() =>
     // use close event
@@ -65,13 +71,13 @@ import {
 
 #### `FrontFinance` component arguments
 
-| key                  | type                                                   | description                                                                          |
-| -------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------ |
-| `url`                | `string`                                               | Connection link                                                                      |
-| `onBrokerConnected`  | `(payload: FrontPayload) => void`                      | Callback called when users connects their accounts                                   |
-| `onTransferFinished` | `(payload: TransferFinishedPayload) => void`           | Callback called when a crypto transfer is executed                                   |
-| `onError`            | `(err: string) => void)                                | Called if connection not happened. Returns an error message                          |
-| `onClose`            | `() => void`                                           | Called at the end of the connection, or when user closed the connection page         |
+| key                  | type                                         | description                                                                  |
+| -------------------- | -------------------------------------------- | ---------------------------------------------------------------------------- |
+| `url`                | `string`                                     | Connection link                                                              |
+| `onBrokerConnected`  | `(payload: FrontPayload) => void`            | Callback called when users connects their accounts                           |
+| `onTransferFinished` | `(payload: TransferFinishedPayload) => void` | Callback called when a crypto transfer is executed                           |
+| `onError`            | `(err: string) => void)                      | Called if connection not happened. Returns an error message                  |
+| `onClose`            | `() => void`                                 | Called at the end of the connection, or when user closed the connection page |
 
 #### Using tokens
 
