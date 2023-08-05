@@ -1,3 +1,5 @@
+![Front Finance Logo](./packages/front-b2b-link-rn/assets/front_logo.png)
+
 # Front Finance React Native SDK
 
 JS libraries for integrating with Front Finance.
