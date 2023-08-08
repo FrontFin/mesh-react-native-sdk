@@ -10,13 +10,6 @@ on:
         description: 'Test run'
   pull_request:
     branches: [main]
-    paths:
-      - '.github/**'
-      - 'packages/**'
-      - 'examples/**'
-      - 'packages.json'
-      - 'yarn.lock'
-      - 'example/**'
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
