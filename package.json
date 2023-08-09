@@ -30,8 +30,7 @@
   "homepage": "https://github.com/FrontFin/front-b2b-link-rn#readme",
   "peerDependencies": {
     "react": "*",
-    "react-native": "*",
-    "react-native-webview": "11.26.0"
+    "react-native": "*"
   },
   "devDependencies": {
     "@babel/cli": "^7.17.6",
@@ -44,9 +43,7 @@
     "eslint-plugin-prettier": "^5.0.0",
     "lerna": "^6.6.2",
     "metro-react-native-babel-preset": "^0.68.0",
-    "prettier": "^3.0.0"
-  },
-  "dependencies": {
+    "prettier": "^3.0.0",
     "typescript": "^5.1.6"
   }
 }
