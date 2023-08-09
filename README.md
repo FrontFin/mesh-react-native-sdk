@@ -1,4 +1,4 @@
-![Front Finance Logo](./packages/front-b2b-link-rn/assets/front_logo.png)
+![Front Finance Logo](./assets/front_logo.svg)
 
 # Front Finance React Native SDK
 
