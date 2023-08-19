@@ -1,2 +1,2 @@
-import FrontFinance from './Front'
-export { FrontFinance }
+import FrontFinance from './Front';
+export { FrontFinance };

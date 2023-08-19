@@ -9,6 +9,7 @@ coverage
 lib
 
 # Dependency directory
+# Dependency directory
 node_modules
 .yarn
 .pnp
@@ -24,3 +25,7 @@ node_modules
 *.iws
 .code/
 .vscode
+
+# Jest
+#
+.jest/

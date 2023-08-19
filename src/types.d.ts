@@ -36,62 +36,62 @@ export type BrokerType =
   | 'vanguard'
   | 'binanceInternationalDirect'
   | 'bitfinexDirect'
-  | 'bybit'
+  | 'bybit';
 
 export interface BrokerAccountToken {
-  account: BrokerAccount
-  accessToken: string
-  refreshToken?: string
+  account: BrokerAccount;
+  accessToken: string;
+  refreshToken?: string;
 }
 
 export interface BrokerAccount {
-  accountId: string
-  accountName: string
-  fund?: number
-  cash?: number
-  isReconnected?: boolean
+  accountId: string;
+  accountName: string;
+  fund?: number;
+  cash?: number;
+  isReconnected?: boolean;
 }
 
 export interface BrokerBrandInfo {
-  brokerLogo: string
-  brokerPrimaryColor?: string
+  brokerLogo: string;
+  brokerPrimaryColor?: string;
 }
 
 export interface FrontPayload {
-  accessToken?: AccessTokenPayload
-  delayedAuth?: DelayedAuthPayload
+  accessToken?: AccessTokenPayload;
+  delayedAuth?: DelayedAuthPayload;
 }
 
 export interface AccessTokenPayload {
-  accountTokens: BrokerAccountToken[]
-  brokerBrandInfo: BrokerBrandInfo
-  expiresInSeconds?: number
-  refreshTokenExpiresInSeconds?: number
-  brokerType: BrokerType
-  brokerName: string
+  accountTokens: BrokerAccountToken[];
+  brokerBrandInfo: BrokerBrandInfo;
+  expiresInSeconds?: number;
+  refreshTokenExpiresInSeconds?: number;
+  brokerType: BrokerType;
+  brokerName: string;
 }
 
 export interface DelayedAuthPayload {
-  refreshTokenExpiresInSeconds?: number
-  brokerType: BrokerType
-  refreshToken: string
-  brokerName: string
-  brokerBrandInfo: BrokerBrandInfo
+  refreshTokenExpiresInSeconds?: number;
+  brokerType: BrokerType;
+  refreshToken: string;
+  brokerName: string;
+  brokerBrandInfo: BrokerBrandInfo;
 }
 
 export interface TransferFinishedSuccessPayload {
-  status: 'success'
-  txId: string
-  fromAddress: string
-  toAddress: string
-  symbol: string
-  amount: number
-  networkId: string
+  status: 'success';
+  txId: string;
+  fromAddress: string;
+  toAddress: string;
+  symbol: string;
+  amount: number;
+  networkId: string;
 }
 export interface TransferFinishedErrorPayload {
-  status: 'error'
-  errorMessage: string
+  status: 'error';
+  errorMessage: string;
 }
 export type TransferFinishedPayload =
   | TransferFinishedSuccessPayload
-  | TransferFinishedErrorPayload
+  | TransferFinishedErrorPayload;

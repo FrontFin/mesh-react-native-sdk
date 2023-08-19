@@ -11,18 +11,18 @@
   "typings": "dist/index.d.ts",
   "module": "dist/frontfinance-rn-sdk.esm.js",
   "scripts": {
-    "start": "tsdx watch",
-    "build": "tsdx build && node scripts/build.js",
-    "test": "tsdx test --passWithNoTests",
-    "lint": "tsdx lint",
-    "prepare": "yarn build && yarn lint",
-    "size": "size-limit",
     "analyze": "size-limit --why",
+    "build": "dts build && node scripts/build.js",
+    "lint": "dts lint",
+    "prepare": "dts lint --fix",
+    "size": "size-limit",
+    "start": "dts watch",
+    "test": "dts test --passWithNoTests",
     "publish:npm": "yarn build && cd dist && yarn publish --access public"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "tsdx lint"
+      "pre-commit": "dts lint"
     }
   },
   "prettier": {
@@ -60,14 +60,16 @@
   },
   "devDependencies": {
     "@size-limit/preset-small-lib": "^8.2.6",
+    "@tsconfig/react-native": "^3.0.2",
+    "@tsconfig/recommended": "^1.0.2",
     "@types/react": "^18.2.20",
     "@types/react-native": "^0.72.2",
+    "dts-cli": "^2.0.3",
     "husky": "^8.0.3",
     "react": "^18.2.0",
     "react-native": "^0.72.3",
     "size-limit": "^8.2.6",
-    "tsdx": "^0.14.1",
-    "tslib": "^2.6.1",
+    "tslib": "^2.6.2",
     "typescript": "^5.1.6"
   }
 }
