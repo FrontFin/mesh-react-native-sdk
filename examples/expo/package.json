@@ -4,11 +4,11 @@
   "main": "index.js",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "lint": "eslint --ext .js,.ts,.tsx .",
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
+    "lint": "eslint --ext .js,.ts,.tsx ..",
+    "start": " start",
+    "android": " start --android",
+    "ios": " start --ios",
+    "web": " start --web"
   },
   "dependencies": {
     "@front-finance/frontfinance-rn-sdk": "*",

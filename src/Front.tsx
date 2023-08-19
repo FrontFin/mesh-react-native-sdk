@@ -10,8 +10,8 @@ import {
   Image
 } from 'react-native'
 import { WebView, WebViewMessageEvent } from 'react-native-webview'
-import { FrontPayload, TransferFinishedPayload } from './Types'
 import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes'
+import { FrontPayload, TransferFinishedPayload } from "./types";
 
 const FrontFinance = (props: {
   url: string
@@ -94,31 +94,32 @@ const FrontFinance = (props: {
     )
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1 }} data-testid={'front-finance-component'}>
       <StatusBar
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={backgroundStyle.backgroundColor}
       />
       {showNativeNavbar && (
-        <View style={styles.navBarContainer}>
+        <View data-testid={'native-navbar'} style={styles.navBarContainer}>
           <TouchableOpacity onPress={goBack} style={styles.navBarImgContainer}>
             <Image
-              source={require('@front-finance/frontfinance-rn-sdk/assets/ic_back.png')}
+              source={require('../assets/ic_back.png')}
               style={styles.navBarImgButton}
             />
           </TouchableOpacity>
 
           <Image
-            source={require('@front-finance/frontfinance-rn-sdk/assets/front_logo.png')}
+            source={require('../assets/front_logo.png')}
             style={styles.navBarLogo}
           />
 
           <TouchableOpacity
             onPress={showCloseAlert}
             style={styles.navBarImgContainer}
+            data-testid={'close-button'}
           >
             <Image
-              source={require('@front-finance/frontfinance-rn-sdk/assets/ic_close.png')}
+              source={require('../assets/ic_close.png')}
               style={styles.navBarImgButton}
             />
           </TouchableOpacity>
@@ -126,6 +127,7 @@ const FrontFinance = (props: {
       )}
       {showWebView && catalogLink && (
         <WebView
+          data-testid={'webview'}
           ref={webViewRef}
           source={{ uri: catalogLink ? catalogLink : '' }}
           onMessage={handleMessage}

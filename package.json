@@ -1,49 +1,73 @@
 {
-  "name": "@front-finance/front-react-native",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Front Finance react native resources (SDK and example app)",
-  "workspaces": [
-    "./example",
-    "packages/*"
-  ],
+  "version": "1.2.1",
+  "name": "@front-finance/frontfinance-rn-sdk",
+  "description": "Front Finance React Native SDK.",
+  "private": false,
+  "license": "MIT",
+  "author": "Front Finance, Inc",
+  "repository": "https://github.com/FrontFin/front-b2b-link-rn.git",
+  "homepage": "https://github.com/FrontFin/front-b2b-link-rn",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "module": "dist/frontfinance-rn-sdk.esm.js",
   "scripts": {
-    "typecheck": "lerna run typecheck",
-    "lint": "lerna run lint",
-    "version": "lerna version --no-private",
-    "build": "lerna run build",
-    "test": "lerna run test",
-    "start:ex": "cd example && yarn expo start"
+    "start": "tsdx watch",
+    "build": "tsdx build && node scripts/build.js",
+    "test": "tsdx test --passWithNoTests",
+    "lint": "tsdx lint",
+    "prepare": "yarn build && yarn lint",
+    "size": "size-limit",
+    "analyze": "size-limit --why",
+    "publish:npm": "yarn build && cd dist && yarn publish --access public"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/FrontFin/front-b2b-link-rn.git"
+  "husky": {
+    "hooks": {
+      "pre-commit": "tsdx lint"
+    }
+  },
+  "prettier": {
+    "printWidth": 80,
+    "semi": true,
+    "singleQuote": true,
+    "trailingComma": "es5"
   },
   "keywords": [
     "front-finance"
   ],
-  "author": "Front Finance, Inc",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/FrontFin/front-b2b-link-rn/issues"
+  "size-limit": [
+    {
+      "path": "dist/frontfinance-rn-sdk.esm.js",
+      "limit": "10 KB"
+    }
+  ],
+  "publishConfig": {
+    "access": "public"
   },
-  "homepage": "https://github.com/FrontFin/front-b2b-link-rn#readme",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "engines": {
+    "node": ">=12"
+  },
+  "packageManager": "yarn@1.22.17",
+  "dependencies": {
+    "react-native-webview": "^11.26.0"
+  },
   "peerDependencies": {
-    "react": "*",
-    "react-native": "*"
+    "react": ">=16",
+    "react-native": ">=0.60"
   },
   "devDependencies": {
-    "@babel/cli": "^7.17.6",
-    "@babel/core": "^7.17.5",
-    "@typescript-eslint/eslint-plugin": "^6.1.0",
-    "@typescript-eslint/parser": "^6.1.0",
-    "eslint": "^8.45.0",
-    "eslint-config-prettier": "^8.8.0",
-    "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-prettier": "^5.0.0",
-    "lerna": "^6.6.2",
-    "metro-react-native-babel-preset": "^0.68.0",
-    "prettier": "^3.0.0",
+    "@size-limit/preset-small-lib": "^8.2.6",
+    "@types/react": "^18.2.20",
+    "@types/react-native": "^0.72.2",
+    "husky": "^8.0.3",
+    "react": "^18.2.0",
+    "react-native": "^0.72.3",
+    "size-limit": "^8.2.6",
+    "tsdx": "^0.14.1",
+    "tslib": "^2.6.1",
     "typescript": "^5.1.6"
   }
 }

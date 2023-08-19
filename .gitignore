@@ -1,15 +1,26 @@
 # Logs
 *.log
-npm-debug.log
 
 # Runtime data
 tmp
 build
 dist
+coverage
+lib
 
 # Dependency directory
 node_modules
-yarn.lock
-package-lock.json
+.yarn
+.pnp
+.cache
 
+# Optional cache directory
 .DS_*
+
+# IDE files and settings
+.idea
+*.iml
+*.ipr
+*.iws
+.code/
+.vscode
