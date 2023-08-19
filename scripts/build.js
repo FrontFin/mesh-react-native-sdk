@@ -8,6 +8,7 @@ delete packageModel.scripts
 delete packageModel.devDependencies
 delete packageModel.husky
 delete packageModel['lint-staged']
+delete packageModel['size-limit']
 delete packageModel.publishConfig
 delete packageModel.packageManager
 delete packageModel.prettier
