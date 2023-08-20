@@ -1,6 +1,8 @@
 #!/usr/bin/env node
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const fs = require('fs');
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const buildFolder = require('path').resolve(__dirname, '../dist');
 
 console.log('Verifying build folder... 🧐');
@@ -68,4 +70,3 @@ console.log('All asset files exist ✅');
 console.log('Build verified ✅');
 
 process.exit(0);
-
