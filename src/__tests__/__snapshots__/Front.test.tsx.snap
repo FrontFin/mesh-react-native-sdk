@@ -27,7 +27,7 @@ exports[`FrontFinance Component renders correctly when URL is provided 1`] = `
     onNavigationStateChange={[Function]}
     source={
       {
-        "uri": "http://example.com",
+        "uri": "https://example.com",
       }
     }
   />
