@@ -3,8 +3,20 @@ name: GetFront Testing Pipeline 🧪
 on: [push]
 
 jobs:
+  lint-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies 📦
+        run: yarn install --frozen-lockfile --silent
+
+      - name: Run lint checks  🕵️‍♂️
+        run: yarn lint
+
   unit-tests:
     runs-on: ${{ matrix.os }}
+    needs:
+      - lint-checks
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]

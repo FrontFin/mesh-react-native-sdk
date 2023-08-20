@@ -1,5 +1,7 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
+
+import { FrontFinance } from '../index';
 
 jest.mock('react-native-webview', () => {
   const { View } = require('react-native');
@@ -8,13 +10,8 @@ jest.mock('react-native-webview', () => {
   };
 });
 
-import { FrontFinance } from "../index";
-
 // Mock callback functions
 const mockOnError = jest.fn();
-const mockOnClose = jest.fn();
-const mockOnBrokerConnected = jest.fn();
-const mockOnTransferFinished = jest.fn();
 
 describe('FrontFinance Component', () => {
   afterEach(() => {
@@ -27,14 +24,12 @@ describe('FrontFinance Component', () => {
   });
 
   it('renders correctly when URL is provided', () => {
-    const tree = render(<FrontFinance url={'http://example.com'} />).toJSON();
+    const tree = render(<FrontFinance url={'https://example.com'} />).toJSON();
     expect(tree).toMatchSnapshot();
   });
 
   it('handles onError callback for invalid URL', () => {
-    const { getByTestId } = render(
-      <FrontFinance url={''} onError={mockOnError} />
-    );
+    render(<FrontFinance url={''} onError={mockOnError} />);
 
     expect(mockOnError).toHaveBeenCalledWith('Invalid iframeUrl');
   });
