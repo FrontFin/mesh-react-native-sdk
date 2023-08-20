@@ -18,7 +18,7 @@
     "lint": "eslint --ext .js,.ts,.tsx ./src",
     "size": "size-limit",
     "test": "jest --passWithNoTests",
-    "typecheck": "tsc --noEmit",
+    "types-check": "tsc --noEmit",
     "publish:npm": "yarn build && cd dist && yarn publish --access public"
   },
   "husky": {
