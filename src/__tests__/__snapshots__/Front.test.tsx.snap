@@ -1,0 +1,35 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`FrontFinance Component renders correctly 1`] = `
+<RCTSafeAreaView
+  data-testid="front-finance-component"
+  style={
+    {
+      "flex": 1,
+    }
+  }
+/>
+`;
+
+exports[`FrontFinance Component renders correctly when URL is provided 1`] = `
+<RCTSafeAreaView
+  data-testid="front-finance-component"
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
+  <View
+    data-testid="webview"
+    javaScriptEnabled={true}
+    onMessage={[Function]}
+    onNavigationStateChange={[Function]}
+    source={
+      {
+        "uri": "http://example.com",
+      }
+    }
+  />
+</RCTSafeAreaView>
+`;
