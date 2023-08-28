@@ -2,26 +2,25 @@
 
 exports[`FrontFinance Component renders correctly 1`] = `
 <RCTSafeAreaView
-  data-testid="front-finance-component"
   style={
     {
       "flex": 1,
     }
   }
+  testID="front-finance-component"
 />
 `;
 
 exports[`FrontFinance Component renders correctly when URL is provided 1`] = `
 <RCTSafeAreaView
-  data-testid="front-finance-component"
   style={
     {
       "flex": 1,
     }
   }
+  testID="front-finance-component"
 >
   <View
-    data-testid="webview"
     javaScriptEnabled={true}
     onMessage={[Function]}
     onNavigationStateChange={[Function]}
@@ -30,6 +29,7 @@ exports[`FrontFinance Component renders correctly when URL is provided 1`] = `
         "uri": "https://example.com",
       }
     }
+    testID="webview"
   />
 </RCTSafeAreaView>
 `;

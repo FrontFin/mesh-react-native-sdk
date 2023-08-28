@@ -7,16 +7,14 @@
   "author": "Front Finance, Inc",
   "repository": "https://github.com/FrontFin/front-b2b-link-rn.git",
   "homepage": "https://github.com/FrontFin/front-b2b-link-rn",
-  "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
-  "module": "dist/frontfinance-rn-sdk.esm.js",
+  "main": "index.js",
+  "typings": "index.d.ts",
+  "module": "index.js",
   "scripts": {
-    "analyze": "size-limit --why",
     "build": "tsc --build && node scripts/build.js",
     "check-build": "node scripts/verify-build.js",
     "clean": "tsc --build --clean",
     "lint": "eslint --ext .js,.ts,.tsx ./src",
-    "size": "size-limit",
     "test": "jest --passWithNoTests",
     "types-check": "tsc --noEmit",
     "publish:npm": "yarn build && cd dist && yarn publish --access public"
@@ -34,12 +32,6 @@
   },
   "keywords": [
     "front-finance"
-  ],
-  "size-limit": [
-    {
-      "path": "dist/frontfinance-rn-sdk.esm.js",
-      "limit": "10 KB"
-    }
   ],
   "publishConfig": {
     "access": "public"
@@ -64,9 +56,6 @@
     "@babel/runtime": "^7.20.0",
     "@react-native/eslint-config": "^0.72.2",
     "@react-native/metro-config": "^0.72.11",
-    "@size-limit/esbuild": "^8.2.6",
-    "@size-limit/esbuild-why": "^8.2.6",
-    "@size-limit/preset-small-lib": "^8.2.6",
     "@testing-library/react-native": "^12.2.2",
     "@tsconfig/react-native": "^3.0.0",
     "@types/node": "^20.5.1",
@@ -82,7 +71,6 @@
     "react": "18.2.0",
     "react-native": "0.72.4",
     "react-test-renderer": "^18.2.0",
-    "size-limit": "^8.2.6",
     "ts-jest": "^29.1.1",
     "typescript": "^5.1.6"
   }

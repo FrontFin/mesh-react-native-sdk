@@ -26,6 +26,7 @@ const requiredFiles = [
   'LICENSE.md',
   'package.json',
   'README.md',
+  'types.js',
   'types.d.ts',
 ];
 
@@ -56,7 +57,7 @@ const requiredAssetFilesWithVariations = requiredAssetFiles.flatMap((file) => [
 ]);
 
 const missingAssetFiles = requiredAssetFilesWithVariations.filter(
-  (file) => !assetFiles.includes(file)
+    (file) => !assetFiles.includes(file),
 );
 
 if (missingAssetFiles.length) {
