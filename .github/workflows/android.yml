@@ -59,8 +59,8 @@ jobs:
       - name: Upload artifact to Firebase App Distribution 🔥
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
-          appId: '1:408121668422:android:f5340e2b9f26ec31102b47'
-          serviceCredentialsContent: ${{ secrets.FIREBASE_SERVICE_CREDENTIALS_PROD }}
+          appId: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
+          serviceCredentialsContent: ${{ secrets.FIREBASE_SERVICE_CREDENTIALS_PRO }}
           groups: testers
           # add commit message as release notes
           releaseNotes: ${{ github.event.head_commit.message || github.event.commits[0].message || github.event.pull_request.title || github.event.pull_request.head.ref }}
