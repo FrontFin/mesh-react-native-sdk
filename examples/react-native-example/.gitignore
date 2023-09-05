@@ -64,3 +64,9 @@ yarn-error.log
 
 # testing
 /coverage
+/artifacts
+
+# any intelliJ folder or subfolder
+.idea/
+**/.idea/
+**/.idea/**/*

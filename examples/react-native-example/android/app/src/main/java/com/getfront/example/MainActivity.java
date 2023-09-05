@@ -13,7 +13,7 @@ public class MainActivity extends ReactActivity {
    */
   @Override
   protected String getMainComponentName() {
-    return "GetFront RN SDK Example";
+    return "Front Finance RN SDK Example";
   }
 
   /**

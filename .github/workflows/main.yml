@@ -1,6 +1,9 @@
 name: GetFront RN SDK Testing Pipeline 🧪
 
-on: [push]
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.ref }}-${{ github.workflow }}
@@ -11,6 +14,7 @@ defaults:
     shell: bash
 
 env:
+  PACKAGE_INSTALLATION_ENV: 'github'
   NODE_VERSION: '16'
   NODE_OPTIONS: '--max_old_space_size=4096'
 
@@ -20,18 +24,17 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Set image version
+      - name: Set image version 🔂
         run: echo "ImageVersion=$ImageVersion" >> $GITHUB_ENV
-
-      - uses: actions/checkout@v2
+      - name: Checkout 🛎️
+        uses: actions/checkout@v3
         with:
-          fetch-depth: '0'
-
-      - uses: actions/setup-node@v2
+          fetch-depth: 1
+      - name: Node 📚
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_VERSION }}
-
-      - name: Node cache
+      - name: Node cache ☊
         uses: actions/cache@v2.1.6
         with:
           path: ~/.yarn
@@ -39,23 +42,23 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ env.ImageVersion }}-node-
 
-      - name: Install node modules
+      - name: Install node modules 📦
         run: yarn install --frozen-lockfile
 
       - name: Run type check
         run: yarn types-check
 
-      - name: Run linter
+      - name: Run linter 🧹
         run: yarn lint
 
-      #      - name: Check for unused dependencies
-      #        shell: bash {0}
-      #        run: |
-      #          dependencies=$(npx -q depcheck --skip-missing)
-      #          echo "$dependencies"
-      #          ! echo "$dependencies" | grep -q "Unused dependencies" && (echo "OK: no unused dependencies found") || (echo "FAIL: unused dependencies found"; exit 1)
+      - name: Check for unused dependencies 🔍
+        shell: bash {0}
+        run: |
+          dependencies=$(npx -q depcheck --skip-missing)
+          echo "$dependencies"
+          ! echo "$dependencies" | grep -q "Unused dependencies" && (echo "OK: no unused dependencies found") || (echo "FAIL: unused dependencies found"; exit 1)
 
-      - name: Check for strict licenses
+      - name: Check for strict licenses 🪪
         shell: bash {0}
         run: |
           licenses=$(npx -q tldrlegal)
@@ -63,15 +66,8 @@ jobs:
           declare -a strict=("Must Give Credit"  "Must Disclose Source"  "Must Include Original")
           for license in "${strict[@]}"; do echo "$licenses" | grep "$license" | grep -Eoq " 0 " && (echo "OK: $license") || (echo "FAIL: $license"; exit 1); done
 
-      - name: Check for circular dependencies
+      - name: Check for circular dependencies ♻️
         run: npx madge --circular --no-spinner src/
-
-      # TODO uncomment.
-      # - name: Check for credential leaks
-      #   if: github.event_name == 'pull_request'
-      #   uses: zricethezav/gitleaks-action@v1.4.0
-      #   with:
-      #     config-path: .gitleaks.toml
 
   unit-tests:
     runs-on: ${{ matrix.os }}
@@ -82,9 +78,12 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         node-version: [ 16.x, 18.x, 20.x]
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout 🛎️
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
       - name: Use Node.js ${{ matrix.node-version }} 🔂
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
 
@@ -103,9 +102,12 @@ jobs:
     needs:
       - unit-tests
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout 🛎️
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
       - name: Use Node.js ${{ matrix.node-version }} 🔂
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
 
