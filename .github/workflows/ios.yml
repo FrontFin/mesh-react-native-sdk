@@ -111,19 +111,33 @@ jobs:
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: npx pod-install
 
+      - name: Build iOS App for firebase 🏗️
+        uses: yukiarrr/ios-build-action@v1.11.0
+        with:
+          project-path: ${{ env.WORKING_DIRECTORY }}/ios/FrontFinanceRNSDKExample.xcodeproj
+          p12-base64: ${{ secrets.IOS_P12_BASE64 }}
+          #mobileprovision-base64: ${{ secrets.IOS_MOBILE_PROVISION_BASE64 }}
+          code-signing-identity: 'iPhone Distribution'
+          team-id: ${{ secrets.IOS_TEAM_ID }}
+          certificate-password: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+          workspace-path: ${{ env.WORKING_DIRECTORY }}/ios/FrontFinanceRNSDKExample.xcworkspace
+          output-path: ${{ env.WORKING_DIRECTORY }}/ios/build/output.ipa
+          scheme: FrontFinanceRNSDKExample
+
+      - name: Upload artifact to Firebase App Distribution 🔥
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ secrets.FIREBASE_IOS_APP_ID }}
+          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_CREDENTIALS_PRO }}
+          groups: testers
+          # add commit message as release notes
+          releaseNotes: ${{ github.event.head_commit.message || github.event.commits[0].message || github.event.pull_request.title || github.event.pull_request.head.ref }}
+          file: ${{ env.WORKING_DIRECTORY }}/ios/build/output.ipa
+
       - name: Build for e2e 🏗️
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: npx detox build e2e -c ios.release # TODO: this step should be combined with the last step, and removed from here
 
-#      - name: Upload artifact to Firebase App Distribution 🔥
-#        uses: wzieba/Firebase-Distribution-Github-Action@v1
-#        with:
-#          appId: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
-#          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_CREDENTIALS_PRO }}
-#          groups: testers
-#          # add commit message as release notes
-#          releaseNotes: ${{ github.event.head_commit.message || github.event.commits[0].message || github.event.pull_request.title || github.event.pull_request.head.ref }}
-#          file: ${{ env.WORKING_DIRECTORY }}/ios/build/Build/Products/Release-iphonesimulator/FrontFinanceRNSDKExample.app
 
       - name: Upload e2e artifact 🚀
         uses: actions/upload-artifact@v2
