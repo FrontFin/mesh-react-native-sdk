@@ -1,17 +1,36 @@
 # Logs
 *.log
-npm-debug.log
 
 # Dependency directory
 node_modules
+.yarn
+.pnp
+.cache
 
 # Runtime data
 tmp
 
-# Examples (If applicable to your project)
+# Examples
 example/
+examples
+
+# IDE settings
+.idea/
+.vscode/
+
+# VCS settings
 .github/
 .gitignore
+
+# src files
+src/
+scripts/
+
+# config files
 babel.config.js
+jest.config.js
+tsconfig.json
+
+# lock files
 yarn.lock
 package-lock.json

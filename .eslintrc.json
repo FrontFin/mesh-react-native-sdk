@@ -1,33 +1,3 @@
 {
-  "env": {
-    "browser": true,
-    "node": true
-  },
-  "globals": {
-    "JSX": true
-  },
-  "parserOptions": {
-    "ecmaFeatures": {
-      "jsx": true
-    }
-  },
-  "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint", "prettier", "import"],
-  "rules": {
-    "no-undef": "warn",
-    "no-console": "off",
-    "@typescript-eslint/explicit-function-return-type": "off",
-    "prettier/prettier": [
-      "error",
-      { "endOfLine": "auto" },
-      { "usePrettierrc": true }
-    ]
-  },
-  "extends": [
-    "eslint:recommended",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:prettier/recommended",
-    "plugin:import/typescript",
-    "prettier"
-  ]
+  "extends": ["plugin:@typescript-eslint/recommended"]
 }
