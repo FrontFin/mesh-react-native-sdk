@@ -14,11 +14,6 @@ else
   node ./scripts/local-run.js
 fi
 
-if exists yarn; then
-  # Run yarn commands
-  (cd ../../ && yarn --frozen-lockfile --prefer-offline && yarn build && cd -) || exit 1
-else
-  (cd ../../ && npm install && npm run build && cd -) || exit 1
-fi
+(cd ../../ && yarn --frozen-lockfile --prefer-offline && yarn build && cd -) || exit 1
 
 exit 0
