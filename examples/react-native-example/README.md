@@ -2,8 +2,9 @@
 
 # Front Finance React Native Example App
 
-##### npm
+ℹ️︎ If you had old changes in `node_modules` (previous version of the library) folder, please remove it and install dependencies again.
 
+##### npm
 1. install dependencies
    `npm install`
 2. For iOS only
