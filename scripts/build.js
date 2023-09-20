@@ -21,5 +21,8 @@ console.log('LICENSE.md was copied to dist/LICENSE.md');
 fs.copyFileSync('README.md', 'dist/README.md');
 console.log('README.md was copied to dist/README.md');
 
+fs.copyFileSync('tsconfig.json', 'dist/tsconfig.json');
+console.log('tsconfig.json was copied to dist/tsconfig.json');
+
 fs.cpSync('src/assets', 'dist/assets', { recursive: true });
 console.log('assets were copied to dist/assets');

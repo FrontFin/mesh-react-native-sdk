@@ -74,7 +74,7 @@ import {
 | `url`                | `string`                                     | Connection link                                                              |
 | `onBrokerConnected`  | `(payload: FrontPayload) => void`            | Callback called when users connects their accounts                           |
 | `onTransferFinished` | `(payload: TransferFinishedPayload) => void` | Callback called when a crypto transfer is executed                           |
-| `onError`            | `(err: string) => void)                      | Called if connection not happened. Returns an error message                  |
+| `onError`            | `(err: string) => void)`                      | Called if connection not happened. Returns an error message                  |
 | `onClose`            | `() => void`                                 | Called at the end of the connection, or when user closed the connection page |
 
 

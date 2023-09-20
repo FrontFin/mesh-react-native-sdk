@@ -9,9 +9,11 @@ echo "Checking sdk mode..."
 if [ "$PACKAGE_INSTALLATION_ENV" = "github" ]; then
   echo "Updating sdk mode to dist..."
   node ./scripts/swap-mode.js
+else
+  echo "PACKAGE_INSTALLATION_ENV is not github, local installation, changing to use the src..."
+  node ./scripts/local-run.js
 fi
 
-# Run yarn commands
 (cd ../../ && yarn --frozen-lockfile --prefer-offline && yarn build && cd -) || exit 1
 
 exit 0
