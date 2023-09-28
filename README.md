@@ -14,55 +14,60 @@ With `yarn`:
 yarn add @front-finance/frontfinance-rn-sdk
 ```
 
+💡 This package requires `react-native-webview` to be installed in your project. Although it is listed as direct dependency, some times it is not installed automatically (This is a known [npm issue](https://stackoverflow.com/questions/18401606/npm-doesnt-install-module-dependencies)). You should install it manually via following command in this case:
+```bash
+npm install --save react-native-webview@11.26.0
+
+# or with yarn
+yarn add react-native-webview@11.26.0
+```
+
+
 ### Getting connection link
 
-The connection link for brokerage connection should be obtained from the [Get catalog link](https://docs.getfront.com/reference/get_api-v1-cataloglink) endpoint. Request must be performed from the server side because it requires the client secret. You will get the response in the following format:
-
-```json
-{
-  "content": {
-    "url": "https://web.getfront.com/broker-connect?auth_code={authCode}",
-    "iFrameUrl": "https://web.getfront.com/b2b-iframe/{clientId}/broker-connect?auth_code={authCode}"
-  },
-  "status": "ok",
-  "message": ""
-}
-```
+The connection link for brokerage connection should be obtained from the [Get link token](https://docs.meshconnect.com/reference/post_api-v1-linktoken) endpoint. Request must be performed from the server side because it requires the client secret. You will get the response in the following format:
 
 You should use `url` from this response to run the `FrontFinance` component.
 
 ### Using the `FrontFinance` component
 
 ```tsx
+import React from 'react';
 import {
   FrontFinance,
   FrontPayload,
-  TransferFinishedPayload
+  TransferFinishedPayload,
+  TransferFinishedSuccessPayload,
+  TransferFinishedErrorPayload
 } from '@front-finance/frontfinance-rn-sdk';
 
-// ...
+export const App = () => {
+  return (
+    <FrontFinance
+      url={"YOUR_LINK_URL"}
+      onBrokerConnected={(payload: FrontPayload) => {
+        // use broker account data
+      }}
+      onTransferFinished={(payload: TransferFinishedPayload) => {
+        if (payload.status === 'success') {
+          const successPayload = payload as TransferFinishedSuccessPayload
+          // use transfer finished data
+        } else {
+          const errorPayload = payload as TransferFinishedErrorPayload
+          // handle transfer error
+        }
+      }}
+      onClose={() => {
+        // use close event
+      }}
+      onError={(err: string) => {
+        // use error message
+      }}
+    />
+  )
+}
 
-<FrontFinance
-  url={url}
-  onBrokerConnected={(payload: FrontPayload) => {
-    // use broker account data
-  }}
-  onTransferFinished={(payload: TransferFinishedPayload) => {
-    if (payload.status === 'success') {
-      const successPayload = payload as TransferFinishedSuccessPayload
-      // use transfer finished data
-    } else {
-      const errorPayload = payload as TransferFinishedErrorPayload
-      // handle transfer error
-    }
-  }}
-  onClose={() => {
-    // use close event
-  }}
-  onError={(err: string) => {
-    // use error message
-  }}
-/>
+export default App;
 ```
 
 ℹ️ See full source code examples at [examples/](https://github.com/FrontFin/front-b2b-link-rn/tree/main/examples).
@@ -74,7 +79,7 @@ import {
 | `url`                | `string`                                     | Connection link                                                              |
 | `onBrokerConnected`  | `(payload: FrontPayload) => void`            | Callback called when users connects their accounts                           |
 | `onTransferFinished` | `(payload: TransferFinishedPayload) => void` | Callback called when a crypto transfer is executed                           |
-| `onError`            | `(err: string) => void)`                      | Called if connection not happened. Returns an error message                  |
+| `onError`            | `(err: string) => void)`                     | Called if connection not happened. Returns an error message                  |
 | `onClose`            | `() => void`                                 | Called at the end of the connection, or when user closed the connection page |
 
 

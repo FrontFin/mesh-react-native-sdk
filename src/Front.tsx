@@ -12,6 +12,7 @@ import {
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes';
 import { FrontPayload, TransferFinishedPayload } from './types';
+import { decode64 } from './base64';
 
 const FrontFinance = (props: {
   url: string;
@@ -25,21 +26,27 @@ const FrontFinance = (props: {
   const backgroundStyle = {
     backgroundColor: isDarkMode ? '#000000' : '#ffffff',
   };
-  const [catalogLink, setCatalogLink] = useState<string | null>(null);
+  const [linkToken, setLinkToken] = useState<string | null>(null);
   const [showWebView, setShowWebView] = useState(false);
   const [showNativeNavbar, setShowNativeNavbar] = useState(false);
   const webViewRef = useRef<WebView>(null);
 
   useEffect(() => {
-    if (props.url.length) {
-      setCatalogLink(props.url);
-      setShowWebView(true);
-    } else {
-      props.onError?.('Invalid iframeUrl');
+    try {
+      if (props.url.length) {
+        const decodedLink = decode64(props.url);
+        setLinkToken(decodedLink);
+        setShowWebView(true);
+      } else {
+        props.onError?.('Invalid link token provided');
+      }
+      // eslint-disable-next-line
+    } catch (err: any) {
+      props.onError?.(err?.message || 'An error occurred during connection establishment');
     }
 
     return () => {
-      setCatalogLink(null);
+      setLinkToken(null);
       setShowWebView(false);
     };
   }, [props]);
@@ -125,11 +132,11 @@ const FrontFinance = (props: {
           </TouchableOpacity>
         </View>
       )}
-      {showWebView && catalogLink && (
+      {showWebView && linkToken && (
         <WebView
           testID={'webview'}
           ref={webViewRef}
-          source={{ uri: catalogLink ? catalogLink : '' }}
+          source={{ uri: linkToken ? linkToken : '' }}
           onMessage={handleMessage}
           javaScriptEnabled={true}
           onNavigationStateChange={handleNavState}
