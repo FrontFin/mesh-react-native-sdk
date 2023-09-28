@@ -32,6 +32,6 @@ describe('FrontFinance Component', () => {
   it('handles onError callback for invalid URL', () => {
     render(<FrontFinance url={''} onError={mockOnError} />);
 
-    expect(mockOnError).toHaveBeenCalledWith('Invalid iframeUrl');
+    expect(mockOnError).toHaveBeenCalledWith('Invalid link token provided');
   });
 });

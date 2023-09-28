@@ -19,17 +19,5 @@ exports[`FrontFinance Component renders correctly when URL is provided 1`] = `
     }
   }
   testID="front-finance-component"
->
-  <View
-    javaScriptEnabled={true}
-    onMessage={[Function]}
-    onNavigationStateChange={[Function]}
-    source={
-      {
-        "uri": "https://example.com",
-      }
-    }
-    testID="webview"
-  />
-</RCTSafeAreaView>
+/>
 `;
