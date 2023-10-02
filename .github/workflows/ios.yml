@@ -111,14 +111,6 @@ jobs:
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: npx pod-install
 
-      - name: Check iOS build secrets 🔐
-        working-directory: ${{ env.WORKING_DIRECTORY }}
-        run: |
-            echo "IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}"
-            echo "IOS_CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}"
-            echo "FIREBASE_IOS_APP_ID: ${{ secrets.FIREBASE_IOS_APP_ID }}"
-            echo "Done checking iOS build secrets 🔐"
-
       - name: Build iOS App for firebase 🏗️
         uses: yukiarrr/ios-build-action@v1.11.0
         with:
@@ -132,15 +124,18 @@ jobs:
           output-path: ${{ env.WORKING_DIRECTORY }}/ios/build/output.ipa
           scheme: FrontFinanceRNSDKExample
 
-      - name: Upload artifact to Firebase App Distribution 🔥
-        uses: wzieba/Firebase-Distribution-Github-Action@v1
-        with:
-          appId: ${{ secrets.FIREBASE_IOS_APP_ID }}
-          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_CREDENTIALS_PRO }}
-          groups: testers
-          # add commit message as release notes
-          releaseNotes: ${{ github.event.head_commit.message || github.event.commits[0].message || github.event.pull_request.title || github.event.pull_request.head.ref }}
-          file: ${{ env.WORKING_DIRECTORY }}/ios/build/output.ipa
+      - name: Push to firebase 🔥
+        run: |
+          curl -sL https://firebase.tools | bash
+          echo "Firebase version: $(firebase --version)"
+          echo "Working directory: ${{ env.WORKING_DIRECTORY }}/ios/build"
+          echo "Files in working directory:"
+          ls -l ${{ env.WORKING_DIRECTORY }}/ios/build
+          echo "Uploading to firebase... 🚀"
+          firebase appdistribution:distribute "${{ env.WORKING_DIRECTORY }}/ios/build/output.ipa" \
+            --app "${{ secrets.FIREBASE_IOS_APP_ID }}" --token "${{ secrets.IOS_FIREBASE_TOKEN }}" --groups "testers" \
+            --release-notes "${{ github.event.head_commit.message || github.event.commits[0].message || github.event.pull_request.title || github.event.pull_request.head.ref }}"
+          echo "Uploaded to firebase! 🎉"
 
       - name: Build for e2e 🏗️
         working-directory: ${{ env.WORKING_DIRECTORY }}
