@@ -125,14 +125,15 @@ jobs:
           scheme: FrontFinanceRNSDKExample
 
       - name: Push to firebase 🔥
+        working-directory: ${{ env.WORKING_DIRECTORY }}
         run: |
           curl -sL https://firebase.tools | bash
           echo "Firebase version: $(firebase --version)"
-          echo "Working directory: ${{ env.WORKING_DIRECTORY }}/ios/build"
+          echo "Working directory: ios/build"
           echo "Files in working directory:"
-          ls -l ${{ env.WORKING_DIRECTORY }}/ios/build
+          ls -l ios/build
           echo "Uploading to firebase... 🚀"
-          firebase appdistribution:distribute "${{ env.WORKING_DIRECTORY }}/ios/build/output.ipa" \
+          firebase appdistribution:distribute ios/build/output.ipa \
             --app "${{ secrets.FIREBASE_IOS_APP_ID }}" --token "${{ secrets.IOS_FIREBASE_TOKEN }}" --groups "testers" \
             --release-notes "${{ github.event.head_commit.message || github.event.commits[0].message || github.event.pull_request.title || github.event.pull_request.head.ref }}"
           echo "Uploaded to firebase! 🎉"
