@@ -138,19 +138,8 @@ jobs:
             --release-notes "${{ github.event.head_commit.message || github.event.commits[0].message || github.event.pull_request.title || github.event.pull_request.head.ref }}"
           echo "Uploaded to firebase! 🎉"
 
-      - name: Build for e2e 🏗️
-        working-directory: ${{ env.WORKING_DIRECTORY }}
-        run: npx detox build e2e -c ios.release # TODO: this step should be combined with the last step, and removed from here
-
-
-      - name: Upload e2e artifact 🚀
-        uses: actions/upload-artifact@v2
-        with:
-          name: ios-e2e
-          path: ${{ env.WORKING_DIRECTORY }}/ios/build/Build/Products/Release-iphonesimulator/FrontFinanceRNSDKExample.app
-
   e2e:
-    needs: build
+    needs: analysis
     runs-on: macos-11
     timeout-minutes: 60
     defaults:
@@ -168,11 +157,6 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
       - name: Install node modules 📦
         run: yarn install --frozen-lockfile
-      - name: Download artifact ⏬
-        uses: actions/download-artifact@v2
-        with:
-          name: ios-e2e
-          path: ${{ env.WORKING_DIRECTORY }}/ios/build/Build/Products/Release-iphonesimulator/FrontFinanceRNSDKExample.app
       - name: Select Xcode 🆇
         run: sudo xcode-select --switch /Applications/Xcode_${{ env.XCODE_VERSION }}.app
       - name: Install detox ⏳
