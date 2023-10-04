@@ -30,6 +30,7 @@ export default function App() {
   const [view, setView] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [catalogLink, setCatalogLink] = useState<string>('');
+  const [linkToken, setLinkToken] = useState<string>('');
   const isTransferLink = catalogLink?.includes('transfer_token');
   const connectButtonTitle = isTransferLink
     ? 'Connect origin account'
@@ -70,11 +71,14 @@ export default function App() {
     );
   }
 
-  if (view && catalogLink.length) {
+  if (view && (catalogLink.length || linkToken.length)) {
     console.log(catalogLink, 'URL');
+    console.log(linkToken, 'linkToken');
+
     return (
       <FrontFinance
         url={catalogLink}
+        linkToken={linkToken}
         onBrokerConnected={(payload: FrontPayload) => {
           if (isTransferLink) {
             return;
@@ -121,6 +125,24 @@ export default function App() {
               resizeMode="contain"
               testID={'example-app-logo'}
             />
+          </View>
+
+          <View
+            testID={'example-app-link-token-container'}
+            style={styles.inputContainer}>
+            <TextInput
+              testID={'example-app-link-token-input'}
+              value={linkToken}
+              onChangeText={e => setLinkToken(e)}
+              onSubmitEditing={() => setView(true)}
+              style={{width: '95%', height: 40, left: 10}}
+              placeholder="Enter link token"
+              placeholderTextColor={'#363636'}
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text>OR</Text>
           </View>
 
           <View

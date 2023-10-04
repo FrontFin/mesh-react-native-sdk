@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import {
   SafeAreaView,
   StatusBar,
@@ -12,10 +12,18 @@ import {
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes';
 import { FrontPayload, TransferFinishedPayload } from './types';
-import { decode64 } from './base64';
+import { decode64, isValidUrl } from './utils';
 
-const FrontFinance = (props: {
-  url: string;
+const FrontFinance = ({
+                        url, // @deprecated use linkToken instead
+                        linkToken,
+                        onBrokerConnected,
+                        onTransferFinished,
+                        onError,
+                        onClose,
+                      }: {
+  url?: string; // @deprecated use linkToken instead
+  linkToken?: string;
   onBrokerConnected?: (payload: FrontPayload) => void;
   onTransferFinished?: (payload: TransferFinishedPayload) => void;
   onError?: (err: string) => void;
@@ -26,30 +34,57 @@ const FrontFinance = (props: {
   const backgroundStyle = {
     backgroundColor: isDarkMode ? '#000000' : '#ffffff',
   };
-  const [linkToken, setLinkToken] = useState<string | null>(null);
+  const [linkUrl, setLinkUrl] = useState<string | null>(null);
+  const [catalogUrl, setCatalogUrl] = useState<string | null>(null);
   const [showWebView, setShowWebView] = useState(false);
   const [showNativeNavbar, setShowNativeNavbar] = useState(false);
   const webViewRef = useRef<WebView>(null);
 
   useEffect(() => {
     try {
-      if (props.url.length) {
-        const decodedLink = decode64(props.url);
-        setLinkToken(decodedLink);
+      if (url) {
+        if (!isValidUrl(url)) {
+          onError?.('Invalid catalog link provided');
+          return;
+        }
+
+        setCatalogUrl(url);
         setShowWebView(true);
-      } else {
-        props.onError?.('Invalid link token provided');
       }
       // eslint-disable-next-line
     } catch (err: any) {
-      props.onError?.(err?.message || 'An error occurred during connection establishment');
+      onError?.(err?.message || 'An error occurred during connection establishment');
     }
 
     return () => {
-      setLinkToken(null);
+      setLinkUrl(null);
       setShowWebView(false);
     };
-  }, [props]);
+  }, [url, onError]);
+
+  useEffect(() => {
+    try {
+      if (linkToken) {
+        const decodedUrl = decode64(linkToken);
+
+        if (!isValidUrl(decodedUrl)) {
+          onError?.('Invalid link token provided');
+          return;
+        }
+
+        setCatalogUrl(decodedUrl);
+        setShowWebView(true);
+      }
+      // eslint-disable-next-line
+    } catch (err: any) {
+      onError?.(err?.message || 'An error occurred during connection establishment');
+    }
+
+    return () => {
+      setLinkUrl(null);
+      setShowWebView(false);
+    };
+  }, [linkToken, onError]);
 
   const handleNavState = (event: WebViewNativeEvent) => {
     if (event.url.endsWith('/broker-connect/catalog')) {
@@ -61,7 +96,7 @@ const FrontFinance = (props: {
     const { type, payload } = JSON.parse(event.nativeEvent.data);
 
     if (type === 'close' || type === 'done') {
-      props.onClose?.();
+      onClose?.();
     }
 
     if (type === 'showClose') {
@@ -73,15 +108,15 @@ const FrontFinance = (props: {
     }
 
     if (type === 'brokerageAccountAccessToken') {
-      props.onBrokerConnected?.({ accessToken: payload });
+      onBrokerConnected?.({ accessToken: payload });
     }
 
     if (type === 'delayedAuthentication') {
-      props.onBrokerConnected?.({ delayedAuth: payload });
+      onBrokerConnected?.({ delayedAuth: payload });
     }
 
     if (type === 'transferFinished') {
-      props.onTransferFinished?.(payload);
+      onTransferFinished?.(payload);
     }
   };
 
@@ -96,9 +131,19 @@ const FrontFinance = (props: {
           text: 'Cancel',
           style: 'cancel',
         },
-        { text: 'Exit', onPress: () => props.onClose?.() },
-      ]
+        { text: 'Exit', onPress: () => onClose?.() },
+      ],
     );
+
+  const composedUri = useMemo(() => {
+    if (linkUrl) {
+      return linkUrl;
+    }
+    if (catalogUrl) {
+      return catalogUrl;
+    }
+    return null;
+  }, [linkUrl, catalogUrl]);
 
   return (
     <SafeAreaView style={{ flex: 1 }} testID={'front-finance-component'}>
@@ -132,11 +177,11 @@ const FrontFinance = (props: {
           </TouchableOpacity>
         </View>
       )}
-      {showWebView && linkToken && (
+      {showWebView && composedUri && (
         <WebView
           testID={'webview'}
           ref={webViewRef}
-          source={{ uri: linkToken ? linkToken : '' }}
+          source={{ uri: composedUri }}
           onMessage={handleMessage}
           javaScriptEnabled={true}
           onNavigationStateChange={handleNavState}

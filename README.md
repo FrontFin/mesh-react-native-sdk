@@ -22,12 +22,54 @@ npm install --save react-native-webview@11.26.0
 yarn add react-native-webview@11.26.0
 ```
 
+### Connect through catalog link `@deprecated (use linkToken instead)`
+The connection link for brokerage connection should be obtained from the [Get catalog link ](https://docs.getfront.com/reference/get_api-v1-cataloglink) endpoint. Request must be performed from the server side because it requires the client secret. You will get the response in the following format:
+```json
+{
+  "content": {
+    "url": "https://web.getfront.com/broker-connect?auth_code={authCode}",
+    "iFrameUrl": "https://web.getfront.com/b2b-iframe/{clientId}/broker-connect?auth_code={authCode}"
+  },
+  "status": "ok",
+  "message": ""
+}
+```
+You should use `content --> iFrameUrl` from this response to run the `FrontFinance` component.
 
-### Getting connection link
+### Connect through `linkToken`
+The connection link token should be obtained from the [Get link token](https://docs.meshconnect.com/reference/post_api-v1-linktoken) endpoint. Request must be performed from the server side because it requires the client secret. You will get the response in the following format:
+You should use `content --> linkToken` from this response to run the `FrontFinance` component.
 
-The connection link for brokerage connection should be obtained from the [Get link token](https://docs.meshconnect.com/reference/post_api-v1-linktoken) endpoint. Request must be performed from the server side because it requires the client secret. You will get the response in the following format:
+here is an example http request using `request` API in JS:
+```js
+const options = {
+  method: 'POST',
+  headers: {
+    accept: 'application/json',
+    'content-type': 'application/*+json',
+    'X-Client-Secret': 'XXXX', // replace with your client secret
+    'X-Client-Id': 'XXXX' // replace with your client id
+  },
+  body: '{"userId":"XXXX"}' // replace with your user id (could be user email or phone number)
+};
 
-You should use `url` from this response to run the `FrontFinance` component.
+const getLinkToken = async () => {
+  const response = await fetch('https://integration-api.getfront.com/api/v1/linktoken', options);
+  const json = await response.json();
+  return json?.content?.linkToken;
+};
+```
+You will get a response in the following structure:
+```shell
+{
+  "content": {
+    "linkToken": "REQUESTED_LINK_TOKEN"
+  },
+  "status": "ok",
+  "message": "",
+  "errorType": ""
+}
+```
 
 ### Using the `FrontFinance` component
 
@@ -74,19 +116,18 @@ export default App;
 
 #### `FrontFinance` component arguments
 
-| key                  | type                                         | description                                                                  |
-|----------------------|----------------------------------------------|------------------------------------------------------------------------------|
-| `url`                | `string`                                     | Connection link                                                              |
-| `onBrokerConnected`  | `(payload: FrontPayload) => void`            | Callback called when users connects their accounts                           |
-| `onTransferFinished` | `(payload: TransferFinishedPayload) => void` | Callback called when a crypto transfer is executed                           |
-| `onError`            | `(err: string) => void)`                     | Called if connection not happened. Returns an error message                  |
-| `onClose`            | `() => void`                                 | Called at the end of the connection, or when user closed the connection page |
+| key                  | type                                            | Required/Optional                         | description                                                                   |
+|----------------------|-------------------------------------------------|-------------------------------------------|-------------------------------------------------------------------------------|
+| `url`                | `string`  @deprecated (use `linkToken` instead) | required (if `linkToken` is not provided) | Connection catalog link                                                       |
+| `linkToken`          | `string`                                        | required (if `url` is not provided)       | link token                                                                    |
+| `onBrokerConnected`  | `(payload: FrontPayload) => void`               | optional                                  | Callback called when users connects their accounts                            |
+| `onTransferFinished` | `(payload: TransferFinishedPayload) => void`    | optional                                  | Callback called when a crypto transfer is executed                            |
+| `onError`            | `(err: string) => void)`                        | optional                                  | Called if connection not happened. Returns an error message                   |
+| `onClose`            | `() => void`                                    | optional                                  | Called at the end of the connection, or when user closed the connection page  |
 
 
 #### Using tokens
-
 You can use broker tokens to perform requests to get current balance, assets and execute transactions. Full API reference can be found [here](https://docs.getfront.com/reference).
 
 #### Typescript support
-
 Typescript definitions for `@front-finance/frontfinance-rn-sdk` are built into the npm package.
