@@ -44,8 +44,7 @@ const FrontFinance = ({
     try {
       if (url) {
         if (!isValidUrl(url)) {
-          onError?.('Invalid catalog link provided');
-          return;
+          throw new Error('Invalid catalog link provided');
         }
 
         setCatalogUrl(url);
@@ -68,8 +67,7 @@ const FrontFinance = ({
         const decodedUrl = decode64(linkToken);
 
         if (!isValidUrl(decodedUrl)) {
-          onError?.('Invalid link token provided');
-          return;
+          throw new Error('Invalid link token provided');
         }
 
         setCatalogUrl(decodedUrl);
@@ -153,7 +151,9 @@ const FrontFinance = ({
       />
       {showNativeNavbar && (
         <View testID={'native-navbar'} style={styles.navBarContainer}>
-          <TouchableOpacity onPress={goBack} style={styles.navBarImgContainer}>
+          <TouchableOpacity
+            testID={'nav-back-button'}
+            onPress={goBack} style={styles.navBarImgContainer}>
             <Image
               source={require('./assets/ic_back.png')}
               style={styles.navBarImgButton}

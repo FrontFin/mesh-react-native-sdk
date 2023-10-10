@@ -12,8 +12,5 @@ describe('decode64 function', () => {
     expect(() => decode64('')).not.toThrow();
 
     expect(() => decode64('InvalidBase64$*7')).toThrow(Error);
-
-    const encodedStringWithoutPadding = 'SGVsbG8gV29ybGQ'; // Missing '=' padding
-    expect(() => decode64(encodedStringWithoutPadding)).toThrow(Error);
   });
 });

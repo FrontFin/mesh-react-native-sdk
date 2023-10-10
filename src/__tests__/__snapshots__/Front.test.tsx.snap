@@ -1,16 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`FrontFinance Component renders correctly 1`] = `
-<RCTSafeAreaView
-  style={
-    {
-      "flex": 1,
-    }
-  }
-  testID="front-finance-component"
-/>
-`;
-
 exports[`FrontFinance Component renders correctly when URL is provided 1`] = `
 <RCTSafeAreaView
   style={
@@ -19,5 +8,17 @@ exports[`FrontFinance Component renders correctly when URL is provided 1`] = `
     }
   }
   testID="front-finance-component"
-/>
+>
+  <View
+    javaScriptEnabled={true}
+    onMessage={[Function]}
+    onNavigationStateChange={[Function]}
+    source={
+      {
+        "uri": "https://web.getfront.com:443/b2b-iframe/01xs1-test",
+      }
+    }
+    testID="webview"
+  />
+</RCTSafeAreaView>
 `;

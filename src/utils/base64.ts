@@ -11,7 +11,7 @@ export const decode64 = (input: string) => {
   // remove all characters that are not A-Z, a-z, 0-9, +, /, or =
   const base64test = /[^A-Za-z0-9+/=]/g;
 
-  if (base64test.exec(input) || (input && !input.endsWith('='))) {
+  if (base64test.exec(input)) {
     throw new Error(`There were invalid base64 characters in the input text. Valid base64 characters are A-Z, a-z, 0-9, '+', '/',and '='`);
   }
 

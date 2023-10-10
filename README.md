@@ -22,20 +22,6 @@ npm install --save react-native-webview@11.26.0
 yarn add react-native-webview@11.26.0
 ```
 
-### Connect through catalog link `@deprecated (use linkToken instead)`
-The connection link for brokerage connection should be obtained from the [Get catalog link ](https://docs.getfront.com/reference/get_api-v1-cataloglink) endpoint. Request must be performed from the server side because it requires the client secret. You will get the response in the following format:
-```json
-{
-  "content": {
-    "url": "https://web.getfront.com/broker-connect?auth_code={authCode}",
-    "iFrameUrl": "https://web.getfront.com/b2b-iframe/{clientId}/broker-connect?auth_code={authCode}"
-  },
-  "status": "ok",
-  "message": ""
-}
-```
-You should use `content --> iFrameUrl` from this response to run the `FrontFinance` component.
-
 ### Connect through `linkToken`
 The connection link token should be obtained from the [Get link token](https://docs.meshconnect.com/reference/post_api-v1-linktoken) endpoint. Request must be performed from the server side because it requires the client secret. You will get the response in the following format:
 You should use `content --> linkToken` from this response to run the `FrontFinance` component.
@@ -119,7 +105,7 @@ export default App;
 | key                  | type                                            | Required/Optional                         | description                                                                   |
 |----------------------|-------------------------------------------------|-------------------------------------------|-------------------------------------------------------------------------------|
 | `url`                | `string`  @deprecated (use `linkToken` instead) | required (if `linkToken` is not provided) | Connection catalog link                                                       |
-| `linkToken`          | `string`                                        | required (if `url` is not provided)       | link token                                                                    |
+| `linkToken`          | `string`                                        | required                                  | link token                                                                    |
 | `onBrokerConnected`  | `(payload: FrontPayload) => void`               | optional                                  | Callback called when users connects their accounts                            |
 | `onTransferFinished` | `(payload: TransferFinishedPayload) => void`    | optional                                  | Callback called when a crypto transfer is executed                            |
 | `onError`            | `(err: string) => void)`                        | optional                                  | Called if connection not happened. Returns an error message                   |
