@@ -72,7 +72,7 @@ import {
 export const App = () => {
   return (
     <FrontFinance
-      linkToken={"YOUR_LINK_URL"}
+      linkToken={"YOUR_LINKTOKEN"}
       onBrokerConnected={(payload: FrontPayload) => {
         // use broker account data
       }}
