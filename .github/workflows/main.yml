@@ -93,6 +93,16 @@ jobs:
       - name: Run unit tests ⚛️
         run: yarn test
 
+      - name: SonarQube analysis
+        uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      - uses: sonarsource/sonarqube-quality-gate-action@master
+        timeout-minutes: 5
+        env:
+           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
   check-build: # check build with all the supported node versions and OSes (TODO: extend this to include more typescript/react/react-native versions)
     runs-on: ${{ matrix.os }}
     strategy:
