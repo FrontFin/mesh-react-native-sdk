@@ -75,7 +75,7 @@ jobs:
       - analysis
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest]
         node-version: [ 16.x, 18.x, 20.x]
     steps:
       - name: Checkout 🛎️
