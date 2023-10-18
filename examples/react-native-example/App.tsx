@@ -12,9 +12,9 @@ import {
   Image,
 } from 'react-native';
 import {
-  FrontFinance,
+  MeshConnect,
   AccessTokenPayload,
-  FrontPayload,
+  LinkPayload,
   TransferFinishedPayload,
   TransferFinishedSuccessPayload,
   TransferFinishedErrorPayload,
@@ -76,10 +76,10 @@ export default function App() {
     console.log(linkToken, 'linkToken');
 
     return (
-      <FrontFinance
+      <MeshConnect
         url={catalogLink}
         linkToken={linkToken}
-        onBrokerConnected={(payload: FrontPayload) => {
+        onBrokerConnected={(payload: LinkPayload) => {
           if (isTransferLink) {
             return;
           }

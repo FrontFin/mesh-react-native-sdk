@@ -11,10 +11,10 @@ import {
 } from 'react-native';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes';
-import { FrontPayload, TransferFinishedPayload } from './types';
+import { LinkPayload, TransferFinishedPayload } from './types';
 import { decode64, isValidUrl } from './utils';
 
-const FrontFinance = ({
+const MeshConnect = ({
                         url, // @deprecated use linkToken instead
                         linkToken,
                         onBrokerConnected,
@@ -24,7 +24,7 @@ const FrontFinance = ({
                       }: {
   url?: string; // @deprecated use linkToken instead
   linkToken?: string;
-  onBrokerConnected?: (payload: FrontPayload) => void;
+  onBrokerConnected?: (payload: LinkPayload) => void;
   onTransferFinished?: (payload: TransferFinishedPayload) => void;
   onError?: (err: string) => void;
   onClose?: () => void;
@@ -144,7 +144,7 @@ const FrontFinance = ({
   }, [linkUrl, catalogUrl]);
 
   return (
-    <SafeAreaView style={{ flex: 1 }} testID={'front-finance-component'}>
+    <SafeAreaView style={{ flex: 1 }} testID={'mesh-finance-component'}>
       <StatusBar
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={backgroundStyle.backgroundColor}
@@ -161,7 +161,7 @@ const FrontFinance = ({
           </TouchableOpacity>
 
           <Image
-            source={require('./assets/front_logo.png')}
+            source={require('./assets/mesh_logo.png')}
             style={styles.navBarLogo}
           />
 
@@ -218,4 +218,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FrontFinance;
+export default MeshConnect;
