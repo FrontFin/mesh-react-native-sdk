@@ -19,13 +19,14 @@ const files = fs.readdirSync(buildFolder);
 console.log('Verifying build files... 🧐');
 
 const requiredFiles = [
-  'Front.d.ts',
-  'Front.js',
+  'MeshConnect.d.ts',
+  'MeshConnect.js',
+  'LICENSE.md',
   'index.js',
   'index.d.ts',
-  'LICENSE.md',
   'package.json',
   'README.md',
+  'tsconfig.json',
   'types.js',
   'types.d.ts',
 ];
@@ -49,7 +50,7 @@ if (!fs.existsSync(`${buildFolder}/assets`)) {
 
 const assetFiles = fs.readdirSync(`${buildFolder}/assets`);
 
-const requiredAssetFiles = ['ic_back', 'ic_close', 'front_logo'];
+const requiredAssetFiles = ['ic_back', 'ic_close', 'mesh_logo'];
 const requiredAssetFilesWithVariations = requiredAssetFiles.flatMap((file) => [
   `${file}.png`,
   `${file}@2x.png`,
