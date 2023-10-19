@@ -15,7 +15,7 @@
     "check-build": "node scripts/verify-build.js",
     "clean": "tsc --build --clean",
     "lint": "eslint --ext .js,.ts,.tsx ./src",
-    "test": "jest --passWithNoTests",
+    "test": "jest --coverage",
     "types-check": "tsc --noEmit",
     "publish:npm": "yarn build && cd dist && yarn publish --access public",
     "prepare": "husky install"
