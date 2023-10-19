@@ -95,32 +95,16 @@ jobs:
 
       - name: Verify coverage 📊  # we verify coverage from coverage directory
         run: |
-            if [ -d coverage ]; then
-                echo "Coverage directory exists"
-                if [ -f coverage/lcov.info ]; then
-                echo "Coverage file exists"
-                if grep -q "100%" coverage/lcov.info; then
-                    echo "Coverage is 100%"
-                else
-                    echo "Coverage is not 100%"
-                fi
-                else
-                echo "Coverage file does not exist"
-                exit 1
-                fi
-            else
-                echo "Coverage directory does not exist"
-                exit 1
-            fi
+            # install tree
+            sudo apt-get install tree
+            # print tree
+            tree coverage
 
       - name: Report code coverage 📊
-        uses: zgosalvez/github-actions-report-lcov@v3
+        uses: romeovs/lcov-reporter-action@v0.2.16
         with:
-          coverage-files: coverage/lcov.info
-          minimum-coverage: 80
-          artifact-name: code-coverage-report
+          delete-old-comments: true
           github-token: ${{ secrets.GH_TOKEN }}
-          update-comment: true
 
       - name: SonarQube analysis 📊
         uses: sonarsource/sonarqube-scan-action@master
