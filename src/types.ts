@@ -39,13 +39,7 @@ export type BrokerType =
   | 'bitfinexDirect'
   | 'bybit';
 
-export interface AccountToken {
-  account: BrokerAccount;
-  accessToken: string;
-  refreshToken?: string;
-}
-
-export interface BrokerAccount {
+export interface Account {
   accountId: string;
   accountName: string;
   fund?: number;
@@ -53,7 +47,13 @@ export interface BrokerAccount {
   isReconnected?: boolean;
 }
 
-export interface BrokerBrandInfo {
+export interface AccountToken {
+  account: Account;
+  accessToken: string;
+  refreshToken?: string;
+}
+
+export interface BrandInfo {
   brokerLogo: string;
   brokerPrimaryColor?: string;
 }
@@ -65,7 +65,7 @@ export interface LinkPayload {
 
 export interface AccessTokenPayload {
   accountTokens: AccountToken[];
-  brokerBrandInfo: BrokerBrandInfo;
+  brokerBrandInfo: BrandInfo;
   expiresInSeconds?: number;
   refreshTokenExpiresInSeconds?: number;
   brokerType: BrokerType;
@@ -77,7 +77,7 @@ export interface DelayedAuthPayload {
   brokerType: BrokerType;
   refreshToken: string;
   brokerName: string;
-  brokerBrandInfo: BrokerBrandInfo;
+  brokerBrandInfo: BrandInfo;
 }
 
 export interface TransferFinishedSuccessPayload {
