@@ -1,5 +1,5 @@
 /* istanbul ignore file */
-import FrontFinance from './Front';
+import MeshConnect from './MeshConnect';
 
 export * from './types';
-export { FrontFinance };
+export { MeshConnect };

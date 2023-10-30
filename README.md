@@ -24,7 +24,7 @@ yarn add react-native-webview@11.26.0
 
 ### Connect through `linkToken`
 The connection link token should be obtained from the [Get link token](https://docs.meshconnect.com/reference/post_api-v1-linktoken) endpoint. Request must be performed from the server side because it requires the client secret. You will get the response in the following format:
-You should use `content --> linkToken` from this response to run the `FrontFinance` component.
+You should use `content --> linkToken` from this response to run the `MeshConnect` component.
 
 here is an example http request using `request` API in JS:
 ```js
@@ -57,13 +57,13 @@ You will get a response in the following structure:
 }
 ```
 
-### Using the `FrontFinance` component
+### Using the `MeshConnect` component
 
 ```tsx
 import React from 'react';
 import {
-  FrontFinance,
-  FrontPayload,
+  MeshConnect,
+  LinkPayload,
   TransferFinishedPayload,
   TransferFinishedSuccessPayload,
   TransferFinishedErrorPayload
@@ -71,9 +71,9 @@ import {
 
 export const App = () => {
   return (
-    <FrontFinance
+    <MeshConnect
       linkToken={"YOUR_LINKTOKEN"}
-      onBrokerConnected={(payload: FrontPayload) => {
+      onBrokerConnected={(payload: LinkPayload) => {
         // use broker account data
       }}
       onTransferFinished={(payload: TransferFinishedPayload) => {
@@ -100,16 +100,16 @@ export default App;
 
 ℹ️ See full source code examples at [examples/](https://github.com/FrontFin/front-b2b-link-rn/tree/main/examples).
 
-#### `FrontFinance` component arguments
+#### `MeshConnect` component arguments
 
-| key                  | type                                            | Required/Optional                         | description                                                                   |
-|----------------------|-------------------------------------------------|-------------------------------------------|-------------------------------------------------------------------------------|
-| `url`                | `string`  @deprecated (use `linkToken` instead) | required (if `linkToken` is not provided) | Connection catalog link                                                       |
-| `linkToken`          | `string`                                        | required                                  | link token                                                                    |
-| `onBrokerConnected`  | `(payload: FrontPayload) => void`               | optional                                  | Callback called when users connects their accounts                            |
-| `onTransferFinished` | `(payload: TransferFinishedPayload) => void`    | optional                                  | Callback called when a crypto transfer is executed                            |
-| `onError`            | `(err: string) => void)`                        | optional                                  | Called if connection not happened. Returns an error message                   |
-| `onClose`            | `() => void`                                    | optional                                  | Called at the end of the connection, or when user closed the connection page  |
+| key                  | type                                             | Required/Optional                         | description                                                                   |
+|----------------------|--------------------------------------------------|-------------------------------------------|-------------------------------------------------------------------------------|
+| `url`                | `string`  @deprecated (use `linkToken` instead)  | required (if `linkToken` is not provided) | Connection catalog link                                                       |
+| `linkToken`          | `string`                                         | required                                  | link token                                                                    |
+| `onBrokerConnected`  | `(payload: LinkPayload) => void`                 | optional                                  | Callback called when users connects their accounts                            |
+| `onTransferFinished` | `(payload: TransferFinishedPayload) => void`     | optional                                  | Callback called when a crypto transfer is executed                            |
+| `onError`            | `(err: string) => void)`                         | optional                                  | Called if connection not happened. Returns an error message                   |
+| `onClose`            | `() => void`                                     | optional                                  | Called at the end of the connection, or when user closed the connection page  |
 
 
 #### Using tokens

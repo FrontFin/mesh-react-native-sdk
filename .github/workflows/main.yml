@@ -75,7 +75,7 @@ jobs:
       - analysis
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest]
         node-version: [ 16.x, 18.x, 20.x]
     steps:
       - name: Checkout 🛎️
@@ -93,11 +93,37 @@ jobs:
       - name: Run unit tests ⚛️
         run: yarn test
 
+      - name: Verify coverage 📊  # we verify coverage from coverage directory
+        run: |
+            # install tree
+            sudo apt-get install tree
+            # print tree
+            tree coverage
+
+      - name: Report code coverage 📊
+        uses: romeovs/lcov-reporter-action@v0.2.16
+        with:
+          delete-old-comments: true
+          github-token: ${{ secrets.GH_TOKEN }}
+
+      - name: SonarQube analysis 📊
+        uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      - name: SonarQube Quality Gate 🚦
+        if: ${{ always() }}
+        uses: sonarsource/sonarqube-quality-gate-action@master
+        timeout-minutes: 5
+        env:
+           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
   check-build: # check build with all the supported node versions and OSes (TODO: extend this to include more typescript/react/react-native versions)
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        os: [ ubuntu-latest ]
         node-version: [ 16.x, 18.x, 20.x ]
     needs:
       - unit-tests

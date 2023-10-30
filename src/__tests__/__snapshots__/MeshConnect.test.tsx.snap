@@ -1,13 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`FrontFinance Component renders correctly when URL is provided 1`] = `
+exports[`MeshConnect Component renders correctly when URL is provided 1`] = `
 <RCTSafeAreaView
   style={
     {
       "flex": 1,
     }
   }
-  testID="front-finance-component"
+  testID="mesh-finance-component"
 >
   <View
     javaScriptEnabled={true}
