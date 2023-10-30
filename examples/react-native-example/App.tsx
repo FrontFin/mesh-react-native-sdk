@@ -29,12 +29,8 @@ export default function App() {
   >(null);
   const [view, setView] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [catalogLink, setCatalogLink] = useState<string>('');
   const [linkToken, setLinkToken] = useState<string>('');
-  const isTransferLink = catalogLink?.includes('transfer_token');
-  const connectButtonTitle = isTransferLink
-    ? 'Connect origin account'
-    : 'Connect account';
+  const connectButtonTitle = 'Connect account';
 
   function showBrokerConnectedAlert(payload: AccessTokenPayload) {
     Alert.alert(
@@ -46,7 +42,7 @@ export default function App() {
           onPress: () => {
             setData(payload);
             setView(false);
-            setCatalogLink('');
+            setLinkToken('');
           },
         },
       ],
@@ -64,25 +60,20 @@ export default function App() {
           onPress: () => {
             setData(payload);
             setView(false);
-            setCatalogLink('');
+            setLinkToken('');
           },
         },
       ],
     );
   }
 
-  if (view && (catalogLink.length || linkToken.length)) {
-    console.log(catalogLink, 'URL');
+  if (view && linkToken.length) {
     console.log(linkToken, 'linkToken');
 
     return (
       <MeshConnect
-        url={catalogLink}
         linkToken={linkToken}
         onBrokerConnected={(payload: LinkPayload) => {
-          if (isTransferLink) {
-            return;
-          }
           if (payload.accessToken) {
             showBrokerConnectedAlert(payload.accessToken);
           }
@@ -98,7 +89,7 @@ export default function App() {
         }}
         onClose={() => {
           setView(false);
-          setCatalogLink('');
+          setLinkToken('');
         }}
         onError={(err: string) => setError(err)}
       />
@@ -118,43 +109,18 @@ export default function App() {
               alignItems: 'center',
               justifyContent: 'center',
               marginTop: 24,
-            }}>
-            <Image
-              source={require('./assets/logo.png')}
-              style={{height: 30, width: 120}}
-              resizeMode="contain"
-              testID={'example-app-logo'}
-            />
-          </View>
-
-          <View
-            testID={'example-app-link-token-container'}
-            style={styles.inputContainer}>
-            <TextInput
-              testID={'example-app-link-token-input'}
-              value={linkToken}
-              onChangeText={e => setLinkToken(e)}
-              onSubmitEditing={() => setView(true)}
-              style={{width: '95%', height: 40, left: 10}}
-              placeholder="Enter link token"
-              placeholderTextColor={'#363636'}
-            />
-          </View>
-
-          <View style={styles.inputContainer}>
-            <Text>OR</Text>
-          </View>
+            }}/>
 
           <View
             testID={'example-app-link-input-container'}
             style={styles.inputContainer}>
             <TextInput
               testID={'example-app-link-input'}
-              value={catalogLink}
-              onChangeText={e => setCatalogLink(e)}
+              value={linkToken}
+              onChangeText={e => setLinkToken(e)}
               onSubmitEditing={() => setView(true)}
               style={{width: '95%', height: 40, left: 10}}
-              placeholder="Catalog Link"
+              placeholder="Link Token"
               placeholderTextColor={'#363636'}
             />
           </View>
