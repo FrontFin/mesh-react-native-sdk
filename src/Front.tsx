@@ -13,6 +13,15 @@ import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes';
 import { FrontPayload, TransferFinishedPayload } from './types';
 import { decode64, isValidUrl } from './utils';
+import { sdkSpecs } from './utils/sdk.config';
+
+const sdkTypeScript = `
+    window.postMessage('${sdkSpecs}', '*');
+
+    if(window.parent) {
+      window.parent.postMessage('${sdkSpecs}', '*');
+    }
+  `;
 
 const FrontFinance = ({
                         url, // @deprecated use linkToken instead
@@ -183,6 +192,7 @@ const FrontFinance = ({
           ref={webViewRef}
           source={{ uri: composedUri }}
           onMessage={handleMessage}
+          injectedJavaScript={sdkTypeScript}
           javaScriptEnabled={true}
           onNavigationStateChange={handleNavState}
         />

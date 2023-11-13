@@ -10,6 +10,13 @@ exports[`FrontFinance Component renders correctly when URL is provided 1`] = `
   testID="front-finance-component"
 >
   <View
+    injectedJavaScript="
+    window.postMessage('RNSDK@1.3.5', '*');
+
+    if(window.parent) {
+      window.parent.postMessage('RNSDK@1.3.5', '*');
+    }
+  "
     javaScriptEnabled={true}
     onMessage={[Function]}
     onNavigationStateChange={[Function]}
