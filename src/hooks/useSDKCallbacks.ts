@@ -6,6 +6,19 @@ import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes';
 import { decode64, isValidUrl } from '../utils';
 import { LinkConnectProps } from '../';
 
+const additionalEvents = [
+  'integrationConnected',
+  'integrationConnectionError',
+  'transferCompleted',
+  'integrationSelected',
+  'credentialsEntered',
+  'transferStarted',
+  'transferPreviewed',
+  'transferPreviewError',
+  'transferExecutionError',
+  'pageLoaded'
+]
+
 const useSDKCallbacks = (props: LinkConnectProps) => {
   const [linkUrl, setLinkUrl] = useState<string | null>(null);
   const [showWebView, setShowWebView] = useState(false);
@@ -50,29 +63,33 @@ const useSDKCallbacks = (props: LinkConnectProps) => {
   const handleMessage = (event: WebViewMessageEvent) => {
     const { type, payload } = JSON.parse(event.nativeEvent.data);
 
-    if (type === 'close' || type === 'done') {
+    if (type === 'close' || type === 'done' || type === 'exit') {
       props.onExit?.();
+      return;
     }
 
     if (type === 'showClose') {
       showCloseAlert();
+      return;
     }
 
     if (type === 'showNativeNavbar') {
-      setShowNativeNavbar(payload);
+      return setShowNativeNavbar(payload);
     }
 
     if (type === 'brokerageAccountAccessToken') {
-      props.onBrokerConnected?.({ accessToken: payload });
+      return props.onBrokerConnected?.({ accessToken: payload });
     }
 
     if (type === 'delayedAuthentication') {
-      props.onBrokerConnected?.({ delayedAuth: payload });
+      return props.onBrokerConnected?.({ delayedAuth: payload });
     }
 
     if (type === 'transferFinished') {
-      props.onTransferFinished?.(payload);
+      return props.onTransferFinished?.(payload);
     }
+
+    props.onEvent?.(type, payload);
   };
 
   const handleNavState = (event: WebViewNativeEvent) => {
@@ -87,10 +104,10 @@ const useSDKCallbacks = (props: LinkConnectProps) => {
     showNativeNavbar,
     handleMessage,
     handleNavState,
-    showCloseAlert
+    showCloseAlert,
   };
-}
+};
 
 export {
-  useSDKCallbacks
-}
+  useSDKCallbacks,
+};

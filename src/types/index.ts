@@ -59,6 +59,7 @@ export interface LinkConnectProps {
   linkToken?: string;
   onBrokerConnected?: (payload: LinkPayload) => void;
   onTransferFinished?: (payload: TransferFinishedPayload) => void;
+  onEvent?: (event: string, payload: LinkPayload) => void;
   onExit?: (err?: string) => void;
 }
 
