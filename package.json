@@ -1,12 +1,12 @@
 {
-  "version": "1.3.5",
-  "name": "@front-finance/frontfinance-rn-sdk",
-  "description": "Front Finance React Native SDK.",
+  "version": "2.0.0",
+  "name": "@meshconnect/react-native-link-sdk",
+  "description": "Mesh Connect React Native SDK.",
   "private": false,
   "license": "MIT",
-  "author": "Front Finance, Inc",
-  "repository": "https://github.com/FrontFin/front-b2b-link-rn.git",
-  "homepage": "https://github.com/FrontFin/front-b2b-link-rn",
+  "author": "Mesh Connect, Inc",
+  "repository": "https://github.com/FrontFin/mesh-react-native-sdk.git",
+  "homepage": "https://github.com/FrontFin/mesh-react-native-sdk",
   "main": "index.js",
   "typings": "index.d.ts",
   "module": "index.js",
@@ -18,7 +18,8 @@
     "test": "jest --passWithNoTests",
     "types-check": "tsc --noEmit",
     "publish:npm": "yarn build && cd dist && yarn publish --access public",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "postinstall": "node scripts/postinstall.js"
   },
   "husky": {
     "hooks": {
@@ -32,7 +33,8 @@
     "trailingComma": "es5"
   },
   "keywords": [
-    "front-finance"
+    "mesh-connect",
+    "react-native-sdk"
   ],
   "publishConfig": {
     "access": "public"
@@ -44,12 +46,10 @@
     "node": ">=16"
   },
   "packageManager": "yarn@1.22.17",
-  "dependencies": {
-    "react-native-webview": "^11.26.0"
-  },
   "peerDependencies": {
     "react": ">=16",
-    "react-native": ">=0.60"
+    "react-native": ">=0.60",
+    "react-native-webview": "*"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

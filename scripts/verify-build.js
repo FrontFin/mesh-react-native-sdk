@@ -19,15 +19,11 @@ const files = fs.readdirSync(buildFolder);
 console.log('Verifying build files... 🧐');
 
 const requiredFiles = [
-  'Front.d.ts',
-  'Front.js',
   'index.js',
   'index.d.ts',
   'LICENSE.md',
   'package.json',
-  'README.md',
-  'types.js',
-  'types.d.ts',
+  'README.md'
 ];
 
 const missingFiles = requiredFiles.filter((file) => !files.includes(file));
@@ -49,7 +45,7 @@ if (!fs.existsSync(`${buildFolder}/assets`)) {
 
 const assetFiles = fs.readdirSync(`${buildFolder}/assets`);
 
-const requiredAssetFiles = ['ic_back', 'ic_close', 'front_logo'];
+const requiredAssetFiles = ['ic_back', 'ic_close'];
 const requiredAssetFilesWithVariations = requiredAssetFiles.flatMap((file) => [
   `${file}.png`,
   `${file}@2x.png`,
@@ -67,6 +63,68 @@ if (missingAssetFiles.length) {
 }
 
 console.log('All asset files exist ✅');
+
+const hooksFiles = [
+  'useSDKCallbacks.js',
+  'useSDKCallbacks.d.ts',
+]
+
+hooksFiles.map((file) => {
+  const filePath = `${buildFolder}/hooks/${file}`;
+  if (!fs.existsSync(filePath)) {
+    console.error(`Missing hooks/${file} file ❌`);
+    process.exit(1);
+  }
+});
+
+const componentsFiles = [
+  'LinkConnect.js',
+  'LinkConnect.d.ts',
+  'NavBar.js',
+  'NavBar.d.ts',
+  'SDKContainer.js',
+  'SDKContainer.d.ts',
+  'SDKContainer.styled.js',
+  'SDKContainer.styled.d.ts',
+];
+
+componentsFiles.map((file) => {
+  const filePath = `${buildFolder}/components/${file}`;
+  if (!fs.existsSync(filePath)) {
+    console.error(`Missing components/${file} file ❌`);
+    process.exit(1);
+  }
+});
+
+const types = [
+  'index.js',
+  'index.d.ts',
+];
+
+types.map((file) => {
+  const filePath = `${buildFolder}/types/${file}`;
+  if (!fs.existsSync(filePath)) {
+    console.error(`Missing types/${file} file ❌`);
+    process.exit(1);
+  }
+});
+
+const utils = [
+  'index.js',
+  'index.d.ts',
+  'base64.js',
+  'base64.d.ts',
+  'isUrl.js',
+  'isUrl.d.ts',
+];
+
+utils.map((file) => {
+  const filePath = `${buildFolder}/utils/${file}`;
+  if (!fs.existsSync(filePath)) {
+    console.error(`Missing utils/${file} file ❌`);
+    process.exit(1);
+  }
+});
 
 console.log('Build verified ✅');
 

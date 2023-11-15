@@ -1,45 +1,5 @@
 /* istanbul ignore file */
-export type BrokerType =
-  | 'robinhood'
-  | 'eTrade'
-  | 'alpaca'
-  | 'tdAmeritrade'
-  | 'weBull'
-  | 'stash'
-  | 'interactiveBrokers'
-  | 'public'
-  | 'coinbase'
-  | 'kraken'
-  | 'coinbasePro'
-  | 'cryptoCom'
-  | 'openSea'
-  | 'binanceUs'
-  | 'gemini'
-  | 'cryptocurrencyAddress'
-  | 'cryptocurrencyWallet'
-  | 'okCoin'
-  | 'bittrex'
-  | 'kuCoin'
-  | 'etoro'
-  | 'cexIo'
-  | 'binanceInternational'
-  | 'bitstamp'
-  | 'gateIo'
-  | 'celsius'
-  | 'acorns'
-  | 'okx'
-  | 'bitFlyer'
-  | 'coinlist'
-  | 'huobi'
-  | 'bitfinex'
-  | 'deFiWallet'
-  | 'krakenDirect'
-  | 'vanguard'
-  | 'binanceInternationalDirect'
-  | 'bitfinexDirect'
-  | 'bybit';
-
-export interface BrokerAccountToken {
+export interface AccountToken {
   account: BrokerAccount;
   accessToken: string;
   refreshToken?: string;
@@ -58,23 +18,23 @@ export interface BrokerBrandInfo {
   brokerPrimaryColor?: string;
 }
 
-export interface FrontPayload {
+export interface LinkPayload {
   accessToken?: AccessTokenPayload;
   delayedAuth?: DelayedAuthPayload;
 }
 
 export interface AccessTokenPayload {
-  accountTokens: BrokerAccountToken[];
+  accountTokens: AccountToken[];
   brokerBrandInfo: BrokerBrandInfo;
   expiresInSeconds?: number;
   refreshTokenExpiresInSeconds?: number;
-  brokerType: BrokerType;
+  brokerType: string;
   brokerName: string;
 }
 
 export interface DelayedAuthPayload {
   refreshTokenExpiresInSeconds?: number;
-  brokerType: BrokerType;
+  brokerType: string;
   refreshToken: string;
   brokerName: string;
   brokerBrandInfo: BrokerBrandInfo;
@@ -89,10 +49,17 @@ export interface TransferFinishedSuccessPayload {
   amount: number;
   networkId: string;
 }
+
 export interface TransferFinishedErrorPayload {
   status: 'error';
   errorMessage: string;
 }
-export type TransferFinishedPayload =
-  | TransferFinishedSuccessPayload
-  | TransferFinishedErrorPayload;
+
+export interface LinkConnectProps {
+  linkToken?: string;
+  onBrokerConnected?: (payload: LinkPayload) => void;
+  onTransferFinished?: (payload: TransferFinishedPayload) => void;
+  onExit?: (err?: string) => void;
+}
+
+export type TransferFinishedPayload = TransferFinishedSuccessPayload | TransferFinishedErrorPayload;

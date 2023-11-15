@@ -1184,9 +1184,9 @@
   integrity sha512-P6omY1zv5MItm93kLM8s2vr1HICJH8v0dvddDhysbIuZ+vcjOHg5Zbkf1mTkcmi2JA9oBG2anOkRnW8WJTS8Og==
 
 "@front-finance/frontfinance-rn-sdk@../../dist":
-  version "1.3.0"
+  version "1.3.5"
   dependencies:
-    react-native-webview "^11.26.0"
+    react-native-webview "^13.6.2"
 
 "@hapi/hoek@^9.0.0":
   version "9.3.0"
@@ -6037,10 +6037,10 @@ react-native-gradle-plugin@^0.71.19:
   resolved "https://registry.npmjs.org/react-native-gradle-plugin/-/react-native-gradle-plugin-0.71.19.tgz"
   integrity sha512-1dVk9NwhoyKHCSxcrM6vY6cxmojeATsBobDicX0ZKr7DgUF2cBQRTKsimQFvzH8XhOVXyH8p4HyDSZNIFI8OlQ==
 
-react-native-webview@^11.26.0:
-  version "11.26.1"
-  resolved "https://registry.npmjs.org/react-native-webview/-/react-native-webview-11.26.1.tgz"
-  integrity sha512-hC7BkxOpf+z0UKhxFSFTPAM4shQzYmZHoELa6/8a/MspcjEP7ukYKpuSUTLDywQditT8yI9idfcKvfZDKQExGw==
+react-native-webview@^13.6.2:
+  version "13.6.2"
+  resolved "https://registry.npmjs.org/react-native-webview/-/react-native-webview-13.6.2.tgz#0a9b18793e915add5b5dbdbf32509d7751b49167"
+  integrity sha512-QzhQ5JCU+Nf2W285DtvCZOVQy/MkJXMwNDYPZvOWQbAOgxJMSSO+BtqXTMA1UPugDsko6PxJ0TxSlUwIwJijDg==
   dependencies:
     escape-string-regexp "2.0.0"
     invariant "2.2.4"

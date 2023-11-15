@@ -1,5 +1,5 @@
 /* istanbul ignore file */
-import FrontFinance from './Front';
+import LinkConnect from './components/LinkConnect';
 
 export * from './types';
-export { FrontFinance };
+export { LinkConnect };

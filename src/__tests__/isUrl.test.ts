@@ -4,12 +4,8 @@ describe('isValidUrl function', () => {
   // Test cases for valid URLs
   test('should return true for a valid URL', () => {
     const validUrls = [
-      'https://web.getfront.com/b2b-iframe/',
-      'https://web.getfront.com/broker-connect',
-      'https://web.getfront.com:443/b2b-iframe',
-      'https://web.getfront.com:443/broker-connect',
-      'https://www.meshconnect.com/',
-      'https://meshconnect.com'
+      'http://example.com',
+      'https://example.com/',
     ];
 
     validUrls.forEach((url) => {
