@@ -23,7 +23,7 @@ exports[`LinkConnect Component renders correctly when URL is provided 1`] = `
     onNavigationStateChange={[Function]}
     source={
       {
-        "uri": "https://web.getfront.com/b2b-iframe/test-account-random/broker-connect/catalog1?sdk_platform=reactNative&sdk_version=2.0.0",
+        "uri": "https://web.getfront.com/b2b-iframe/test-account-random/broker-connect/catalog1",
       }
     }
     testID="webview"
