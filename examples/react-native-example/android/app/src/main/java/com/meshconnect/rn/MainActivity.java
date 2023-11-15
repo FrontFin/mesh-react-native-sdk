@@ -1,4 +1,4 @@
-package com.getfront.example;
+package com.meshconnect.rn;
 
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
@@ -13,7 +13,7 @@ public class MainActivity extends ReactActivity {
    */
   @Override
   protected String getMainComponentName() {
-    return "Front Finance RN SDK Example";
+    return "Mesh Connect RN SDK";
   }
 
   /**

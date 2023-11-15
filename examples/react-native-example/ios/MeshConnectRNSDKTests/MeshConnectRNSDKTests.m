@@ -7,11 +7,11 @@
 #define TIMEOUT_SECONDS 600
 #define TEXT_TO_LOOK_FOR @"Connect account"
 
-@interface FrontFinanceRNSDKExampleTests : XCTestCase
+@interface MeshConnectRNSDKTests : XCTestCase
 
 @end
 
-@implementation FrontFinanceRNSDKExampleTests
+@implementation MeshConnectRNSDKTests
 
 - (BOOL)findSubviewInView:(UIView *)view matching:(BOOL (^)(UIView *view))test
 {

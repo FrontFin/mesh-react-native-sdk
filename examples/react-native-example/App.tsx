@@ -12,13 +12,13 @@ import {
   Image,
 } from 'react-native';
 import {
-  FrontFinance,
+  LinkConnect,
   AccessTokenPayload,
-  FrontPayload,
+  LinkPayload,
   TransferFinishedPayload,
   TransferFinishedSuccessPayload,
   TransferFinishedErrorPayload,
-} from '@front-finance/frontfinance-rn-sdk';
+} from '@meshconnect/react-native-link-sdk';
 import Reports from './components/reports';
 
 const layout_width = Dimensions.get('window').width;
@@ -29,12 +29,8 @@ export default function App() {
   >(null);
   const [view, setView] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [catalogLink, setCatalogLink] = useState<string>('');
   const [linkToken, setLinkToken] = useState<string>('');
-  const isTransferLink = catalogLink?.includes('transfer_token');
-  const connectButtonTitle = isTransferLink
-    ? 'Connect origin account'
-    : 'Connect account';
+  const connectButtonTitle = 'Connect account';
 
   function showBrokerConnectedAlert(payload: AccessTokenPayload) {
     Alert.alert(
@@ -46,7 +42,7 @@ export default function App() {
           onPress: () => {
             setData(payload);
             setView(false);
-            setCatalogLink('');
+            setLinkToken('');
           },
         },
       ],
@@ -64,25 +60,20 @@ export default function App() {
           onPress: () => {
             setData(payload);
             setView(false);
-            setCatalogLink('');
+            setLinkToken('');
           },
         },
       ],
     );
   }
 
-  if (view && (catalogLink.length || linkToken.length)) {
-    console.log(catalogLink, 'URL');
+  if (view && linkToken?.length) {
     console.log(linkToken, 'linkToken');
 
     return (
-      <FrontFinance
-        url={catalogLink}
+      <LinkConnect
         linkToken={linkToken}
-        onBrokerConnected={(payload: FrontPayload) => {
-          if (isTransferLink) {
-            return;
-          }
+        onBrokerConnected={(payload: LinkPayload) => {
           if (payload.accessToken) {
             showBrokerConnectedAlert(payload.accessToken);
           }
@@ -96,11 +87,11 @@ export default function App() {
             setError(errorPayload.errorMessage);
           }
         }}
-        onClose={() => {
+        onExit={(err?: string) => {
+          err && setError(err);
           setView(false);
-          setCatalogLink('');
+          setLinkToken('');
         }}
-        onError={(err: string) => setError(err)}
       />
     );
   }
@@ -118,14 +109,8 @@ export default function App() {
               alignItems: 'center',
               justifyContent: 'center',
               marginTop: 24,
-            }}>
-            <Image
-              source={require('./assets/logo.png')}
-              style={{height: 30, width: 120}}
-              resizeMode="contain"
-              testID={'example-app-logo'}
-            />
-          </View>
+            }}
+          />
 
           <View
             testID={'example-app-link-token-container'}
@@ -137,24 +122,6 @@ export default function App() {
               onSubmitEditing={() => setView(true)}
               style={{width: '95%', height: 40, left: 10}}
               placeholder="Enter link token"
-              placeholderTextColor={'#363636'}
-            />
-          </View>
-
-          <View style={styles.inputContainer}>
-            <Text>OR</Text>
-          </View>
-
-          <View
-            testID={'example-app-link-input-container'}
-            style={styles.inputContainer}>
-            <TextInput
-              testID={'example-app-link-input'}
-              value={catalogLink}
-              onChangeText={e => setCatalogLink(e)}
-              onSubmitEditing={() => setView(true)}
-              style={{width: '95%', height: 40, left: 10}}
-              placeholder="Catalog Link"
               placeholderTextColor={'#363636'}
             />
           </View>

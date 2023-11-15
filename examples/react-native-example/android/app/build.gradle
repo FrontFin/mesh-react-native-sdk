@@ -72,9 +72,9 @@ android {
     ndkVersion rootProject.ext.ndkVersion
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-    namespace "com.getfront.example"
+    namespace "com.meshconnect.rn"
     defaultConfig {
-        applicationId "com.getfront.example"
+        applicationId "com.meshconnect.rn"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

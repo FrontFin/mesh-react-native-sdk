@@ -1,5 +1,5 @@
 {
-  "name": "frontfinancernsdkexample",
+  "name": "meshconnectrnsdk",
   "version": "2.0.0",
   "private": true,
   "scripts": {
@@ -15,7 +15,8 @@
   "dependencies": {
     "@meshconnect/react-native-link-sdk": "../../dist",
     "react": "18.2.0",
-    "react-native": "0.72.4"
+    "react-native": "0.72.4",
+    "@front-finance/frontfinance-rn-sdk": "../../dist"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

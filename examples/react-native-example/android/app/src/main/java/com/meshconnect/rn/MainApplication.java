@@ -1,4 +1,4 @@
-package com.getfront.example;
+package com.meshconnect.rn;
 
 import android.app.Application;
 import com.facebook.react.PackageList;
