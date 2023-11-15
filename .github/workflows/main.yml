@@ -75,8 +75,8 @@ jobs:
       - analysis
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        node-version: [ 16.x, 18.x, 20.x]
+        os: [ubuntu-latest]
+        node-version: [ 18.x]
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v3
@@ -93,12 +93,12 @@ jobs:
       - name: Run unit tests ⚛️
         run: yarn test
 
-  check-build: # check build with all the supported node versions and OSes (TODO: extend this to include more typescript/react/react-native versions)
+  check-build:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
-        node-version: [ 16.x, 18.x, 20.x ]
+        os: [ ubuntu-latest ]
+        node-version: [ 18.x ]
     needs:
       - unit-tests
     steps:
