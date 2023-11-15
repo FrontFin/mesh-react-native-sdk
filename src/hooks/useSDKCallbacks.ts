@@ -6,19 +6,6 @@ import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes';
 import { decode64, isValidUrl } from '../utils';
 import { LinkConnectProps } from '../';
 
-const additionalEvents = [
-  'integrationConnected',
-  'integrationConnectionError',
-  'transferCompleted',
-  'integrationSelected',
-  'credentialsEntered',
-  'transferStarted',
-  'transferPreviewed',
-  'transferPreviewError',
-  'transferExecutionError',
-  'pageLoaded'
-]
-
 const useSDKCallbacks = (props: LinkConnectProps) => {
   const [linkUrl, setLinkUrl] = useState<string | null>(null);
   const [showWebView, setShowWebView] = useState(false);

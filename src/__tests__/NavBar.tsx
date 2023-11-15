@@ -19,6 +19,7 @@ describe('NavBar', () => {
   test('calls goBack when the back button is pressed', () => {
     const goBackMock = jest.fn();
     const { getByTestId } = render(<NavBar goBack={goBackMock} showCloseAlert={() => {
+      void 0
     }} />);
 
     fireEvent.press(getByTestId('nav-back-button'));
@@ -29,6 +30,7 @@ describe('NavBar', () => {
   test('calls showCloseAlert when the close button is pressed', () => {
     const showCloseAlertMock = jest.fn();
     const { getByTestId } = render(<NavBar goBack={() => {
+      void 0
     }} showCloseAlert={showCloseAlertMock} />);
 
     fireEvent.press(getByTestId('close-button'));
