@@ -41,3 +41,8 @@ console.log('src files were copied to lib folder');
 
 fs.rmdirSync('dist/src', { recursive: true });
 console.log('src folder was removed from dist');
+
+fs.copyFileSync('.npmignore', 'dist/.npmignore');
+console.log('.npmignore was copied to dist/.npmignore');
+
+fs.copyFileSync('.npmrc', 'dist/.npmrc');
