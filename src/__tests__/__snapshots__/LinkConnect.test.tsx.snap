@@ -10,6 +10,14 @@ exports[`LinkConnect Component renders correctly when URL is provided 1`] = `
   testID="link-connect-component"
 >
   <View
+    injectedJavaScript="
+    window.meshSdkPlatform='reactNative';
+    window.meshSdkVersion='2.0.0';
+    if(window.parent){
+      window.parent.meshSdkPlatform='reactNative';
+      window.parent.meshSdkVersion='2.0.0';
+    }
+  "
     javaScriptEnabled={true}
     onMessage={[Function]}
     onNavigationStateChange={[Function]}
