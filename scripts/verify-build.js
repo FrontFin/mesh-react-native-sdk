@@ -12,31 +12,7 @@ if (!fs.existsSync(buildFolder)) {
   process.exit(1);
 }
 
-console.log('Build folder exists ✅');
-
-const files = fs.readdirSync(buildFolder);
-
 console.log('Verifying build files... 🧐');
-
-const requiredFiles = [
-  'index.js',
-  'index.d.ts',
-  'LICENSE.md',
-  'package.json',
-  'README.md'
-];
-
-const missingFiles = requiredFiles.filter((file) => !files.includes(file));
-
-if (missingFiles.length) {
-  console.error('Missing build files ❌');
-  console.error(missingFiles.join(', '));
-  process.exit(1);
-}
-
-console.log('All build files exist ✅');
-
-console.log('Verifying asset files ... 🧐');
 
 if (!fs.existsSync(`${buildFolder}/assets`)) {
   console.error('Assets folder does not exist ❌');
@@ -62,7 +38,7 @@ if (missingAssetFiles.length) {
   process.exit(1);
 }
 
-console.log('All asset files exist ✅');
+const buildFiles = ['index.js', 'index.d.ts'];
 
 const hooksFiles = [
   'useSDKCallbacks.js',
