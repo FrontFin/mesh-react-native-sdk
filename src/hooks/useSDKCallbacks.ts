@@ -5,6 +5,7 @@ import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes';
 
 import { decode64, isValidUrl } from '../utils';
 import { LinkConnectProps } from '../';
+import { sdkSpecs } from '../utils/sdkConfig';
 
 const useSDKCallbacks = (props: LinkConnectProps) => {
   const [linkUrl, setLinkUrl] = useState<string | null>(null);
@@ -20,7 +21,9 @@ const useSDKCallbacks = (props: LinkConnectProps) => {
           throw new Error('Invalid link token provided');
         }
 
-        setLinkUrl(decodedUrl);
+        const platformSpecsString = `sdk_platform=${sdkSpecs.platform}&sdk_version=${sdkSpecs.version}`;
+
+        setLinkUrl(decodedUrl.includes('?') ? `${decodedUrl}&${platformSpecsString}` : `${decodedUrl}?${platformSpecsString}`);
         setShowWebView(true);
       }
       // eslint-disable-next-line
