@@ -15,8 +15,8 @@
   "dependencies": {
     "@meshconnect/react-native-link-sdk": "../../dist",
     "react": "18.2.0",
-    "react-native": "0.72.4",
-    "@front-finance/frontfinance-rn-sdk": "../../dist"
+    "react-native": "^0.72.7",
+    "react-native-webview": "latest"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

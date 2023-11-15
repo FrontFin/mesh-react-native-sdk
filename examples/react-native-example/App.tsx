@@ -9,7 +9,6 @@ import {
   View,
   TouchableOpacity,
   Dimensions,
-  Image,
 } from 'react-native';
 import {
   LinkConnect,

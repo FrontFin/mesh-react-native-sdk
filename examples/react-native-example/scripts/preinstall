@@ -14,6 +14,6 @@ else
   node ./scripts/local-run.js
 fi
 
-(cd ../../ && yarn --frozen-lockfile --prefer-offline && yarn build && cd -) || exit 1
+(cd ../../ && yarn && yarn build && cd -) || exit 1
 
 exit 0

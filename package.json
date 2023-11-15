@@ -7,9 +7,9 @@
   "author": "Mesh Connect, Inc",
   "repository": "https://github.com/FrontFin/mesh-react-native-sdk.git",
   "homepage": "https://github.com/FrontFin/mesh-react-native-sdk",
-  "main": "index.js",
-  "typings": "types/index.d.ts",
-  "module": "index.js",
+  "main": "src/index.ts",
+  "typings": "src/index.d.ts",
+  "module": "src/index.ts",
   "scripts": {
     "build": "rm -rf dist && tsc --build && node scripts/build.js",
     "check-build": "node scripts/verify-build.js",
@@ -71,12 +71,12 @@
     "metro-react-native-babel-preset": "0.76.8",
     "prettier": "^2.4.1",
     "react": "18.2.0",
-    "react-native": "0.72.4",
+    "react-native": "^0.72.7",
     "react-test-renderer": "^18.2.0",
     "ts-jest": "^29.1.1",
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "react-native-webview": "^13.6.2"
+    "react-native-webview": "latest"
   }
 }

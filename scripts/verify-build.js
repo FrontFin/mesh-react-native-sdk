@@ -14,12 +14,7 @@ if (!fs.existsSync(buildFolder)) {
 
 console.log('Verifying build files... 🧐');
 
-if (!fs.existsSync(`${buildFolder}/assets`)) {
-  console.error('Assets folder does not exist ❌');
-  process.exit(1);
-}
-
-const assetFiles = fs.readdirSync(`${buildFolder}/assets`);
+const assetFiles = fs.readdirSync(`${buildFolder}/lib/assets`);
 
 const requiredAssetFiles = ['ic_back', 'ic_close'];
 const requiredAssetFilesWithVariations = requiredAssetFiles.flatMap((file) => [
@@ -38,12 +33,22 @@ if (missingAssetFiles.length) {
   process.exit(1);
 }
 
-const buildFiles = ['index.js', 'index.d.ts', 'LICENSE.md', 'README.md', 'tsconfig.json', 'package.json'];
+const buildFiles = ['LICENSE.md', 'README.md', 'tsconfig.json', 'package.json'];
 
 buildFiles.map((file) => {
   const filePath = `${buildFolder}/${file}`;
   if (!fs.existsSync(filePath)) {
     console.error(`Missing ${file} file ❌`);
+    process.exit(1);
+  }
+});
+
+const mainFiles = ['index.js', 'index.d.ts'];
+
+mainFiles.map((file) => {
+  const filePath = `${buildFolder}/lib/${file}`;
+  if (!fs.existsSync(filePath)) {
+    console.error(`Missing lib/${file} file ❌`);
     process.exit(1);
   }
 });
@@ -54,7 +59,7 @@ const hooksFiles = [
 ]
 
 hooksFiles.map((file) => {
-  const filePath = `${buildFolder}/hooks/${file}`;
+  const filePath = `${buildFolder}/lib/hooks/${file}`;
   if (!fs.existsSync(filePath)) {
     console.error(`Missing hooks/${file} file ❌`);
     process.exit(1);
@@ -73,7 +78,7 @@ const componentsFiles = [
 ];
 
 componentsFiles.map((file) => {
-  const filePath = `${buildFolder}/components/${file}`;
+  const filePath = `${buildFolder}/lib/components/${file}`;
   if (!fs.existsSync(filePath)) {
     console.error(`Missing components/${file} file ❌`);
     process.exit(1);
@@ -86,7 +91,7 @@ const types = [
 ];
 
 types.map((file) => {
-  const filePath = `${buildFolder}/types/${file}`;
+  const filePath = `${buildFolder}/lib/types/${file}`;
   if (!fs.existsSync(filePath)) {
     console.error(`Missing types/${file} file ❌`);
     process.exit(1);
@@ -103,7 +108,7 @@ const utils = [
 ];
 
 utils.map((file) => {
-  const filePath = `${buildFolder}/utils/${file}`;
+  const filePath = `${buildFolder}/lib/utils/${file}`;
   if (!fs.existsSync(filePath)) {
     console.error(`Missing utils/${file} file ❌`);
     process.exit(1);

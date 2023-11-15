@@ -19,4 +19,6 @@ if (!fs.existsSync(webviewLibPath) && !fs.existsSync(webviewModulePath)) {
     console.error('Error while installing react-native-webview', error);
     process.exit(1);
   }
+} else {
+  console.log('react-native-webview is already installed');
 }

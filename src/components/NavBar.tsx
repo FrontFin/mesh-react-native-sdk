@@ -13,7 +13,7 @@ const NavBar = ({goBack, showCloseAlert}: NavBarProps) => {
         testID={'nav-back-button'}
         onPress={goBack} style={styles.navBarImgContainer}>
         <Image
-          source={require('./assets/ic_back.png')}
+          source={require('../assets/ic_back.png')}
           style={styles.navBarImgButton}
         />
       </TouchableOpacity>
@@ -24,7 +24,7 @@ const NavBar = ({goBack, showCloseAlert}: NavBarProps) => {
         testID={'close-button'}
       >
         <Image
-          source={require('./assets/ic_close.png')}
+          source={require('../assets/ic_close.png')}
           style={styles.navBarImgButton}
         />
       </TouchableOpacity>
