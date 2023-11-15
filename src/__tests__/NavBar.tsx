@@ -4,11 +4,7 @@ import NavBar from '../components/NavBar';
 
 describe('NavBar', () => {
   test('renders correctly', () => {
-    const component = render(<NavBar goBack={() => {
-      // do nothing
-    }} showCloseAlert={() => {
-      // do nothing
-    }} />);
+    const component = render(<NavBar goBack={() => void 0} showCloseAlert={() => void 0} />);
 
     const { getByTestId } = component;
 
