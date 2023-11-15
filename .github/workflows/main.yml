@@ -20,7 +20,7 @@ env:
 
 jobs:
   B2B-SDK-Quality-Assurance:
-    runs-on: macos-latest
+    runs-on: linux-latest
     timeout-minutes: 10
 
     steps:
