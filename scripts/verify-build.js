@@ -38,7 +38,15 @@ if (missingAssetFiles.length) {
   process.exit(1);
 }
 
-const buildFiles = ['index.js', 'index.d.ts'];
+const buildFiles = ['index.js', 'index.d.ts', 'LICENSE.md', 'README.md', 'tsconfig.json', 'package.json'];
+
+buildFiles.map((file) => {
+  const filePath = `${buildFolder}/${file}`;
+  if (!fs.existsSync(filePath)) {
+    console.error(`Missing ${file} file ❌`);
+    process.exit(1);
+  }
+});
 
 const hooksFiles = [
   'useSDKCallbacks.js',

@@ -27,9 +27,11 @@ console.log('tsconfig.json was copied to dist/tsconfig.json');
 fs.cpSync('src/assets', 'dist/assets', { recursive: true });
 console.log('assets were copied to dist/assets');
 
+if (fs.existsSync('dist/src')) {
 // move all files and folders from dist/src to dist
-fs.cpSync('dist/src', 'dist', { recursive: true });
-console.log('src files were copied to dist');
+  fs.cpSync('dist/src', 'dist', { recursive: true });
+  console.log('src files were copied to dist');
 
-fs.rmdirSync('dist/src', { recursive: true });
-console.log('src folder was removed from dist');
+  fs.rmdirSync('dist/src', { recursive: true });
+  console.log('src folder was removed from dist');
+}

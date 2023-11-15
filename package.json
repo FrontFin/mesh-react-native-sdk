@@ -8,10 +8,10 @@
   "repository": "https://github.com/FrontFin/mesh-react-native-sdk.git",
   "homepage": "https://github.com/FrontFin/mesh-react-native-sdk",
   "main": "index.js",
-  "typings": "index.d.ts",
+  "typings": "types/index.d.ts",
   "module": "index.js",
   "scripts": {
-    "build": "tsc --build && node scripts/build.js",
+    "build": "rm -rf dist && tsc --build && node scripts/build.js",
     "check-build": "node scripts/verify-build.js",
     "clean": "tsc --build --clean",
     "lint": "eslint --ext .js,.ts,.tsx ./src",
