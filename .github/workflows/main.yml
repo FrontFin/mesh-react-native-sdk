@@ -35,12 +35,6 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: Configure JAVA 📚
-        uses: actions/setup-java@v2
-        with:
-          java-version: '11'
-          distribution: 'adopt'
-
       - name: Install node modules 📦
         run: yarn install --frozen-lockfile
 
