@@ -19,6 +19,32 @@ describe('LinkConnect Component', () => {
     jest.clearAllMocks();
   });
 
+  it('renders correctly when linkToken and accessTokens are provided', () => {
+    render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} accessTokens={[
+      {
+        accountId: '1234567890',
+        accountName: 'Test Account',
+        accessToken: '1234567890',
+        brokerType: 'test',
+        brokerName: 'Test Broker',
+      }
+    ]} />);
+  });
+
+
+
+  it('renders correctly when linkToken and transferDestinationTokens are provided', () => {
+    render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} transferDestinationTokens={[
+      {
+        accountId: '1234567890',
+        accountName: 'Test Account',
+        accessToken: '1234567890',
+        brokerType: 'test',
+        brokerName: 'Test Broker',
+      }
+    ]} />);
+  });
+
   it('renders correctly when linkToken is provided', () => {
     const tree = render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} />).toJSON();
     expect(tree).toMatchSnapshot();

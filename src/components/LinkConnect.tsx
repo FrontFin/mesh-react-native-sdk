@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { WebView } from 'react-native-webview';
 
 import NavBar from './NavBar';
@@ -22,11 +22,28 @@ const LinkConnect = (props: LinkOptions) => {
   const sdkTypeScript = `
     window.meshSdkPlatform='${sdkSpecs.platform}';
     window.meshSdkVersion='${sdkSpecs.version}';
-    if(window.parent){
-      window.parent.meshSdkPlatform='${sdkSpecs.platform}';
-      window.parent.meshSdkVersion='${sdkSpecs.version}';
-    }
   `;
+
+  const accessAndTransferTokensScript = useMemo(() => {
+    let script = '';
+    if (props.accessTokens && props.accessTokens.length) {
+      script += `window.accessTokens='${JSON.stringify(props.accessTokens)}';`;
+    }
+    if (props.transferDestinationTokens && props.transferDestinationTokens.length) {
+      script += `window.transferDestinationTokens='${JSON.stringify(
+        props.transferDestinationTokens
+      )}';`;
+    }
+
+    return script;
+  }, [props.accessTokens, props.transferDestinationTokens]);
+
+  const injectedScript = useMemo(() => {
+    return `${sdkTypeScript}${accessAndTransferTokensScript}`;
+  }, [
+    sdkTypeScript,
+    accessAndTransferTokensScript,
+  ]);
 
   return (
     <SDKContainer>
@@ -38,7 +55,7 @@ const LinkConnect = (props: LinkOptions) => {
           source={{ uri: linkUrl }}
           onMessage={handleMessage}
           javaScriptEnabled={true}
-          injectedJavaScript={sdkTypeScript}
+          injectedJavaScript={injectedScript}
           onNavigationStateChange={handleNavState}
         />
       )}
