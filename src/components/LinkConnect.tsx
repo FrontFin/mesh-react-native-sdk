@@ -4,11 +4,11 @@ import { WebView } from 'react-native-webview';
 import NavBar from './NavBar';
 import SDKContainer from './SDKContainer';
 
-import { LinkConnectProps } from '../';
+import { LinkOptions } from '../';
 import { useSDKCallbacks } from '../hooks/useSDKCallbacks';
 import { sdkSpecs } from '../utils/sdkConfig';
 
-const LinkConnect = (props: LinkConnectProps) => {
+const LinkConnect = (props: LinkOptions) => {
   const {
     showNativeNavbar,
     showWebView,

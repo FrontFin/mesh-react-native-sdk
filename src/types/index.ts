@@ -55,9 +55,9 @@ export interface TransferFinishedErrorPayload {
   errorMessage: string;
 }
 
-export interface LinkConnectProps {
+export interface LinkOptions {
   linkToken?: string;
-  onBrokerConnected?: (payload: LinkPayload) => void;
+  onIntegrationConnected?: (payload: LinkPayload) => void;
   onTransferFinished?: (payload: TransferFinishedPayload) => void;
   onEvent?: (event: string, payload: LinkPayload) => void;
   onExit?: (err?: string) => void;

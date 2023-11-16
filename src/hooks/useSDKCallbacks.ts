@@ -4,9 +4,9 @@ import { WebViewMessageEvent } from 'react-native-webview';
 import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes';
 
 import { decode64, isValidUrl } from '../utils';
-import { LinkConnectProps } from '../';
+import { LinkOptions } from '../';
 
-const useSDKCallbacks = (props: LinkConnectProps) => {
+const useSDKCallbacks = (props: LinkOptions) => {
   const [linkUrl, setLinkUrl] = useState<string | null>(null);
   const [showWebView, setShowWebView] = useState(false);
   const [showNativeNavbar, setShowNativeNavbar] = useState(false);
@@ -71,11 +71,11 @@ const useSDKCallbacks = (props: LinkConnectProps) => {
     }
 
     if (type === 'brokerageAccountAccessToken') {
-      return props.onBrokerConnected?.({ accessToken: payload });
+      return props.onIntegrationConnected?.({ accessToken: payload });
     }
 
     if (type === 'delayedAuthentication') {
-      return props.onBrokerConnected?.({ delayedAuth: payload });
+      return props.onIntegrationConnected?.({ delayedAuth: payload });
     }
 
     if (type === 'transferFinished') {

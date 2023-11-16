@@ -60,7 +60,7 @@ export const App = () => {
   return (
     <LinkConnect
       linkToken={"YOUR_LINKTOKEN"}
-      onBrokerConnected={(payload: LinkPayload) => {
+      onIntegrationConnected={(payload: LinkPayload) => {
         // use broker account data
       }}
       onTransferFinished={(payload: TransferFinishedPayload) => {
@@ -74,6 +74,9 @@ export const App = () => {
       }}
       onExit={(err?: string) => {
         // use error message
+      }}
+      onEvent={(event: string, payload: LinkPayload) => {
+        // use event
       }}
     />
   )
@@ -89,7 +92,7 @@ export default App;
 | key                  | type                                            | Required/Optional                         | description                                                                   |
 |----------------------|-------------------------------------------------|-------------------------------------------|-------------------------------------------------------------------------------|
 | `linkToken`          | `string`                                        | required                                  | link token                                                                    |
-| `onBrokerConnected`  | `(payload: LinkPayload) => void`               | optional                                  | Callback called when users connects their accounts                            |
+| `onIntegrationConnected`  | `(payload: LinkPayload) => void`               | optional                                  | Callback called when users connects their accounts                            |
 | `onTransferFinished` | `(payload: TransferFinishedPayload) => void`    | optional                                  | Callback called when a crypto transfer is executed                            |
 | `onExit`             | `(err: string) => void)`                        | optional                                  | Called if connection not happened. Returns an error message                   |
 

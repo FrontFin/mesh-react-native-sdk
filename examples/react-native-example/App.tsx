@@ -73,7 +73,7 @@ export default function App() {
       <SafeAreaView style={styles.container} testID={'link-connect-component'}>
         <LinkConnect
           linkToken={linkToken}
-          onBrokerConnected={(payload: LinkPayload) => {
+          onIntegrationConnected={(payload: LinkPayload) => {
             if (payload.accessToken) {
               showBrokerConnectedAlert(payload.accessToken);
             }
