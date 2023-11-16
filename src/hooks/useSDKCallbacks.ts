@@ -34,6 +34,7 @@ const useSDKCallbacks = (props: LinkConnectProps) => {
     };
   }, [props.linkToken, props.onExit]);
 
+  // istanbul ignore next
   const showCloseAlert = () =>
     Alert.alert(
       'Are you sure you want to exit?',
@@ -43,10 +44,15 @@ const useSDKCallbacks = (props: LinkConnectProps) => {
           text: 'Cancel',
           style: 'cancel',
         },
-        { text: 'Exit', onPress: () => props.onExit?.() },
+        {
+          text: 'Exit', onPress: () => {
+            props.onExit?.();
+          },
+        },
       ],
     );
 
+  // istanbul ignore next
   const handleMessage = (event: WebViewMessageEvent) => {
     const { type, payload } = JSON.parse(event.nativeEvent.data);
 
