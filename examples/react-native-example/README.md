@@ -1,6 +1,4 @@
-![@front-finance-log](../../src/assets/front_logo.png)
-
-# Front Finance React Native Example App
+# Mesh Connect React Native Example App
 
 ℹ️︎ If you had old changes in `node_modules` (previous version of the library) folder, please remove it and install dependencies again.
 

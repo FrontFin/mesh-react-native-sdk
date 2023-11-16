@@ -3,7 +3,7 @@ import {View, Text} from 'react-native';
 import {
   AccessTokenPayload,
   TransferFinishedSuccessPayload,
-} from '@front-finance/frontfinance-rn-sdk';
+} from '@meshconnect/react-native-link-sdk';
 
 const Reports = (props: {
   data: AccessTokenPayload | TransferFinishedSuccessPayload;

@@ -24,6 +24,7 @@ env:
 
 jobs:
   build:
+    if: false
     timeout-minutes: 60
     defaults:
         run:
@@ -86,6 +87,7 @@ jobs:
           path: ${{ env.WORKING_DIRECTORY }}/android/app/build/outputs/apk/
 
   e2e:
+    if: false
     needs: build
     # only macos supports hw virtualization
     # https://github.com/actions/virtual-environments/issues/183

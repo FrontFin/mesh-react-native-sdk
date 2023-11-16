@@ -9,9 +9,9 @@ try {
     'utf8',
   );
 
-  // change '@front-finance/frontfinance-rn-sdk' in dependencies to local path for dist folder
+  // change '@meshconnect/react-native-link-sdk' in dependencies to local path for dist folder
   const packageJSONExampleParsed = JSON.parse(packageJSONExample);
-  packageJSONExampleParsed.dependencies['@front-finance/frontfinance-rn-sdk'] =
+  packageJSONExampleParsed.dependencies['@meshconnect/react-native-link-sdk'] =
     '../../dist';
 
   fs.writeFileSync(

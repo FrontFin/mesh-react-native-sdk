@@ -1,6 +1,6 @@
 {
-  "name": "frontfinancernsdkexample",
-  "version": "1.3.5",
+  "name": "meshconnectrnsdkexample",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
     "preinstall": "./scripts/preinstall",
@@ -13,10 +13,10 @@
     "e2e:ios": "node scripts/prepare-e2e.js && detox build -c ios.release && detox test -c ios.release --headless --retries 1 --debug-synchronization 5000 --record-videos failing  --take-screenshots failing --record-logs failing"
   },
   "dependencies": {
-    "@front-finance/frontfinance-rn-sdk": "../../dist",
+    "@meshconnect/react-native-link-sdk": "../../dist",
     "react": "18.2.0",
-    "react-native": "0.72.4",
-    "react-native-webview": "^11.26.0"
+    "react-native": "^0.72.7",
+    "react-native-webview": "latest"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

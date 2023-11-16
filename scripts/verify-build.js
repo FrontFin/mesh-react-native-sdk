@@ -12,44 +12,11 @@ if (!fs.existsSync(buildFolder)) {
   process.exit(1);
 }
 
-console.log('Build folder exists ✅');
-
-const files = fs.readdirSync(buildFolder);
-
 console.log('Verifying build files... 🧐');
 
-const requiredFiles = [
-  'Front.d.ts',
-  'Front.js',
-  'index.js',
-  'index.d.ts',
-  'LICENSE.md',
-  'package.json',
-  'README.md',
-  'types.js',
-  'types.d.ts',
-];
+const assetFiles = fs.readdirSync(`${buildFolder}/lib/assets`);
 
-const missingFiles = requiredFiles.filter((file) => !files.includes(file));
-
-if (missingFiles.length) {
-  console.error('Missing build files ❌');
-  console.error(missingFiles.join(', '));
-  process.exit(1);
-}
-
-console.log('All build files exist ✅');
-
-console.log('Verifying asset files ... 🧐');
-
-if (!fs.existsSync(`${buildFolder}/assets`)) {
-  console.error('Assets folder does not exist ❌');
-  process.exit(1);
-}
-
-const assetFiles = fs.readdirSync(`${buildFolder}/assets`);
-
-const requiredAssetFiles = ['ic_back', 'ic_close', 'front_logo'];
+const requiredAssetFiles = ['ic_back', 'ic_close'];
 const requiredAssetFilesWithVariations = requiredAssetFiles.flatMap((file) => [
   `${file}.png`,
   `${file}@2x.png`,
@@ -66,7 +33,87 @@ if (missingAssetFiles.length) {
   process.exit(1);
 }
 
-console.log('All asset files exist ✅');
+const buildFiles = ['LICENSE.md', 'README.md', 'tsconfig.json', 'package.json'];
+
+buildFiles.forEach((file) => {
+  const filePath = `${buildFolder}/${file}`;
+  if (!fs.existsSync(filePath)) {
+    console.error(`Missing ${file} file ❌`);
+    process.exit(1);
+  }
+});
+
+const mainFiles = ['index.js', 'index.d.ts'];
+
+mainFiles.forEach((file) => {
+  const filePath = `${buildFolder}/lib/${file}`;
+  if (!fs.existsSync(filePath)) {
+    console.error(`Missing lib/${file} file ❌`);
+    process.exit(1);
+  }
+});
+
+const hooksFiles = [
+  'useSDKCallbacks.js',
+  'useSDKCallbacks.d.ts',
+]
+
+hooksFiles.forEach((file) => {
+  const filePath = `${buildFolder}/lib/hooks/${file}`;
+  if (!fs.existsSync(filePath)) {
+    console.error(`Missing hooks/${file} file ❌`);
+    process.exit(1);
+  }
+});
+
+const componentsFiles = [
+  'LinkConnect.js',
+  'LinkConnect.d.ts',
+  'NavBar.js',
+  'NavBar.d.ts',
+  'SDKContainer.js',
+  'SDKContainer.d.ts',
+  'SDKContainer.styled.js',
+  'SDKContainer.styled.d.ts',
+];
+
+componentsFiles.forEach((file) => {
+  const filePath = `${buildFolder}/lib/components/${file}`;
+  if (!fs.existsSync(filePath)) {
+    console.error(`Missing components/${file} file ❌`);
+    process.exit(1);
+  }
+});
+
+const types = [
+  'index.js',
+  'index.d.ts',
+];
+
+types.forEach((file) => {
+  const filePath = `${buildFolder}/lib/types/${file}`;
+  if (!fs.existsSync(filePath)) {
+    console.error(`Missing types/${file} file ❌`);
+    process.exit(1);
+  }
+});
+
+const utils = [
+  'index.js',
+  'index.d.ts',
+  'base64.js',
+  'base64.d.ts',
+  'isUrl.js',
+  'isUrl.d.ts',
+];
+
+utils.forEach((file) => {
+  const filePath = `${buildFolder}/lib/utils/${file}`;
+  if (!fs.existsSync(filePath)) {
+    console.error(`Missing utils/${file} file ❌`);
+    process.exit(1);
+  }
+});
 
 console.log('Build verified ✅');
 

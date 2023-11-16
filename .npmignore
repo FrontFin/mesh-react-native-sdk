@@ -34,3 +34,5 @@ tsconfig.json
 # lock files
 yarn.lock
 package-lock.json
+
+sonar-project.properties

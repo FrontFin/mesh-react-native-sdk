@@ -1,17 +1,17 @@
 {
-  "version": "1.3.5",
-  "name": "@front-finance/frontfinance-rn-sdk",
-  "description": "Front Finance React Native SDK.",
+  "version": "2.0.0",
+  "name": "@meshconnect/react-native-link-sdk",
+  "description": "Mesh Connect React Native SDK.",
   "private": false,
   "license": "MIT",
-  "author": "Front Finance, Inc",
-  "repository": "https://github.com/FrontFin/front-b2b-link-rn.git",
-  "homepage": "https://github.com/FrontFin/front-b2b-link-rn",
-  "main": "index.js",
-  "typings": "index.d.ts",
-  "module": "index.js",
+  "author": "Mesh Connect, Inc",
+  "repository": "https://github.com/FrontFin/mesh-react-native-sdk.git",
+  "homepage": "https://github.com/FrontFin/mesh-react-native-sdk",
+  "main": "src/index.ts",
+  "typings": "src/index.d.ts",
+  "module": "src/index.ts",
   "scripts": {
-    "build": "tsc --build && node scripts/build.js",
+    "build": "rm -rf dist && tsc --build && node scripts/build.js",
     "check-build": "node scripts/verify-build.js",
     "clean": "tsc --build --clean",
     "lint": "eslint --ext .js,.ts,.tsx ./src",
@@ -32,7 +32,8 @@
     "trailingComma": "es5"
   },
   "keywords": [
-    "front-finance"
+    "mesh-connect",
+    "react-native-sdk"
   ],
   "publishConfig": {
     "access": "public"
@@ -44,12 +45,10 @@
     "node": ">=16"
   },
   "packageManager": "yarn@1.22.17",
-  "dependencies": {
-    "react-native-webview": "^11.26.0"
-  },
   "peerDependencies": {
     "react": ">=16",
-    "react-native": ">=0.60"
+    "react-native": ">=0.60",
+    "react-native-webview": "*"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
@@ -71,9 +70,12 @@
     "metro-react-native-babel-preset": "0.76.8",
     "prettier": "^2.4.1",
     "react": "18.2.0",
-    "react-native": "0.72.4",
+    "react-native": "^0.72.7",
     "react-test-renderer": "^18.2.0",
     "ts-jest": "^29.1.1",
     "typescript": "^5.1.6"
+  },
+  "dependencies": {
+    "react-native-webview": "latest"
   }
 }

@@ -1,0 +1,32 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`LinkConnect Component renders correctly when linkToken is provided 1`] = `
+<RCTSafeAreaView
+  style={
+    {
+      "flex": 1,
+    }
+  }
+  testID="link-connect-component"
+>
+  <View
+    injectedJavaScript="
+    window.meshSdkPlatform='reactNative';
+    window.meshSdkVersion='2.0.0';
+    if(window.parent){
+      window.parent.meshSdkPlatform='reactNative';
+      window.parent.meshSdkVersion='2.0.0';
+    }
+  "
+    javaScriptEnabled={true}
+    onMessage={[Function]}
+    onNavigationStateChange={[Function]}
+    source={
+      {
+        "uri": "https://web.getfront.com/b2b-iframe/test-account-random/broker-connect/catalog1",
+      }
+    }
+    testID="webview"
+  />
+</RCTSafeAreaView>
+`;

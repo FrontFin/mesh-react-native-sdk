@@ -1,0 +1,127 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NavBar renders correctly 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "flexDirection": "row",
+      "height": 64,
+      "justifyContent": "space-between",
+      "paddingEnd": 8,
+      "paddingStart": 6,
+      "paddingTop": 12,
+    }
+  }
+  testID="native-navbar"
+>
+  <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "height": 40,
+        "justifyContent": "center",
+        "opacity": 1,
+        "width": 40,
+      }
+    }
+    testID="nav-back-button"
+  >
+    <Image
+      source={
+        {
+          "testUri": "../../../src/assets/ic_back.png",
+        }
+      }
+      style={
+        {
+          "height": 24,
+          "resizeMode": "contain",
+          "width": 24,
+        }
+      }
+    />
+  </View>
+  <View
+    accessibilityState={
+      {
+        "busy": undefined,
+        "checked": undefined,
+        "disabled": undefined,
+        "expanded": undefined,
+        "selected": undefined,
+      }
+    }
+    accessibilityValue={
+      {
+        "max": undefined,
+        "min": undefined,
+        "now": undefined,
+        "text": undefined,
+      }
+    }
+    accessible={true}
+    collapsable={false}
+    focusable={true}
+    onClick={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderRelease={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "height": 40,
+        "justifyContent": "center",
+        "opacity": 1,
+        "width": 40,
+      }
+    }
+    testID="close-button"
+  >
+    <Image
+      source={
+        {
+          "testUri": "../../../src/assets/ic_close.png",
+        }
+      }
+      style={
+        {
+          "height": 24,
+          "resizeMode": "contain",
+          "width": 24,
+        }
+      }
+    />
+  </View>
+</View>
+`;
