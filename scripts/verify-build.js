@@ -35,7 +35,7 @@ if (missingAssetFiles.length) {
 
 const buildFiles = ['LICENSE.md', 'README.md', 'tsconfig.json', 'package.json'];
 
-buildFiles.map((file) => {
+buildFiles.forEach((file) => {
   const filePath = `${buildFolder}/${file}`;
   if (!fs.existsSync(filePath)) {
     console.error(`Missing ${file} file ❌`);
@@ -45,7 +45,7 @@ buildFiles.map((file) => {
 
 const mainFiles = ['index.js', 'index.d.ts'];
 
-mainFiles.map((file) => {
+mainFiles.forEach((file) => {
   const filePath = `${buildFolder}/lib/${file}`;
   if (!fs.existsSync(filePath)) {
     console.error(`Missing lib/${file} file ❌`);
@@ -58,7 +58,7 @@ const hooksFiles = [
   'useSDKCallbacks.d.ts',
 ]
 
-hooksFiles.map((file) => {
+hooksFiles.forEach((file) => {
   const filePath = `${buildFolder}/lib/hooks/${file}`;
   if (!fs.existsSync(filePath)) {
     console.error(`Missing hooks/${file} file ❌`);
@@ -77,7 +77,7 @@ const componentsFiles = [
   'SDKContainer.styled.d.ts',
 ];
 
-componentsFiles.map((file) => {
+componentsFiles.forEach((file) => {
   const filePath = `${buildFolder}/lib/components/${file}`;
   if (!fs.existsSync(filePath)) {
     console.error(`Missing components/${file} file ❌`);
@@ -90,7 +90,7 @@ const types = [
   'index.d.ts',
 ];
 
-types.map((file) => {
+types.forEach((file) => {
   const filePath = `${buildFolder}/lib/types/${file}`;
   if (!fs.existsSync(filePath)) {
     console.error(`Missing types/${file} file ❌`);
@@ -107,7 +107,7 @@ const utils = [
   'isUrl.d.ts',
 ];
 
-utils.map((file) => {
+utils.forEach((file) => {
   const filePath = `${buildFolder}/lib/utils/${file}`;
   if (!fs.existsSync(filePath)) {
     console.error(`Missing utils/${file} file ❌`);

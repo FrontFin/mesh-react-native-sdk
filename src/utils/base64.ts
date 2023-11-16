@@ -35,14 +35,6 @@ export const decode64 = (input: string) => {
     if (enc4 != 64) {
       output = output + String.fromCharCode(chr3);
     }
-
-    chr1 = '';
-    chr2 = '';
-    chr3 = '';
-    enc1 = '';
-    enc2 = '';
-    enc3 = '';
-    enc4 = '';
   } while (ind < input.length);
 
   return output;

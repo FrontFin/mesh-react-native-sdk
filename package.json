@@ -18,8 +18,7 @@
     "test": "jest --passWithNoTests",
     "types-check": "tsc --noEmit",
     "publish:npm": "yarn build && cd dist && yarn publish --access public",
-    "prepare": "husky install",
-    "postinstall": "node scripts/postinstall.js"
+    "prepare": "husky install"
   },
   "husky": {
     "hooks": {

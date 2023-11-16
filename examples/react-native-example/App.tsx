@@ -70,28 +70,30 @@ export default function App() {
     console.log(linkToken, 'linkToken');
 
     return (
-      <LinkConnect
-        linkToken={linkToken}
-        onBrokerConnected={(payload: LinkPayload) => {
-          if (payload.accessToken) {
-            showBrokerConnectedAlert(payload.accessToken);
-          }
-        }}
-        onTransferFinished={(payload: TransferFinishedPayload) => {
-          if (payload.status === 'success') {
-            const successPayload = payload as TransferFinishedSuccessPayload;
-            showTransferFinishedAlert(successPayload);
-          } else {
-            const errorPayload = payload as TransferFinishedErrorPayload;
-            setError(errorPayload.errorMessage);
-          }
-        }}
-        onExit={(err?: string) => {
-          err && setError(err);
-          setView(false);
-          setLinkToken('');
-        }}
-      />
+      <SafeAreaView style={styles.container} testID={'link-connect-component'}>
+        <LinkConnect
+          linkToken={linkToken}
+          onBrokerConnected={(payload: LinkPayload) => {
+            if (payload.accessToken) {
+              showBrokerConnectedAlert(payload.accessToken);
+            }
+          }}
+          onTransferFinished={(payload: TransferFinishedPayload) => {
+            if (payload.status === 'success') {
+              const successPayload = payload as TransferFinishedSuccessPayload;
+              showTransferFinishedAlert(successPayload);
+            } else {
+              const errorPayload = payload as TransferFinishedErrorPayload;
+              setError(errorPayload.errorMessage);
+            }
+          }}
+          onExit={(err?: string) => {
+            err && setError(err);
+            setView(false);
+            setLinkToken('');
+          }}
+        />
+      </SafeAreaView>
     );
   }
 
