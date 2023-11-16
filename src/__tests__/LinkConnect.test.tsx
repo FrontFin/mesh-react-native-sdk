@@ -19,12 +19,12 @@ describe('LinkConnect Component', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly when URL is provided', () => {
+  it('renders correctly when linkToken is provided', () => {
     const tree = render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} />).toJSON();
     expect(tree).toMatchSnapshot();
   });
 
-  it('handles onError callback for invalid link token', () => {
+  it('handles onError callback for invalid linkToken', () => {
     render(<LinkConnect linkToken={'invalid=='} onExit={mockOnExit} />);
 
     expect(mockOnExit).toHaveBeenCalledWith('Invalid link token provided');

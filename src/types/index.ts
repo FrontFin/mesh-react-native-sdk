@@ -1,11 +1,11 @@
 /* istanbul ignore file */
 export interface AccountToken {
-  account: BrokerAccount;
+  account: Account;
   accessToken: string;
   refreshToken?: string;
 }
 
-export interface BrokerAccount {
+export interface Account {
   accountId: string;
   accountName: string;
   fund?: number;
@@ -13,7 +13,7 @@ export interface BrokerAccount {
   isReconnected?: boolean;
 }
 
-export interface BrokerBrandInfo {
+export interface BrandInfo {
   brokerLogo: string;
   brokerPrimaryColor?: string;
 }
@@ -25,7 +25,7 @@ export interface LinkPayload {
 
 export interface AccessTokenPayload {
   accountTokens: AccountToken[];
-  brokerBrandInfo: BrokerBrandInfo;
+  brokerBrandInfo: BrandInfo;
   expiresInSeconds?: number;
   refreshTokenExpiresInSeconds?: number;
   brokerType: string;
@@ -37,7 +37,7 @@ export interface DelayedAuthPayload {
   brokerType: string;
   refreshToken: string;
   brokerName: string;
-  brokerBrandInfo: BrokerBrandInfo;
+  brokerBrandInfo: BrandInfo;
 }
 
 export interface TransferFinishedSuccessPayload {

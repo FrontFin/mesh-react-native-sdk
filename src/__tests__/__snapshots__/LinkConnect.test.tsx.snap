@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`LinkConnect Component renders correctly when URL is provided 1`] = `
+exports[`LinkConnect Component renders correctly when linkToken is provided 1`] = `
 <RCTSafeAreaView
   style={
     {

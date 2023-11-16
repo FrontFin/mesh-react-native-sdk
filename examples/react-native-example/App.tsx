@@ -31,7 +31,7 @@ export default function App() {
   const [linkToken, setLinkToken] = useState<string>('');
   const connectButtonTitle = 'Connect account';
 
-  function showBrokerConnectedAlert(payload: AccessTokenPayload) {
+  function showIntegrationConnectedAlert(payload: AccessTokenPayload) {
     Alert.alert(
       `${payload.brokerName} connected!`,
       `accountId: ${payload.accountTokens[0].account.accountId}`,
@@ -75,7 +75,7 @@ export default function App() {
           linkToken={linkToken}
           onIntegrationConnected={(payload: LinkPayload) => {
             if (payload.accessToken) {
-              showBrokerConnectedAlert(payload.accessToken);
+              showIntegrationConnectedAlert(payload.accessToken);
             }
           }}
           onTransferFinished={(payload: TransferFinishedPayload) => {

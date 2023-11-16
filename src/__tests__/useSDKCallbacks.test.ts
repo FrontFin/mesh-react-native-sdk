@@ -6,9 +6,9 @@ import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes';
 
 describe('useSDKCallbacks', () => {
   const mockProps = {
-    linkToken: 'someValidLinkToken',
+    linkToken: 'c29tZVZhbGlkTGlua1Rva2Vu',
     onExit: jest.fn(),
-    onBrokerConnected: jest.fn(),
+    onIntegrationConnected: jest.fn(),
     onTransferFinished: jest.fn(),
   };
 
