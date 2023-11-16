@@ -6,11 +6,12 @@ const rawData = fs.readFileSync('package.json', 'utf8');
 const packageModel = JSON.parse(rawData);
 
 delete packageModel.scripts;
-delete packageModel.devDependencies;
 delete packageModel.husky;
 delete packageModel.publishConfig;
 delete packageModel.packageManager;
 delete packageModel.prettier;
+delete packageModel.release;
+delete packageModel.plugins;
 
 packageModel.main = 'lib/index.js';
 packageModel.typings = 'lib/index.d.ts';
