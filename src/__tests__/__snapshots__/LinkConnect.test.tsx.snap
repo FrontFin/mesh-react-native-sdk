@@ -12,10 +12,10 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
   <View
     injectedJavaScript="
     window.meshSdkPlatform='reactNative';
-    window.meshSdkVersion='2.0.0';
+    window.meshSdkVersion='2.0.1';
     if(window.parent){
       window.parent.meshSdkPlatform='reactNative';
-      window.parent.meshSdkVersion='2.0.0';
+      window.parent.meshSdkVersion='2.0.1';
     }
   "
     javaScriptEnabled={true}
