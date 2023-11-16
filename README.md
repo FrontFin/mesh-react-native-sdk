@@ -89,12 +89,15 @@ export default App;
 
 #### `LinkConnect` component arguments
 
-| key                  | type                                            | Required/Optional                         | description                                                                   |
-|----------------------|-------------------------------------------------|-------------------------------------------|-------------------------------------------------------------------------------|
-| `linkToken`          | `string`                                        | required                                  | link token                                                                    |
-| `onIntegrationConnected`  | `(payload: LinkPayload) => void`               | optional                                  | Callback called when users connects their accounts                            |
-| `onTransferFinished` | `(payload: TransferFinishedPayload) => void`    | optional                                  | Callback called when a crypto transfer is executed                            |
-| `onExit`             | `(err: string) => void)`                        | optional                                  | Called if connection not happened. Returns an error message                   |
+| key                         | type                                                                     | Required/Optional | description                                                                                    |
+|-----------------------------|--------------------------------------------------------------------------|-------------------|------------------------------------------------------------------------------------------------|
+| `linkToken`                 | `string`                                                                 | required          | link token                                                                                     |
+| `accessTokens`              | `IntegrationAccessToken[]` (_check /lib/types/index.d.ts for reference_) | optional          | These access tokens are used to initialize crypto transfers flow at 'Select asset step'        |
+| `transferDestinationTokens` | `IntegrationAccessToken[]` (_check /lib/types/index.d.ts for reference_) | optional          | Can be used to initialize the crypto transfers flow as an alternative to the target addresses. |
+| `onIntegrationConnected`    | `(payload: LinkPayload) => void`                                         | optional          | Callback called when users connects their accounts                                             |
+| `onTransferFinished`        | `(payload: TransferFinishedPayload) => void`                             | optional          | Callback called when a crypto transfer is executed                                             |
+| `onExit`                    | `(err: string) => void)`                                                 | optional          | Called if connection not happened. Returns an error message                                    |
+| `onEvent`                   | `(event: string, payload: LinkPayload) => void`                          | optional          | Callback called when an event is triggered                                                     |
 
 
 #### Typescript support
