@@ -8,7 +8,7 @@ import {
   TextInput,
   View,
   TouchableOpacity,
-  Dimensions,
+  Dimensions, Platform,
 } from 'react-native';
 import {
   LinkConnect,
@@ -28,7 +28,11 @@ export default function App() {
   >(null);
   const [view, setView] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [linkToken, setLinkToken] = useState<string>('');
+  const [linkToken, setLinkToken] = useState<string>(
+    Platform.OS === 'android'
+      ? 'aHR0cDovLzEwLjAuMi4yOjgwODA='
+      : 'aHR0cDovLzEyNy4wLjAuMTo4MDgw',
+  );
   const connectButtonTitle = 'Connect account';
 
   function showIntegrationConnectedAlert(payload: AccessTokenPayload) {
@@ -70,30 +74,46 @@ export default function App() {
     console.log(linkToken, 'linkToken');
 
     return (
-      <SafeAreaView style={styles.container} testID={'link-connect-component'}>
-        <LinkConnect
-          linkToken={linkToken}
-          onIntegrationConnected={(payload: LinkPayload) => {
-            if (payload.accessToken) {
-              showIntegrationConnectedAlert(payload.accessToken);
-            }
-          }}
-          onTransferFinished={(payload: TransferFinishedPayload) => {
-            if (payload.status === 'success') {
-              const successPayload = payload as TransferFinishedSuccessPayload;
-              showTransferFinishedAlert(successPayload);
-            } else {
-              const errorPayload = payload as TransferFinishedErrorPayload;
-              setError(errorPayload.errorMessage);
-            }
-          }}
-          onExit={(err?: string) => {
-            err && setError(err);
-            setView(false);
-            setLinkToken('');
-          }}
-        />
-      </SafeAreaView>
+      <LinkConnect
+        linkToken={linkToken}
+        onIntegrationConnected={(payload: LinkPayload) => {
+          if (payload.accessToken) {
+            showIntegrationConnectedAlert(payload.accessToken);
+          }
+        }}
+        accessTokens={[
+          {
+            accountId: '1234567890',
+            accountName: 'Test Account',
+            accessToken: '1234567890',
+            brokerType: 'test',
+            brokerName: 'Test Broker',
+          },
+        ]}
+        transferDestinationTokens={[
+          {
+            accountId: '1234567890',
+            accountName: 'Test Account',
+            accessToken: '1234567890',
+            brokerType: 'test',
+            brokerName: 'Test Broker',
+          },
+        ]}
+        onTransferFinished={(payload: TransferFinishedPayload) => {
+          if (payload.status === 'success') {
+            const successPayload = payload as TransferFinishedSuccessPayload;
+            showTransferFinishedAlert(successPayload);
+          } else {
+            const errorPayload = payload as TransferFinishedErrorPayload;
+            setError(errorPayload.errorMessage);
+          }
+        }}
+        onExit={(err?: string) => {
+          err && setError(err);
+          setView(false);
+          setLinkToken('');
+        }}
+      />
     );
   }
 

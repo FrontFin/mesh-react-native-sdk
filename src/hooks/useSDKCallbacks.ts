@@ -4,9 +4,9 @@ import { WebViewMessageEvent } from 'react-native-webview';
 import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes';
 
 import { decode64, isValidUrl } from '../utils';
-import { LinkOptions } from '../';
+import { LinkConfiguration } from '../';
 
-const useSDKCallbacks = (props: LinkOptions) => {
+const useSDKCallbacks = (props: LinkConfiguration) => {
   const [linkUrl, setLinkUrl] = useState<string | null>(null);
   const [showWebView, setShowWebView] = useState(false);
   const [showNativeNavbar, setShowNativeNavbar] = useState(false);

@@ -4,11 +4,11 @@ import { WebView } from 'react-native-webview';
 import NavBar from './NavBar';
 import SDKContainer from './SDKContainer';
 
-import { LinkOptions } from '../';
+import { LinkConfiguration } from '../';
 import { useSDKCallbacks } from '../hooks/useSDKCallbacks';
 import { sdkSpecs } from '../utils/sdkConfig';
 
-const LinkConnect = (props: LinkOptions) => {
+const LinkConnect = (props: LinkConfiguration) => {
   const {
     showNativeNavbar,
     showWebView,
@@ -19,30 +19,23 @@ const LinkConnect = (props: LinkOptions) => {
   } = useSDKCallbacks(props);
   const webViewRef = useRef<WebView>(null);
   const goBack = () => webViewRef?.current?.goBack();
-  const sdkTypeScript = `
+
+  const injectedScript = useMemo(() => {
+    let sdkTypeScript = `
     window.meshSdkPlatform='${sdkSpecs.platform}';
     window.meshSdkVersion='${sdkSpecs.version}';
   `;
 
-  const accessAndTransferTokensScript = useMemo(() => {
-    let script = '';
-    if (props.accessTokens && props.accessTokens.length) {
-      script += `window.accessTokens='${JSON.stringify(props.accessTokens)}';`;
-    }
-    if (props.transferDestinationTokens && props.transferDestinationTokens.length) {
-      script += `window.transferDestinationTokens='${JSON.stringify(
-        props.transferDestinationTokens
-      )}';`;
+    if (props.settings) {
+      sdkTypeScript += `
+        window.accessTokens='${JSON.stringify(props.settings.accessTokens || {})}';
+        window.transferDestinationTokens='${JSON.stringify(props.settings.transferDestinationTokens || {})}';
+      `;
     }
 
-    return script;
-  }, [props.accessTokens, props.transferDestinationTokens]);
-
-  const injectedScript = useMemo(() => {
-    return `${sdkTypeScript}${accessAndTransferTokensScript}`;
+    return sdkTypeScript;
   }, [
-    sdkTypeScript,
-    accessAndTransferTokensScript,
+    props.settings,
   ]);
 
   return (
@@ -53,6 +46,7 @@ const LinkConnect = (props: LinkOptions) => {
           testID={'webview'}
           ref={webViewRef}
           source={{ uri: linkUrl }}
+          cacheMode={'LOAD_NO_CACHE'}
           onMessage={handleMessage}
           javaScriptEnabled={true}
           injectedJavaScript={injectedScript}

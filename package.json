@@ -75,7 +75,7 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "react-native-webview": "latest"
+    "react-native-webview": "^13.6.2"
   },
   "plugins": [
     "@semantic-release/commit-analyzer",
