@@ -1,5 +1,5 @@
 {
-  "version": "2.0.1",
+  "version": "2.0.2",
   "name": "@meshconnect/react-native-link-sdk",
   "description": "Mesh Connect React Native SDK.",
   "private": false,
@@ -75,7 +75,7 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "react-native-webview": "latest"
+    "react-native-webview": "^13.6.2"
   },
   "plugins": [
     "@semantic-release/commit-analyzer",

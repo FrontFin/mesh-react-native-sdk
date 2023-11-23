@@ -12,11 +12,34 @@ jest.mock('react-native-webview', () => {
 
 // Mock callback functions
 const mockOnExit = jest.fn();
-const SAMPLE_LINK_TOKEN = 'aHR0cHM6Ly93ZWIuZ2V0ZnJvbnQuY29tL2IyYi1pZnJhbWUvdGVzdC1hY2NvdW50LXJhbmRvbS9icm9rZXItY29ubmVjdC9jYXRhbG9nMQ=='
+const SAMPLE_LINK_TOKEN = 'aHR0cHM6Ly93ZWIuZ2V0ZnJvbnQuY29tL2IyYi1pZnJhbWUvdGVzdC1hY2NvdW50LXJhbmRvbS9icm9rZXItY29ubmVjdC9jYXRhbG9nMQ==';
 
 describe('LinkConnect Component', () => {
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('renders correctly when linkToken and accessTokens and transferDestinationTokens are provided', () => {
+    render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} settings={{
+      accessTokens: [
+        {
+          accountId: '1234567890',
+          accountName: 'Test Account',
+          accessToken: '1234567890',
+          brokerType: 'test',
+          brokerName: 'Test Broker',
+        },
+      ],
+      transferDestinationTokens: [
+        {
+          accountId: '1234567890',
+          accountName: 'Test Account',
+          accessToken: '1234567890',
+          brokerType: 'test',
+          brokerName: 'Test Broker',
+        },
+      ],
+    }} />);
   });
 
   it('renders correctly when linkToken is provided', () => {

@@ -55,8 +55,22 @@ export interface TransferFinishedErrorPayload {
   errorMessage: string;
 }
 
-export interface LinkOptions {
-  linkToken?: string;
+export interface IntegrationAccessToken {
+  accountId: string
+  accountName: string
+  accessToken: string
+  brokerType: string
+  brokerName: string
+}
+
+export interface LinkSettings {
+  accessTokens?: IntegrationAccessToken[]
+  transferDestinationTokens?: IntegrationAccessToken[]
+}
+
+export interface LinkConfiguration {
+  linkToken: string;
+  settings?: LinkSettings;
   onIntegrationConnected?: (payload: LinkPayload) => void;
   onTransferFinished?: (payload: TransferFinishedPayload) => void;
   onEvent?: (event: string, payload: LinkPayload) => void;

@@ -89,13 +89,29 @@ export default App;
 
 #### `LinkConnect` component arguments
 
-| key                  | type                                            | Required/Optional                         | description                                                                   |
-|----------------------|-------------------------------------------------|-------------------------------------------|-------------------------------------------------------------------------------|
-| `linkToken`          | `string`                                        | required                                  | link token                                                                    |
-| `onIntegrationConnected`  | `(payload: LinkPayload) => void`               | optional                                  | Callback called when users connects their accounts                            |
-| `onTransferFinished` | `(payload: TransferFinishedPayload) => void`    | optional                                  | Callback called when a crypto transfer is executed                            |
-| `onExit`             | `(err: string) => void)`                        | optional                                  | Called if connection not happened. Returns an error message                   |
+| key                       | type                                            | Required/Optional | description                                                                             |
+|---------------------------|-------------------------------------------------|-------------------|-----------------------------------------------------------------------------------------|
+| `linkToken`               | `string`                                        | required          | Link token                                                                              |
+| `settings`                | `LinkSettings`                                  | optional          | Settings object                                                                         |
+| `onIntegrationConnected`  | `(payload: LinkPayload) => void`                | optional          | Callback called when users connects their accounts                                      |
+| `onTransferFinished`      | `(payload: TransferFinishedPayload) => void`    | optional          | Callback called when a crypto transfer is executed                                      |
+| `onExit`                  | `(err: string) => void)`                        | optional          | Called if connection not happened. Returns an error message                             |
+| `onEvent`                 | `(event: string, payload: LinkPayload) => void` | optional          | Callback called when an event is triggered                                              |
 
+
+The `LinkSettings` option allows to configure the Link behaviour:
+- `accessTokens` - an array of `IntegrationAccessToken` objects that is used as an origin for crypto transfer flow.
+- `transferDestinationTokens` - an array of `IntegrationAccessToken` objects that is used as a destination for crypto transfer flow.
+
+## V1 -> V2 migration guide
+In Mesh Connect React Native SDK v2, `url` prop is removed from `LinkConnect` component. You should use `linkToken` prop instead of `url` prop.
+`orError` and `onClose` props are combined with `onExit` callback with an optional error message argument.
+
+Following are the renamed props:
+- `onBrokerConnected` -> `onIntegrationConnected`
+- `FrontPayload` -> `LinkPayload`
+
+The component `FrontFinance` is renamed to `LinkConnect`.
 
 #### Typescript support
 Typescript definitions for `@meshconnect/react-native-link-sdk` are built into the npm package.
