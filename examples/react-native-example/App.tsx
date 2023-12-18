@@ -1,22 +1,22 @@
 import React, {useState} from 'react';
 import {
   Alert,
+  Dimensions,
+  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  View,
   TouchableOpacity,
-  Dimensions, Platform,
+  View,
 } from 'react-native';
 import {
-  LinkConnect,
   AccessTokenPayload,
+  LinkConnect,
   LinkPayload,
   TransferFinishedPayload,
   TransferFinishedSuccessPayload,
-  TransferFinishedErrorPayload,
 } from '@meshconnect/react-native-link-sdk';
 import Reports from './components/reports';
 
@@ -71,16 +71,9 @@ export default function App() {
   }
 
   if (view && linkToken?.length) {
-    console.log(linkToken, 'linkToken');
-
     return (
       <LinkConnect
         linkToken={linkToken}
-        onIntegrationConnected={(payload: LinkPayload) => {
-          if (payload.accessToken) {
-            showIntegrationConnectedAlert(payload.accessToken);
-          }
-        }}
         accessTokens={[
           {
             accountId: '1234567890',
@@ -99,14 +92,20 @@ export default function App() {
             brokerName: 'Test Broker',
           },
         ]}
+        onIntegrationConnected={(payload: LinkPayload) => {
+          if (payload.accessToken) {
+            showIntegrationConnectedAlert(payload.accessToken);
+          }
+        }}
         onTransferFinished={(payload: TransferFinishedPayload) => {
           if (payload.status === 'success') {
-            const successPayload = payload as TransferFinishedSuccessPayload;
-            showTransferFinishedAlert(successPayload);
+            showTransferFinishedAlert(payload);
           } else {
-            const errorPayload = payload as TransferFinishedErrorPayload;
-            setError(errorPayload.errorMessage);
+            setError(payload.errorMessage);
           }
+        }}
+        onEvent={(event: string, payload: LinkPayload) => {
+          console.log(event, payload);
         }}
         onExit={(err?: string) => {
           err && setError(err);
@@ -123,16 +122,7 @@ export default function App() {
         style={styles.container}
         testID={'example-app-link-container'}>
         <ScrollView>
-          <View
-            style={{
-              height: 80,
-              width: layout_width,
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginTop: 24,
-            }}
-          />
-
+          <View style={styles.headerDivider} />
           <View
             testID={'example-app-link-token-container'}
             style={styles.inputContainer}>
@@ -141,7 +131,7 @@ export default function App() {
               value={linkToken}
               onChangeText={e => setLinkToken(e)}
               onSubmitEditing={() => setView(true)}
-              style={{width: '95%', height: 40, left: 10}}
+              style={styles.exampleLinkTokenInput}
               placeholder="Enter link token"
               placeholderTextColor={'#363636'}
             />
@@ -151,21 +141,19 @@ export default function App() {
             onPress={() => setView(true)}
             style={styles.conBtn}
             testID={'example-app-connect-btn'}>
-            <Text style={{textAlign: 'center', fontSize: 18, color: 'white'}}>
-              {connectButtonTitle}
-            </Text>
+            <Text style={styles.connectButtonText}>{connectButtonTitle}</Text>
           </TouchableOpacity>
 
           {data && (
             <View
-              style={{marginTop: 30}}
+              style={styles.reportsContainer}
               testID={'example-app-reports-container'}>
               <Reports data={data} />
             </View>
           )}
 
           {error && (
-            <Text testID={'example-app-error'} style={{color: 'red'}}>
+            <Text testID={'example-app-error'} style={styles.textError}>
               Error: {error}
             </Text>
           )}
@@ -184,6 +172,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flex: 1,
   },
+  headerDivider: {
+    height: 80,
+    width: layout_width,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 24,
+  },
   inputContainer: {
     width: layout_width * 0.9,
     alignSelf: 'center',
@@ -201,6 +196,22 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 30,
+  },
+  exampleLinkTokenInput: {
+    width: '95%',
+    height: 40,
+    left: 10,
+  },
+  connectButtonText: {
+    textAlign: 'center',
+    fontSize: 18,
+    color: 'white',
+  },
+  textError: {
+    color: 'red',
+  },
+  reportsContainer: {
     marginTop: 30,
   },
 });

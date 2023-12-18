@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text} from 'react-native';
+import {View, Text, StyleSheet} from 'react-native';
 import {
   AccessTokenPayload,
   TransferFinishedSuccessPayload,
@@ -11,28 +11,26 @@ const Reports = (props: {
   const data = props.data as AccessTokenPayload;
   if (data.accountTokens !== undefined) {
     return (
-      <View style={{padding: 10}}>
+      <View style={styles.container}>
         <Text>
-          <Text style={{fontWeight: 'bold'}}>Broker:</Text> {data?.brokerName}
+          <Text style={styles.textBold}>Broker:</Text> {data?.brokerName}
           {'\n'}
-          <Text style={{fontWeight: 'bold'}}>Token:</Text>{' '}
+          <Text style={styles.textBold}>Token:</Text>{' '}
           {data?.accountTokens[0].accessToken}
           {'\n'}
-          <Text style={{fontWeight: 'bold'}}>Refresh Token:</Text>{' '}
+          <Text style={styles.textBold}>Refresh Token:</Text>{' '}
           {data?.accountTokens[0].refreshToken}
           {'\n'}
-          <Text style={{fontWeight: 'bold'}}>
-            Token expires in seconds:
-          </Text>{' '}
+          <Text style={styles.textBold}>Token expires in seconds:</Text>{' '}
           {data?.expiresInSeconds}
           {'\n'}
-          <Text style={{fontWeight: 'bold'}}>ID:</Text>{' '}
+          <Text style={styles.textBold}>ID:</Text>{' '}
           {data?.accountTokens[0].account.accountId}
           {'\n'}
-          <Text style={{fontWeight: 'bold'}}>Name:</Text>{' '}
+          <Text style={styles.textBold}>Name:</Text>{' '}
           {data?.accountTokens[0].account.accountName}
           {'\n'}
-          <Text style={{fontWeight: 'bold'}}>Cash:</Text> $
+          <Text style={styles.textBold}>Cash:</Text> $
           {data?.accountTokens[0].account.cash}
           {'\n'}
         </Text>
@@ -44,24 +42,22 @@ const Reports = (props: {
 
   if (transferData.txId !== undefined) {
     return (
-      <View style={{padding: 10}}>
+      <View style={styles.container}>
         <Text>
-          <Text style={{fontWeight: 'bold'}}>Transaction Id:</Text>{' '}
+          <Text style={styles.textBold}>Transaction Id:</Text>{' '}
           {transferData?.txId}
           {'\n'}
-          <Text style={{fontWeight: 'bold'}}>From Address:</Text>{' '}
+          <Text style={styles.textBold}>From Address:</Text>{' '}
           {transferData?.fromAddress || ''}
           {'\n'}
-          <Text style={{fontWeight: 'bold'}}>To Address:</Text>{' '}
+          <Text style={styles.textBold}>To Address:</Text>{' '}
           {transferData?.toAddress || ''}
           {'\n'}
-          <Text style={{fontWeight: 'bold'}}>Symbol:</Text>{' '}
-          {transferData.symbol}
+          <Text style={styles.textBold}>Symbol:</Text> {transferData.symbol}
           {'\n'}
-          <Text style={{fontWeight: 'bold'}}>Amount:</Text>{' '}
-          {transferData.amount}
+          <Text style={styles.textBold}>Amount:</Text> {transferData.amount}
           {'\n'}
-          <Text style={{fontWeight: 'bold'}}>Network Id:</Text>{' '}
+          <Text style={styles.textBold}>Network Id:</Text>{' '}
           {transferData.networkId}
           {'\n'}
         </Text>
@@ -70,5 +66,14 @@ const Reports = (props: {
   }
   return null;
 };
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 10,
+  },
+  textBold: {
+    fontWeight: 'bold',
+  },
+});
 
 export default Reports;
