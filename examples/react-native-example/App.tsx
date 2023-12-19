@@ -15,8 +15,10 @@ import {
   AccessTokenPayload,
   LinkConnect,
   LinkPayload,
+  LinkSettings,
   TransferFinishedPayload,
   TransferFinishedSuccessPayload,
+  IntegrationAccessToken,
 } from '@meshconnect/react-native-link-sdk';
 import Reports from './components/reports';
 
@@ -34,6 +36,18 @@ export default function App() {
       : 'aHR0cDovLzEyNy4wLjAuMTo4MDgw',
   );
   const connectButtonTitle = 'Connect account';
+  const exampleToken: IntegrationAccessToken = {
+    accountId: '1234567890',
+    accountName: 'Test Account',
+    accessToken: '1234567890',
+    brokerType: 'test',
+    brokerName: 'Test Broker',
+  };
+
+  const exampleLinkSettings: LinkSettings = {
+    accessTokens: [exampleToken],
+    transferDestinationTokens: [exampleToken],
+  };
 
   function showIntegrationConnectedAlert(payload: AccessTokenPayload) {
     Alert.alert(
@@ -74,24 +88,7 @@ export default function App() {
     return (
       <LinkConnect
         linkToken={linkToken}
-        accessTokens={[
-          {
-            accountId: '1234567890',
-            accountName: 'Test Account',
-            accessToken: '1234567890',
-            brokerType: 'test',
-            brokerName: 'Test Broker',
-          },
-        ]}
-        transferDestinationTokens={[
-          {
-            accountId: '1234567890',
-            accountName: 'Test Account',
-            accessToken: '1234567890',
-            brokerType: 'test',
-            brokerName: 'Test Broker',
-          },
-        ]}
+        settings={exampleLinkSettings}
         onIntegrationConnected={(payload: LinkPayload) => {
           if (payload.accessToken) {
             showIntegrationConnectedAlert(payload.accessToken);
