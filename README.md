@@ -58,24 +58,24 @@ import {
   TransferFinishedErrorPayload
 } from '@meshconnect/react-native-link-sdk';
 
-const exampleToken: IntegrationAccessToken = {
-    accountId: '1234567890',
-    accountName: 'Test Account',
-    accessToken: '1234567890',
-    brokerType: 'test',
-    brokerName: 'Test Broker',
-};
+const accessTokens: IntegrationAccessToken = [
+/* Your access tokens */
+];
 
-const exampleLinkSettings: LinkSettings = {
-    accessTokens: [exampleToken],
-    transferDestinationTokens: [exampleToken],
+const transferDestinationTokens: IntegrationAccessToken = [
+/* Your transfer destination tokens */
+];
+
+const linkSettings: LinkSettings = {
+    accessTokens,
+    transferDestinationTokens,
 };
 
 export const App = () => {
   return (
     <LinkConnect
       linkToken={"YOUR_LINKTOKEN"}
-      settings={exampleLinkSettings}
+      settings={linkSettings}
       onIntegrationConnected={(payload: LinkPayload) => {
         // use broker account data
       }}

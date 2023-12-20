@@ -2,7 +2,6 @@ import React, {useState} from 'react';
 import {
   Alert,
   Dimensions,
-  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -15,10 +14,8 @@ import {
   AccessTokenPayload,
   LinkConnect,
   LinkPayload,
-  LinkSettings,
   TransferFinishedPayload,
   TransferFinishedSuccessPayload,
-  IntegrationAccessToken,
 } from '@meshconnect/react-native-link-sdk';
 import Reports from './components/reports';
 
@@ -30,24 +27,8 @@ export default function App() {
   >(null);
   const [view, setView] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [linkToken, setLinkToken] = useState<string>(
-    Platform.OS === 'android'
-      ? 'aHR0cDovLzEwLjAuMi4yOjgwODA='
-      : 'aHR0cDovLzEyNy4wLjAuMTo4MDgw',
-  );
+  const [linkToken, setLinkToken] = useState<string>('');
   const connectButtonTitle = 'Connect account';
-  const exampleToken: IntegrationAccessToken = {
-    accountId: '1234567890',
-    accountName: 'Test Account',
-    accessToken: '1234567890',
-    brokerType: 'test',
-    brokerName: 'Test Broker',
-  };
-
-  const exampleLinkSettings: LinkSettings = {
-    accessTokens: [exampleToken],
-    transferDestinationTokens: [exampleToken],
-  };
 
   function showIntegrationConnectedAlert(payload: AccessTokenPayload) {
     Alert.alert(
@@ -88,7 +69,6 @@ export default function App() {
     return (
       <LinkConnect
         linkToken={linkToken}
-        settings={exampleLinkSettings}
         onIntegrationConnected={(payload: LinkPayload) => {
           if (payload.accessToken) {
             showIntegrationConnectedAlert(payload.accessToken);
@@ -199,6 +179,7 @@ const styles = StyleSheet.create({
     width: '95%',
     height: 40,
     left: 10,
+    color: '#363636',
   },
   connectButtonText: {
     textAlign: 'center',
