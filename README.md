@@ -51,15 +51,31 @@ import React from 'react';
 import {
   LinkConnect,
   LinkPayload,
+  LinkSettings,
+  IntegrationAccessToken,
   TransferFinishedPayload,
   TransferFinishedSuccessPayload,
   TransferFinishedErrorPayload
 } from '@meshconnect/react-native-link-sdk';
 
+const accessTokens: IntegrationAccessToken = [
+/* Your access tokens */
+];
+
+const transferDestinationTokens: IntegrationAccessToken = [
+/* Your transfer destination tokens */
+];
+
+const linkSettings: LinkSettings = {
+    accessTokens,
+    transferDestinationTokens,
+};
+
 export const App = () => {
   return (
     <LinkConnect
       linkToken={"YOUR_LINKTOKEN"}
+      settings={linkSettings}
       onIntegrationConnected={(payload: LinkPayload) => {
         // use broker account data
       }}
@@ -72,11 +88,11 @@ export const App = () => {
           // handle transfer error
         }
       }}
+      onEvent={(event: string, payload: LinkPayload) => {
+          console.log(event, payload);
+        }}
       onExit={(err?: string) => {
         // use error message
-      }}
-      onEvent={(event: string, payload: LinkPayload) => {
-        // use event
       }}
     />
   )
