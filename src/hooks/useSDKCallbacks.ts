@@ -62,7 +62,8 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
 
   // istanbul ignore next
   const handleMessage = (event: WebViewMessageEvent) => {
-    const { type, payload } = JSON.parse(event.nativeEvent.data);
+    const nativeEventData = JSON.parse(event.nativeEvent.data)
+    const { type, payload } = nativeEventData;
 
     const eventType = mappedLinkEvents[type] || type
 
@@ -126,7 +127,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
 
       default: {
         if (isLinkEventTypeKey(type)) {
-          props?.onEvent?.(payload)
+          props?.onEvent?.(nativeEventData)
         }
         break
       }
