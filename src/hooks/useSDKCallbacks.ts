@@ -4,7 +4,15 @@ import { WebViewMessageEvent } from 'react-native-webview';
 import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes';
 
 import { decode64, isValidUrl } from '../utils';
-import { LinkConfiguration } from '../';
+import { 
+  AccessTokenPayload,
+  DelayedAuthPayload,
+  LinkConfiguration,
+  LinkPayload,
+  TransferFinishedPayload,
+  isLinkEventTypeKey,
+  mappedLinkEvents 
+} from '../';
 
 const useSDKCallbacks = (props: LinkConfiguration) => {
   const [linkUrl, setLinkUrl] = useState<string | null>(null);
@@ -56,33 +64,73 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
   const handleMessage = (event: WebViewMessageEvent) => {
     const { type, payload } = JSON.parse(event.nativeEvent.data);
 
-    if (type === 'close' || type === 'done' || type === 'exit') {
-      props.onExit?.();
-      return;
-    }
+    const eventType = mappedLinkEvents[type] || type
 
-    if (type === 'showClose') {
-      showCloseAlert();
-      return;
-    }
+    switch (type) {
+      case 'close':
+      case 'done':
+      case 'exit': {
+        props.onExit?.(payload);
+        break;
+      }
 
-    if (type === 'showNativeNavbar') {
-      return setShowNativeNavbar(payload);
-    }
+      case 'showClose': {
+        showCloseAlert();
+        break;
+      }
 
-    if (type === 'brokerageAccountAccessToken') {
-      return props.onIntegrationConnected?.({ accessToken: payload });
-    }
+      case 'showNativebar': {
+        setShowNativeNavbar(payload);
+        break;
+      }
 
-    if (type === 'delayedAuthentication') {
-      return props.onIntegrationConnected?.({ delayedAuth: payload });
-    }
+      case 'brokerageAccountAccessToken': {
+        const payloadData: LinkPayload = {
+          accessToken: payload as AccessTokenPayload
+        }
+        props?.onEvent?.({
+          type: eventType,
+          payload: payloadData
+        })
+        props?.onIntegrationConnected?.(payloadData)
+        break
+      }
 
-    if (type === 'transferFinished') {
-      return props.onTransferFinished?.(payload);
-    }
+      case 'delayedAuthentication': {
+        const payloadData: LinkPayload = {
+          delayedAuth: payload as DelayedAuthPayload
+        }
+        props?.onEvent?.({
+          type: eventType,
+          payload: payloadData
+        })
+        props?.onIntegrationConnected?.(payloadData)
+        break
+      }
 
-    props.onEvent?.(type, payload);
+      case 'transferFinished': {
+        const payloadData = payload as TransferFinishedPayload
+
+        props?.onEvent?.({
+          type: eventType,
+          payload: payloadData
+        })
+        props?.onTransferFinished?.(payloadData)
+        break
+      }
+
+      case 'loaded': {
+        props?.onEvent?.({ type: eventType })
+        break
+      }
+
+      default: {
+        if (isLinkEventTypeKey(type)) {
+          props?.onEvent?.(payload)
+        }
+        break
+      }
+    }
   };
 
   const handleNavState = (event: WebViewNativeEvent) => {
