@@ -52,6 +52,7 @@ import {
   LinkConnect,
   LinkPayload,
   LinkSettings,
+  LinkEventType,
   IntegrationAccessToken,
   TransferFinishedPayload,
   TransferFinishedSuccessPayload,
@@ -88,9 +89,9 @@ export const App = () => {
           // handle transfer error
         }
       }}
-      onEvent={(event: string, payload: LinkPayload) => {
-          console.log(event, payload);
-        }}
+      onEvent={(event: LinkEventType) => {
+          console.log(event);
+      }}
       onExit={(err?: string) => {
         // use error message
       }}
@@ -112,7 +113,7 @@ export default App;
 | `onIntegrationConnected`  | `(payload: LinkPayload) => void`                | optional          | Callback called when users connects their accounts                                      |
 | `onTransferFinished`      | `(payload: TransferFinishedPayload) => void`    | optional          | Callback called when a crypto transfer is executed                                      |
 | `onExit`                  | `(err: string) => void)`                        | optional          | Called if connection not happened. Returns an error message                             |
-| `onEvent`                 | `(event: string, payload: LinkPayload) => void` | optional          | Callback called when an event is triggered                                              |
+| `onEvent`                 | `(event: LinkEventType) => void` | optional          | Callback called when an event is triggered                                              |
 
 
 The `LinkSettings` option allows to configure the Link behaviour:
