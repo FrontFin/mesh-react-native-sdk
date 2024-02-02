@@ -8,7 +8,7 @@
   "repository": "https://github.com/FrontFin/mesh-react-native-sdk.git",
   "homepage": "https://github.com/FrontFin/mesh-react-native-sdk",
   "main": "src/index.ts",
-  "typings": "src/index.d.ts",
+  "typings": "src/types.ts",
   "module": "src/index.ts",
   "scripts": {
     "build": "rm -rf dist && tsc --build && node scripts/build.js",
