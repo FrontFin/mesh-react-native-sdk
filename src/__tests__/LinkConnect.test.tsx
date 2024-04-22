@@ -3,6 +3,14 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import LinkConnect from '../components/LinkConnect';
 
+const mockedUseColorScheme = jest.fn();
+
+jest.mock('react-native/Libraries/Utilities/useColorScheme', () => {
+  return {
+    default: mockedUseColorScheme,
+  };
+});
+
 jest.mock('react-native-webview', () => {
   const { View } = require('react-native');
   return {

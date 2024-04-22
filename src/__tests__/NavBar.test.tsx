@@ -2,6 +2,14 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import NavBar from '../components/NavBar';
 
+const mockedUseColorScheme = jest.fn();
+
+jest.mock('react-native/Libraries/Utilities/useColorScheme', () => {
+  return {
+    default: mockedUseColorScheme,
+  };
+});
+
 describe('NavBar', () => {
   test('renders correctly', () => {
     const component = render(<NavBar goBack={() => void 0} showCloseAlert={() => void 0} />);
