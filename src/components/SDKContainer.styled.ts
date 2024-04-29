@@ -28,7 +28,6 @@ export const styles = StyleSheet.create({
   },
 });
 
-console.log('debug >>> typeof useColorScheme', typeof useColorScheme);
 export const isDarkMode = (typeof useColorScheme === 'function') ? useColorScheme() === 'dark' : false;
 
 export const statusBarStyle = {
