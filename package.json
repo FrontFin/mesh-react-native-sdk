@@ -1,5 +1,5 @@
 {
-  "version": "2.0.3",
+  "version": "2.0.4",
   "name": "@meshconnect/react-native-link-sdk",
   "description": "Mesh Connect React Native SDK.",
   "private": false,
@@ -45,7 +45,8 @@
   "packageManager": "yarn@1.22.17",
   "peerDependencies": {
     "react": ">=16",
-    "react-native": ">=0.60"
+    "react-native": ">=0.60",
+    "react-native-webview": "*"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
