@@ -1,7 +1,13 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 
-import { mockedUseColorScheme } from './__mocks__/useColorScheme';
+const mockedUseColorScheme = jest.fn();
+
+jest.mock('react-native/Libraries/Utilities/useColorScheme', () => {
+  return {
+    default: mockedUseColorScheme,
+  };
+});
 
 import SDKContainer from '../components/SDKContainer';
 
@@ -16,6 +22,5 @@ describe('SDKContainer', () => {
 
     const snapshot = component.toJSON();
     expect(snapshot).toMatchSnapshot();
-
   });
 });

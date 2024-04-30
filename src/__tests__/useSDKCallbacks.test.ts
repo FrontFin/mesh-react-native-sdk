@@ -4,6 +4,14 @@ import { useSDKCallbacks } from '../hooks/useSDKCallbacks';
 import { WebViewMessageEvent } from 'react-native-webview';
 import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes';
 
+const mockedUseColorScheme = jest.fn();
+
+jest.mock('react-native/Libraries/Utilities/useColorScheme', () => {
+  return {
+    default: mockedUseColorScheme,
+  };
+});
+
 describe('useSDKCallbacks', () => {
   const mockProps = {
     linkToken: 'c29tZVZhbGlkTGlua1Rva2Vu',
