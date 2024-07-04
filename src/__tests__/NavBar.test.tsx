@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import NavBar from '../components/NavBar';
+import { NavBar } from '../components/NavBar';
 
 const mockedUseColorScheme = jest.fn();
 

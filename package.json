@@ -1,5 +1,5 @@
 {
-  "version": "2.0.4",
+  "version": "2.0.5",
   "name": "@meshconnect/react-native-link-sdk",
   "description": "Mesh Connect React Native SDK.",
   "private": false,
@@ -15,7 +15,7 @@
     "check-build": "node scripts/verify-build.js",
     "clean": "tsc --build --clean",
     "lint": "eslint --ext .js,.ts,.tsx ./src",
-    "test": "jest --passWithNoTests",
+    "test": "jest -u --passWithNoTests",
     "types-check": "tsc --noEmit",
     "publish:npm": "yarn build && cd dist && yarn publish --access public",
     "prepare": "husky install",
@@ -54,8 +54,6 @@
     "@babel/runtime": "^7.20.0",
     "@react-native/eslint-config": "^0.72.2",
     "@react-native/metro-config": "^0.72.11",
-    "@semantic-release/changelog": "^6.0.3",
-    "@semantic-release/git": "^10.0.1",
     "@testing-library/react-native": "^12.2.2",
     "@tsconfig/react-native": "^3.0.0",
     "@types/jest": "^29.5.4",
@@ -76,29 +74,6 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "react-native-webview": "^13.6.2"
-  },
-  "plugins": [
-    "@semantic-release/commit-analyzer",
-    "@semantic-release/release-notes-generator",
-    "@semantic-release/changelog",
-    "@semantic-release/github",
-    "@semantic-release/npm",
-    "@semantic-release/git"
-  ],
-  "release": {
-    "prepare": [
-      "@semantic-release/changelog",
-      "@semantic-release/npm",
-      {
-        "path": "@semantic-release/git",
-        "assets": [
-          "package.json",
-          "package-lock.json",
-          "CHANGELOG.md"
-        ],
-        "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
-      }
-    ]
+    "react-native-webview": "^13.10.4"
   }
 }

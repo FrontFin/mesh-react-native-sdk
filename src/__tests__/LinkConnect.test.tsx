@@ -1,7 +1,7 @@
 /* eslint-disable */
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import LinkConnect from '../components/LinkConnect';
+import { LinkConnect } from '../components/LinkConnect';
 
 const mockedUseColorScheme = jest.fn();
 

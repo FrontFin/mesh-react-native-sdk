@@ -1,14 +1,15 @@
 import React, { useMemo, useRef } from 'react';
 import { WebView } from 'react-native-webview';
 
-import NavBar from './NavBar';
-import SDKContainer from './SDKContainer';
+import { NavBar } from './NavBar';
+import { SDKContainer } from './SDKContainer';
+import { SDKViewContainer } from './SDKViewContainer';
 
-import { LinkConfiguration } from '../';
+import type { LinkConfiguration } from '../';
 import { useSDKCallbacks } from '../hooks/useSDKCallbacks';
 import { sdkSpecs } from '../utils/sdkConfig';
 
-const LinkConnect = (props: LinkConfiguration) => {
+export const LinkConnect = (props: LinkConfiguration) => {
   const {
     showNativeNavbar,
     showWebView,
@@ -38,8 +39,10 @@ const LinkConnect = (props: LinkConfiguration) => {
     props.settings,
   ]);
 
+  const SDKWrapperComponent = props.renderViewContainer ? SDKViewContainer : SDKContainer;
+
   return (
-    <SDKContainer>
+    <SDKWrapperComponent>
       {showNativeNavbar && <NavBar goBack={goBack} showCloseAlert={showCloseAlert} />}
       {showWebView && linkUrl && (
         <WebView
@@ -53,8 +56,7 @@ const LinkConnect = (props: LinkConfiguration) => {
           onNavigationStateChange={handleNavState}
         />
       )}
-    </SDKContainer>
+    </SDKWrapperComponent>
   );
 };
 
-export default LinkConnect;

@@ -9,13 +9,13 @@ jest.mock('react-native/Libraries/Utilities/useColorScheme', () => {
   };
 });
 
-import { SDKContainer } from '../components/SDKContainer';
+import { SDKViewContainer } from '../components/SDKViewContainer';
 
-describe('SDKContainer', () => {
+describe('SDKViewContainer', () => {
   mockedUseColorScheme.mockReturnValue('light');
 
   test('renders correctly', () => {
-    const component = render(<SDKContainer>Test Content</SDKContainer>);
+    const component = render(<SDKViewContainer>SDKViewContainer Content</SDKViewContainer>);
     const { getByTestId } = component;
 
     expect(getByTestId('link-connect-component')).toBeTruthy();
