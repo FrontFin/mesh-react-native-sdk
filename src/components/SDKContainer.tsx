@@ -8,14 +8,11 @@ type Props = {
 }
 
 export const SDKContainer = ({ children }: Props) => {
-  const { isDarkMode, statusBarStyle } = useSDKStyles();
+  const { statusBarStyle } = useSDKStyles();
 
   return (
     <SafeAreaView style={{ flex: 1 }} testID={'link-connect-component'}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={statusBarStyle.backgroundColor}
-      />
+      <StatusBar backgroundColor={statusBarStyle.backgroundColor} />
       {children}
     </SafeAreaView>
   );

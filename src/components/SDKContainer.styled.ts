@@ -1,5 +1,5 @@
 /* istanbul ignore file */
-import { StyleSheet, useColorScheme } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 const navBarStyles = StyleSheet.create({
   navBarContainer: {
@@ -29,11 +29,9 @@ const navBarStyles = StyleSheet.create({
 });
 
 export const useSDKStyles = () => {
-  const isDarkMode = (typeof useColorScheme === 'function') ? useColorScheme() === 'dark' : false;
-
   const statusBarStyle = {
-    backgroundColor: isDarkMode ? '#000000' : '#ffffff',
+    backgroundColor: '#ffffff',
   };
 
-  return { isDarkMode, statusBarStyle, navBarStyles };
+  return { statusBarStyle, navBarStyles };
 }
