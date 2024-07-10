@@ -75,6 +75,8 @@ const componentsFiles = [
   'SDKContainer.d.ts',
   'SDKContainer.styled.js',
   'SDKContainer.styled.d.ts',
+  'SDKViewContainer.js',
+  'SDKViewContainer.d.ts'
 ];
 
 componentsFiles.forEach((file) => {
@@ -105,6 +107,8 @@ const utils = [
   'base64.d.ts',
   'isUrl.js',
   'isUrl.d.ts',
+  'sdkConfig.js',
+  'sdkConfig.d.ts'
 ];
 
 utils.forEach((file) => {
