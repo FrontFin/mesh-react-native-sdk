@@ -1,21 +1,20 @@
-import React, { ReactNode } from 'react';
+import React from 'react';
+import type { ReactNode } from 'react';
 import { SafeAreaView, StatusBar } from 'react-native';
-import { isDarkMode, statusBarStyle } from './SDKContainer.styled';
+import { useSDKStyles } from './SDKContainer.styled';
 
 type Props = {
   children: ReactNode
 }
 
-const SDKContainer = ({ children }: Props) => {
+export const SDKContainer = ({ children }: Props) => {
+  const { statusBarStyle } = useSDKStyles();
+
   return (
     <SafeAreaView style={{ flex: 1 }} testID={'link-connect-component'}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={statusBarStyle.backgroundColor}
-      />
+      <StatusBar backgroundColor={statusBarStyle.backgroundColor} />
       {children}
     </SafeAreaView>
   );
 }
 
-export default SDKContainer;

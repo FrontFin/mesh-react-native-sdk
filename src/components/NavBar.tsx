@@ -1,4 +1,4 @@
-import { styles } from './SDKContainer.styled';
+import { useSDKStyles } from './SDKContainer.styled';
 import { Image, TouchableOpacity, View } from 'react-native';
 
 type NavBarProps = {
@@ -6,7 +6,9 @@ type NavBarProps = {
   showCloseAlert: () => void;
 }
 
-const NavBar = ({goBack, showCloseAlert}: NavBarProps) => {
+export const NavBar = ({goBack, showCloseAlert}: NavBarProps) => {
+  const {navBarStyles: styles} = useSDKStyles();
+
   return (
     <View testID={'native-navbar'} style={styles.navBarContainer}>
       <TouchableOpacity
@@ -31,5 +33,3 @@ const NavBar = ({goBack, showCloseAlert}: NavBarProps) => {
     </View>
   );
 }
-
-export default NavBar

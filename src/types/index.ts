@@ -182,6 +182,7 @@ export interface LinkSettings {
 export interface LinkConfiguration {
   linkToken: string;
   settings?: LinkSettings;
+  renderViewContainer?: boolean; // this will render the container View instead of SafeAreaView
   onIntegrationConnected?: (payload: LinkPayload) => void;
   onTransferFinished?: (payload: TransferFinishedPayload) => void;
   onEvent?: (event: LinkEventType) => void;

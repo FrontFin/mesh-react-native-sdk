@@ -13,6 +13,7 @@ import {
 import {
   AccessTokenPayload,
   LinkConnect,
+  LinkEventType,
   LinkPayload,
   TransferFinishedPayload,
   TransferFinishedSuccessPayload,
@@ -81,8 +82,8 @@ export default function App() {
             setError(payload.errorMessage);
           }
         }}
-        onEvent={(event: string, payload: LinkPayload) => {
-          console.log(event, payload);
+        onEvent={(event: LinkEventType) => {
+          console.log('mesh event', event);
         }}
         onExit={(err?: string) => {
           err && setError(err);
