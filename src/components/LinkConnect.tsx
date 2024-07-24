@@ -14,6 +14,7 @@ export const LinkConnect = (props: LinkConfiguration) => {
     showNativeNavbar,
     showWebView,
     linkUrl,
+    darkTheme,
     handleMessage,
     handleNavState,
     showCloseAlert,
@@ -29,23 +30,30 @@ export const LinkConnect = (props: LinkConfiguration) => {
 
     if (props.settings) {
       sdkTypeScript += `
-        window.accessTokens='${JSON.stringify(props.settings.accessTokens || {})}';
-        window.transferDestinationTokens='${JSON.stringify(props.settings.transferDestinationTokens || {})}';
+        window.accessTokens='${JSON.stringify(
+          props.settings.accessTokens || {}
+        )}';
+        window.transferDestinationTokens='${JSON.stringify(
+          props.settings.transferDestinationTokens || {}
+        )}';
       `;
     }
 
     return sdkTypeScript;
-  }, [
-    props.settings,
-  ]);
+  }, [props.settings]);
 
-  const SDKWrapperComponent = props.renderViewContainer ? SDKViewContainer : SDKContainer;
+  const SDKWrapperComponent = props.renderViewContainer
+    ? SDKViewContainer
+    : SDKContainer;
 
   return (
     <SDKWrapperComponent>
-      {showNativeNavbar && <NavBar goBack={goBack} showCloseAlert={showCloseAlert} />}
+      {showNativeNavbar && (
+        <NavBar goBack={goBack} showCloseAlert={showCloseAlert} />
+      )}
       {showWebView && linkUrl && (
         <WebView
+          style={{ backgroundColor: darkTheme ? '#0e0e0d' : '#fbfbfb' }}
           testID={'webview'}
           ref={webViewRef}
           source={{ uri: linkUrl }}
@@ -59,4 +67,3 @@ export const LinkConnect = (props: LinkConfiguration) => {
     </SDKWrapperComponent>
   );
 };
-
