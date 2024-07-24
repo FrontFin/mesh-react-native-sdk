@@ -4,6 +4,7 @@ exports[`SDKContainer renders correctly 1`] = `
 <RCTSafeAreaView
   style={
     {
+      "backgroundColor": "#fbfbfb",
       "flex": 1,
     }
   }

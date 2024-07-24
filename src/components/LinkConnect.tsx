@@ -1,5 +1,6 @@
-import React, { useMemo, useRef } from 'react';
+import { View } from 'react-native';
 import { WebView } from 'react-native-webview';
+import React, { useMemo, useRef, useState } from 'react';
 
 import { NavBar } from './NavBar';
 import { SDKContainer } from './SDKContainer';
@@ -8,12 +9,14 @@ import { SDKViewContainer } from './SDKViewContainer';
 import type { LinkConfiguration } from '../';
 import { useSDKCallbacks } from '../hooks/useSDKCallbacks';
 import { sdkSpecs } from '../utils/sdkConfig';
+import { DARK_THEME_COLOR, LIGHT_THEME_COLOR } from '../constant';
 
 export const LinkConnect = (props: LinkConfiguration) => {
   const {
     showNativeNavbar,
     showWebView,
     linkUrl,
+    darkTheme,
     handleMessage,
     handleNavState,
     showCloseAlert,
@@ -29,28 +32,63 @@ export const LinkConnect = (props: LinkConfiguration) => {
 
     if (props.settings) {
       sdkTypeScript += `
-        window.accessTokens='${JSON.stringify(props.settings.accessTokens || {})}';
-        window.transferDestinationTokens='${JSON.stringify(props.settings.transferDestinationTokens || {})}';
+        window.accessTokens='${JSON.stringify(
+          props.settings.accessTokens || {}
+        )}';
+        window.transferDestinationTokens='${JSON.stringify(
+          props.settings.transferDestinationTokens || {}
+        )}';
       `;
     }
 
     return sdkTypeScript;
-  }, [
-    props.settings,
-  ]);
+  }, [props.settings]);
 
-  const SDKWrapperComponent = props.renderViewContainer ? SDKViewContainer : SDKContainer;
+  const SDKWrapperComponent = props.renderViewContainer
+    ? SDKViewContainer
+    : SDKContainer;
+
+  const LoadingComponentWebview = () => {
+    return darkTheme ? (
+      <View style={{
+        position: 'absolute',
+        zIndex: 10,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: DARK_THEME_COLOR
+      }}/>
+    ) : null;
+  };
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  const handleLoadingDismiss = () => {
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+  };
 
   return (
-    <SDKWrapperComponent>
-      {showNativeNavbar && <NavBar goBack={goBack} showCloseAlert={showCloseAlert} />}
+    <SDKWrapperComponent isDarkTheme={darkTheme}>
+      {showNativeNavbar && (
+        <NavBar goBack={goBack} showCloseAlert={showCloseAlert} />
+      )}
+      {isLoading && <LoadingComponentWebview />}
       {showWebView && linkUrl && (
         <WebView
-          testID={'webview'}
-          ref={webViewRef}
+          bounces={false}
+          style={{ backgroundColor: darkTheme ? DARK_THEME_COLOR : LIGHT_THEME_COLOR }}
+          testID={'webview'} ref={webViewRef}
           source={{ uri: linkUrl }}
           cacheMode={'LOAD_NO_CACHE'}
           onMessage={handleMessage}
+          onLoadStart={() => {
+            setIsLoading(true);
+          }}
+          onLoadEnd={handleLoadingDismiss}
+          startInLoadingState={true}
           javaScriptEnabled={true}
           injectedJavaScript={injectedScript}
           onNavigationStateChange={handleNavState}
@@ -59,4 +97,3 @@ export const LinkConnect = (props: LinkConfiguration) => {
     </SDKWrapperComponent>
   );
 };
-

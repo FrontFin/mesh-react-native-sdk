@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SDKViewContainer renders correctly 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#fbfbfb",
+      "flex": 1,
+    }
+  }
+  testID="link-connect-view-component"
+>
+  SDKViewContainer Content
+</View>
+`;

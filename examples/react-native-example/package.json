@@ -1,6 +1,6 @@
 {
   "name": "meshconnectrnsdkexample",
-  "version": "2.0.5",
+  "version": "2.1.0",
   "private": true,
   "scripts": {
     "preinstall": "./scripts/preinstall",
@@ -35,6 +35,5 @@
   },
   "engines": {
     "node": ">=18"
-  },
-  "packageManager": "yarn@3.6.4"
+  }
 }

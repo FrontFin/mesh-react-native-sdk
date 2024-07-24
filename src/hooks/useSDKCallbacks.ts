@@ -3,21 +3,22 @@ import { Alert } from 'react-native';
 import { WebViewMessageEvent } from 'react-native-webview';
 import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes';
 
-import { decode64, isValidUrl } from '../utils';
-import { 
+import { decode64, isValidUrl, urlSearchParams, decodeLinkStyle } from '../utils';
+import {
   AccessTokenPayload,
   DelayedAuthPayload,
   LinkConfiguration,
   LinkPayload,
   TransferFinishedPayload,
   isLinkEventTypeKey,
-  mappedLinkEvents 
+  mappedLinkEvents,
 } from '../';
 
 const useSDKCallbacks = (props: LinkConfiguration) => {
   const [linkUrl, setLinkUrl] = useState<string | null>(null);
   const [showWebView, setShowWebView] = useState(false);
   const [showNativeNavbar, setShowNativeNavbar] = useState(false);
+  const [darkTheme, setDarkTheme] = useState(false);
 
   useEffect(() => {
     try {
@@ -28,12 +29,18 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
           throw new Error('Invalid link token provided');
         }
 
+        const queryParams = urlSearchParams(decodedUrl);
+        const styleParam = queryParams['link_style'];
+        const style = decodeLinkStyle(styleParam);
+        setDarkTheme(style?.th === 'dark');
         setLinkUrl(decodedUrl);
         setShowWebView(true);
       }
       // eslint-disable-next-line
     } catch (err: any) {
-      props.onExit?.(err?.message || 'An error occurred during connection establishment');
+      props.onExit?.(
+        err?.message || 'An error occurred during connection establishment',
+      );
     }
 
     return () => {
@@ -53,7 +60,8 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
           style: 'cancel',
         },
         {
-          text: 'Exit', onPress: () => {
+          text: 'Exit',
+          onPress: () => {
             props.onExit?.();
           },
         },
@@ -62,10 +70,10 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
 
   // istanbul ignore next
   const handleMessage = (event: WebViewMessageEvent) => {
-    const nativeEventData = JSON.parse(event.nativeEvent.data)
+    const nativeEventData = JSON.parse(event.nativeEvent.data);
     const { type, payload } = nativeEventData;
 
-    const eventType = mappedLinkEvents[type] || type
+    const eventType = mappedLinkEvents[type] || type;
 
     switch (type) {
       case 'close':
@@ -87,49 +95,49 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
 
       case 'brokerageAccountAccessToken': {
         const payloadData: LinkPayload = {
-          accessToken: payload as AccessTokenPayload
-        }
+          accessToken: payload as AccessTokenPayload,
+        };
         props?.onEvent?.({
           type: eventType,
-          payload: payloadData
-        })
-        props?.onIntegrationConnected?.(payloadData)
-        break
+          payload: payloadData,
+        });
+        props?.onIntegrationConnected?.(payloadData);
+        break;
       }
 
       case 'delayedAuthentication': {
         const payloadData: LinkPayload = {
-          delayedAuth: payload as DelayedAuthPayload
-        }
+          delayedAuth: payload as DelayedAuthPayload,
+        };
         props?.onEvent?.({
           type: eventType,
-          payload: payloadData
-        })
-        props?.onIntegrationConnected?.(payloadData)
-        break
+          payload: payloadData,
+        });
+        props?.onIntegrationConnected?.(payloadData);
+        break;
       }
 
       case 'transferFinished': {
-        const payloadData = payload as TransferFinishedPayload
+        const payloadData = payload as TransferFinishedPayload;
 
         props?.onEvent?.({
           type: eventType,
-          payload: payloadData
-        })
-        props?.onTransferFinished?.(payloadData)
-        break
+          payload: payloadData,
+        });
+        props?.onTransferFinished?.(payloadData);
+        break;
       }
 
       case 'loaded': {
-        props?.onEvent?.({ type: eventType })
-        break
+        props?.onEvent?.({ type: eventType });
+        break;
       }
 
       default: {
         if (isLinkEventTypeKey(type)) {
-          props?.onEvent?.(nativeEventData)
+          props?.onEvent?.(nativeEventData);
         }
-        break
+        break;
       }
     }
   };
@@ -144,12 +152,11 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
     linkUrl,
     showWebView,
     showNativeNavbar,
+    darkTheme,
     handleMessage,
     handleNavState,
     showCloseAlert,
   };
 };
 
-export {
-  useSDKCallbacks,
-};
+export { useSDKCallbacks };
