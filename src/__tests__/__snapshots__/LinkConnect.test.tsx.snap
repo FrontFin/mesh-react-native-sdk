@@ -15,7 +15,7 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
     cacheMode="LOAD_NO_CACHE"
     injectedJavaScript="
     window.meshSdkPlatform='reactNative';
-    window.meshSdkVersion='2.0.5';
+    window.meshSdkVersion='2.1.0';
   "
     javaScriptEnabled={true}
     onLoadEnd={[Function]}
