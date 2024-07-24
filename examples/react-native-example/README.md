@@ -23,4 +23,4 @@ This will bring the metro build terminal. Now you can run `Android` and `iOS` ap
 
 #### Getting connection link
 
-The connection link should be obtained from the [Get Catalong link endpoint](https://integration-api.getfront.com/apireference#tag/Integrations/paths/~1api~1v1~1cataloglink/get). Use `iFrameUrl` value from the response.
+The connection link should be obtained from the [Get Catalog link endpoint](https://integration-api.getfront.com/apireference#tag/Managed-Account-Authentication/paths/~1api~1v1~1linktoken/post). Use `linkToken` value from the response.
