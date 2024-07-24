@@ -41,15 +41,7 @@ export const LinkConnect = (props: LinkConfiguration) => {
       `;
     }
 
-    let styleScript = '';
-
-    if(darkTheme) {
-      styleScript = `
-        document.body.style.backgroundColor = ${DARK_THEME_COLOR};
-      `;
-    }
-
-    return sdkTypeScript + styleScript;
+    return sdkTypeScript;
   }, [props.settings]);
 
   const SDKWrapperComponent = props.renderViewContainer
