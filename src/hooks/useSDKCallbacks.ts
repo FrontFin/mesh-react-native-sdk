@@ -3,7 +3,7 @@ import { Alert } from 'react-native';
 import { WebViewMessageEvent } from 'react-native-webview';
 import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes';
 
-import { decode64, isValidUrl } from '../utils';
+import { decode64, isValidUrl, urlSearchParams, decodeLinkStyle } from '../utils';
 import {
   AccessTokenPayload,
   DelayedAuthPayload,
@@ -29,18 +29,17 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
           throw new Error('Invalid link token provided');
         }
 
-        const queryParams = new URLSearchParams(decodedUrl);
-        const styleParam = queryParams.get('link_style');
-        const style = decodeStyle(styleParam);
+        const queryParams = urlSearchParams(decodedUrl);
+        const styleParam = queryParams['link_style'];
+        const style = decodeLinkStyle(styleParam);
         setDarkTheme(style?.th === 'dark');
-
         setLinkUrl(decodedUrl);
         setShowWebView(true);
       }
       // eslint-disable-next-line
     } catch (err: any) {
       props.onExit?.(
-        err?.message || 'An error occurred during connection establishment'
+        err?.message || 'An error occurred during connection establishment',
       );
     }
 
@@ -66,7 +65,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
             props.onExit?.();
           },
         },
-      ]
+      ],
     );
 
   // istanbul ignore next
@@ -159,17 +158,5 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
     showCloseAlert,
   };
 };
-
-interface LinkStyle {
-  th?: string | 'dark';
-}
-
-function decodeStyle(encoded?: string | null): LinkStyle | undefined {
-  try {
-    return encoded ? JSON.parse(decode64(encoded)) : undefined;
-  } catch (e) {
-    return undefined;
-  }
-}
 
 export { useSDKCallbacks };

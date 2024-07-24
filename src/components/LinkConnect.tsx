@@ -1,5 +1,6 @@
-import React, { useMemo, useRef } from 'react';
+import { View } from 'react-native';
 import { WebView } from 'react-native-webview';
+import React, { useMemo, useRef, useState } from 'react';
 
 import { NavBar } from './NavBar';
 import { SDKContainer } from './SDKContainer';
@@ -8,6 +9,7 @@ import { SDKViewContainer } from './SDKViewContainer';
 import type { LinkConfiguration } from '../';
 import { useSDKCallbacks } from '../hooks/useSDKCallbacks';
 import { sdkSpecs } from '../utils/sdkConfig';
+import { DARK_THEME_COLOR, LIGHT_THEME_COLOR } from '../constant';
 
 export const LinkConnect = (props: LinkConfiguration) => {
   const {
@@ -39,26 +41,62 @@ export const LinkConnect = (props: LinkConfiguration) => {
       `;
     }
 
-    return sdkTypeScript;
+    let styleScript = '';
+
+    if(darkTheme) {
+      styleScript = `
+        document.body.style.backgroundColor = ${DARK_THEME_COLOR};
+      `;
+    }
+
+    return sdkTypeScript + styleScript;
   }, [props.settings]);
 
   const SDKWrapperComponent = props.renderViewContainer
     ? SDKViewContainer
     : SDKContainer;
 
+  const LoadingComponentWebview = () => {
+    return darkTheme ? (
+      <View style={{
+        position: 'absolute',
+        zIndex: 10,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: DARK_THEME_COLOR
+      }}/>
+    ) : null;
+  };
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  const handleLoadingDismiss = () => {
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+  };
+
   return (
-    <SDKWrapperComponent>
+    <SDKWrapperComponent isDarkTheme={darkTheme}>
       {showNativeNavbar && (
         <NavBar goBack={goBack} showCloseAlert={showCloseAlert} />
       )}
+      {isLoading && <LoadingComponentWebview />}
       {showWebView && linkUrl && (
         <WebView
-          style={{ backgroundColor: darkTheme ? '#0e0e0d' : '#fbfbfb' }}
-          testID={'webview'}
-          ref={webViewRef}
+          bounces={false}
+          style={{ backgroundColor: darkTheme ? DARK_THEME_COLOR : LIGHT_THEME_COLOR }}
+          testID={'webview'} ref={webViewRef}
           source={{ uri: linkUrl }}
           cacheMode={'LOAD_NO_CACHE'}
           onMessage={handleMessage}
+          onLoadStart={() => {
+            setIsLoading(true);
+          }}
+          onLoadEnd={handleLoadingDismiss}
+          startInLoadingState={true}
           javaScriptEnabled={true}
           injectedJavaScript={injectedScript}
           onNavigationStateChange={handleNavState}

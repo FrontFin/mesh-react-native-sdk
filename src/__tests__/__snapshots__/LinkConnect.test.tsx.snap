@@ -4,18 +4,22 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
 <RCTSafeAreaView
   style={
     {
+      "backgroundColor": "#fbfbfb",
       "flex": 1,
     }
   }
   testID="link-connect-component"
 >
   <View
+    bounces={false}
     cacheMode="LOAD_NO_CACHE"
     injectedJavaScript="
     window.meshSdkPlatform='reactNative';
     window.meshSdkVersion='2.0.5';
   "
     javaScriptEnabled={true}
+    onLoadEnd={[Function]}
+    onLoadStart={[Function]}
     onMessage={[Function]}
     onNavigationStateChange={[Function]}
     source={
@@ -23,6 +27,7 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
         "uri": "https://web.getfront.com/b2b-iframe/test-account-random/broker-connect/catalog1",
       }
     }
+    startInLoadingState={true}
     style={
       {
         "backgroundColor": "#fbfbfb",
