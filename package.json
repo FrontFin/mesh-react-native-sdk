@@ -2,7 +2,6 @@
   "version": "2.0.5",
   "name": "@meshconnect/react-native-link-sdk",
   "description": "Mesh Connect React Native SDK.",
-  "private": false,
   "license": "MIT",
   "author": "Mesh Connect, Inc",
   "repository": "https://github.com/FrontFin/mesh-react-native-sdk.git",
