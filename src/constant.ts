@@ -1,2 +1,4 @@
-export const DARK_THEME_COLOR = '#0e0e0d';
-export const LIGHT_THEME_COLOR = '#fbfbfb';
+export const DARK_THEME_COLOR_TOP = '#1E1E24';
+export const LIGHT_THEME_COLOR_TOP = '#F3F4F5';
+export const DARK_THEME_COLOR_BOTTOM = '#0E0D0D';
+export const LIGHT_THEME_COLOR_BOTTOM = '#FBFBFB';

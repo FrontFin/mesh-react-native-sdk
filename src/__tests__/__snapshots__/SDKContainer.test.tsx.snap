@@ -1,15 +1,47 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`SDKContainer renders correctly 1`] = `
-<RCTSafeAreaView
+<View
   style={
     {
-      "backgroundColor": "#fbfbfb",
       "flex": 1,
     }
   }
   testID="link-connect-component"
 >
-  Test Content
-</RCTSafeAreaView>
+  <RCTSafeAreaView
+    style={
+      {
+        "backgroundColor": "#F3F4F5",
+        "flex": 0,
+      }
+    }
+  />
+  <RCTSafeAreaView
+    style={
+      {
+        "backgroundColor": "#FBFBFB",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      Test Content
+    </View>
+  </RCTSafeAreaView>
+  <RCTSafeAreaView
+    style={
+      {
+        "backgroundColor": "#FBFBFB",
+        "flex": 0,
+      }
+    }
+  />
+</View>
 `;

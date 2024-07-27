@@ -1,7 +1,8 @@
 /* istanbul ignore file */
 import { StyleSheet } from 'react-native';
+import { LIGHT_THEME_COLOR_TOP, DARK_THEME_COLOR_TOP } from '../constant';
 
-const navBarStyles = StyleSheet.create({
+const createNavBarStyles = (backgroundColor: string) => StyleSheet.create({
   navBarContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -10,6 +11,7 @@ const navBarStyles = StyleSheet.create({
     paddingTop: 12,
     paddingStart: 6,
     paddingEnd: 8,
+    backgroundColor, // Dynamic background color
   },
   navBarImgContainer: {
     width: 40,
@@ -28,10 +30,14 @@ const navBarStyles = StyleSheet.create({
   },
 });
 
-export const useSDKStyles = () => {
+export const useSDKStyles = (isDarkTheme: boolean) => {
+const backgroundColor = isDarkTheme ? DARK_THEME_COLOR_TOP : LIGHT_THEME_COLOR_TOP;
+
   const statusBarStyle = {
-    backgroundColor: '#ffffff',
+    backgroundColor: isDarkTheme ? DARK_THEME_COLOR_TOP : LIGHT_THEME_COLOR_TOP,
   };
+
+  const navBarStyles = createNavBarStyles(backgroundColor);
 
   return { statusBarStyle, navBarStyles };
 }

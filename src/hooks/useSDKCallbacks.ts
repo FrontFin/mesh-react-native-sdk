@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert } from 'react-native';
+import { Alert, Appearance } from 'react-native';
 import { WebViewMessageEvent } from 'react-native-webview';
 import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes';
 
@@ -18,7 +18,8 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
   const [linkUrl, setLinkUrl] = useState<string | null>(null);
   const [showWebView, setShowWebView] = useState(false);
   const [showNativeNavbar, setShowNativeNavbar] = useState(false);
-  const [darkTheme, setDarkTheme] = useState(false);
+  const [linkColorScheme, setLinkColorScheme] = useState<string | undefined>(undefined);
+  const [darkTheme, setDarkTheme] = useState<boolean | undefined>(undefined);
 
   useEffect(() => {
     try {
@@ -32,7 +33,15 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
         const queryParams = urlSearchParams(decodedUrl);
         const styleParam = queryParams['link_style'];
         const style = decodeLinkStyle(styleParam);
-        setDarkTheme(style?.th === 'dark');
+
+        if (style?.th === 'system') {
+          const colorScheme = Appearance.getColorScheme();
+          setLinkColorScheme(style?.th);
+          setDarkTheme(colorScheme === 'dark');
+        } else {
+          setDarkTheme(style?.th === 'dark');
+        }
+
         setLinkUrl(decodedUrl);
         setShowWebView(true);
       }
@@ -48,6 +57,18 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
       setShowWebView(false);
     };
   }, [props.linkToken, props.onExit]);
+
+  useEffect(() => {
+    const colorSchemeWatcher = Appearance.addChangeListener(({ colorScheme }) => {
+      if(linkColorScheme === 'system') {
+        setDarkTheme(colorScheme === 'dark');
+      }
+    });
+
+    return () => {
+      colorSchemeWatcher.remove();
+    };
+  }, [linkColorScheme]);
 
   // istanbul ignore next
   const showCloseAlert = () =>
@@ -88,7 +109,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
         break;
       }
 
-      case 'showNativebar': {
+      case 'showNativeNavbar': {
         setShowNativeNavbar(payload);
         break;
       }
