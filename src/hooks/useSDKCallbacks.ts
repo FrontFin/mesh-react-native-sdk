@@ -18,6 +18,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
   const [linkUrl, setLinkUrl] = useState<string | null>(null);
   const [showWebView, setShowWebView] = useState(false);
   const [showNativeNavbar, setShowNativeNavbar] = useState(false);
+  const [linkColorScheme, setLinkColorScheme] = useState<string | undefined>(undefined);
   const [darkTheme, setDarkTheme] = useState<boolean | undefined>(undefined);
 
   useEffect(() => {
@@ -35,6 +36,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
 
         if (style?.th === 'system') {
           const colorScheme = Appearance.getColorScheme();
+          setLinkColorScheme(style?.th);
           setDarkTheme(colorScheme === 'dark');
         } else {
           setDarkTheme(style?.th === 'dark');
@@ -55,6 +57,18 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
       setShowWebView(false);
     };
   }, [props.linkToken, props.onExit]);
+
+  useEffect(() => {
+    const colorSchemeWatcher = Appearance.addChangeListener(({ colorScheme }) => {
+      if(linkColorScheme === 'system') {
+        setDarkTheme(colorScheme === 'dark');
+      }
+    });
+
+    return () => {
+      colorSchemeWatcher.remove();
+    };
+  }, [linkColorScheme]);
 
   // istanbul ignore next
   const showCloseAlert = () =>
