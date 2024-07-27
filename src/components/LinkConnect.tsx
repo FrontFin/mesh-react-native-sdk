@@ -11,6 +11,20 @@ import { useSDKCallbacks } from '../hooks/useSDKCallbacks';
 import { sdkSpecs } from '../utils/sdkConfig';
 import { DARK_THEME_COLOR_BOTTOM, LIGHT_THEME_COLOR_BOTTOM } from '../constant';
 
+const LoadingComponentWebview = ({darkTheme}: {darkTheme: boolean}) => {
+  return (
+    <View style={{
+      position: 'absolute',
+      zIndex: 10,
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: darkTheme ? DARK_THEME_COLOR_BOTTOM : LIGHT_THEME_COLOR_BOTTOM
+    }}/>
+  );
+};
+
 export const LinkConnect = (props: LinkConfiguration) => {
   const {
     showNativeNavbar,
@@ -48,19 +62,7 @@ export const LinkConnect = (props: LinkConfiguration) => {
     ? SDKViewContainer
     : SDKContainer;
 
-  const LoadingComponentWebview = () => {
-    return (
-      <View style={{
-        position: 'absolute',
-        zIndex: 10,
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: darkTheme ? DARK_THEME_COLOR_BOTTOM : LIGHT_THEME_COLOR_BOTTOM
-      }}/>
-    );
-  };
+
 
   const [initialLoading, setInitialLoading] = useState(true);
 
@@ -73,7 +75,7 @@ export const LinkConnect = (props: LinkConfiguration) => {
       {showNativeNavbar && (
         <NavBar goBack={goBack} showCloseAlert={showCloseAlert} isDarkTheme={darkTheme} />
       )}
-      {initialLoading && <LoadingComponentWebview />}
+      {initialLoading && <LoadingComponentWebview darkTheme={darkTheme}/>}
       {showWebView && linkUrl && (
         <WebView
           bounces={false}
