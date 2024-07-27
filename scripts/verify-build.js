@@ -16,7 +16,7 @@ console.log('Verifying build files... 🧐');
 
 const assetFiles = fs.readdirSync(`${buildFolder}/lib/assets`);
 
-const requiredAssetFiles = ['ic_back', 'ic_close'];
+const requiredAssetFiles = ['chevron-left-dark', 'chevron-left-light', 'cross-1-small-dark', 'cross-1-small-light'];
 const requiredAssetFilesWithVariations = requiredAssetFiles.flatMap((file) => [
   `${file}.png`,
   `${file}@2x.png`,
