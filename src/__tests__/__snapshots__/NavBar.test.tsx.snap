@@ -5,6 +5,7 @@ exports[`NavBar renders correctly 1`] = `
   style={
     {
       "alignItems": "center",
+      "backgroundColor": "#F3F4F5",
       "flexDirection": "row",
       "height": 64,
       "justifyContent": "space-between",
@@ -57,7 +58,7 @@ exports[`NavBar renders correctly 1`] = `
     <Image
       source={
         {
-          "testUri": "../../../src/assets/ic_back.png",
+          "testUri": "../../../src/assets/chevron-left-light.png",
         }
       }
       style={
@@ -111,7 +112,7 @@ exports[`NavBar renders correctly 1`] = `
     <Image
       source={
         {
-          "testUri": "../../../src/assets/ic_close.png",
+          "testUri": "../../../src/assets/cross-1-small-light.png",
         }
       }
       style={

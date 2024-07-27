@@ -9,7 +9,7 @@ import { SDKViewContainer } from './SDKViewContainer';
 import type { LinkConfiguration } from '../';
 import { useSDKCallbacks } from '../hooks/useSDKCallbacks';
 import { sdkSpecs } from '../utils/sdkConfig';
-import { DARK_THEME_COLOR, LIGHT_THEME_COLOR } from '../constant';
+import { DARK_THEME_COLOR_BOTTOM, LIGHT_THEME_COLOR_BOTTOM } from '../constant';
 
 export const LinkConnect = (props: LinkConfiguration) => {
   const {
@@ -49,7 +49,7 @@ export const LinkConnect = (props: LinkConfiguration) => {
     : SDKContainer;
 
   const LoadingComponentWebview = () => {
-    return darkTheme ? (
+    return (
       <View style={{
         position: 'absolute',
         zIndex: 10,
@@ -57,37 +57,34 @@ export const LinkConnect = (props: LinkConfiguration) => {
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: DARK_THEME_COLOR
+        backgroundColor: darkTheme ? DARK_THEME_COLOR_BOTTOM : LIGHT_THEME_COLOR_BOTTOM
       }}/>
-    ) : null;
+    );
   };
 
-  const [isLoading, setIsLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
 
-  const handleLoadingDismiss = () => {
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-  };
-
+  if (darkTheme === undefined) {
+    return null
+  }
+  
   return (
     <SDKWrapperComponent isDarkTheme={darkTheme}>
       {showNativeNavbar && (
-        <NavBar goBack={goBack} showCloseAlert={showCloseAlert} />
+        <NavBar goBack={goBack} showCloseAlert={showCloseAlert} isDarkTheme={darkTheme} />
       )}
-      {isLoading && <LoadingComponentWebview />}
+      {initialLoading && <LoadingComponentWebview />}
       {showWebView && linkUrl && (
         <WebView
           bounces={false}
-          style={{ backgroundColor: darkTheme ? DARK_THEME_COLOR : LIGHT_THEME_COLOR }}
+          style={{ backgroundColor: darkTheme ? DARK_THEME_COLOR_BOTTOM : LIGHT_THEME_COLOR_BOTTOM }}
           testID={'webview'} ref={webViewRef}
           source={{ uri: linkUrl }}
           cacheMode={'LOAD_NO_CACHE'}
           onMessage={handleMessage}
-          onLoadStart={() => {
-            setIsLoading(true);
+          onLoadEnd={() => {
+            setInitialLoading(false);
           }}
-          onLoadEnd={handleLoadingDismiss}
           startInLoadingState={true}
           javaScriptEnabled={true}
           injectedJavaScript={injectedScript}
