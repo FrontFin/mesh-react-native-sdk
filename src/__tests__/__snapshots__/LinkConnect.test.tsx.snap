@@ -50,7 +50,7 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
         cacheMode="LOAD_NO_CACHE"
         injectedJavaScript="
     window.meshSdkPlatform='reactNative';
-    window.meshSdkVersion='2.1.2';
+    window.meshSdkVersion='2.1.3';
   "
         javaScriptEnabled={true}
         onLoadEnd={[Function]}
@@ -58,6 +58,7 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
         onNavigationStateChange={[Function]}
         originWhitelist={
           [
+            "https://walletconnect.com",
             "https://web.meshconnect.com",
             "https://web.getfront.com",
             "https://front-web-platform-dev",

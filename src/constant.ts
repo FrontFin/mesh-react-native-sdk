@@ -4,6 +4,7 @@ export const DARK_THEME_COLOR_BOTTOM = '#0E0D0D';
 export const LIGHT_THEME_COLOR_BOTTOM = '#FBFBFB';
 
 export const WHITELISTED_ORIGINS = [
+  'https://walletconnect.com',
   'https://web.meshconnect.com',
   'https://web.getfront.com',
   'https://front-web-platform-dev',
