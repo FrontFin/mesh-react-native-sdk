@@ -50,12 +50,26 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
         cacheMode="LOAD_NO_CACHE"
         injectedJavaScript="
     window.meshSdkPlatform='reactNative';
-    window.meshSdkVersion='2.1.1';
+    window.meshSdkVersion='2.1.2';
   "
         javaScriptEnabled={true}
         onLoadEnd={[Function]}
         onMessage={[Function]}
         onNavigationStateChange={[Function]}
+        originWhitelist={
+          [
+            "https://web.meshconnect.com",
+            "https://web.getfront.com",
+            "https://front-web-platform-dev",
+            "https://front-b2b-api-test.azurewebsites.net",
+            "https://sandbox-web.getfront.com",
+            "https://sandbox-web.meshconnect.com",
+            "https://login.coinbase.com",
+            "https://www.okx.com",
+            "https://exchange.gemini.com",
+            "https://robinhood.com",
+          ]
+        }
         source={
           {
             "uri": "https://web.getfront.com/b2b-iframe/test-account-random/broker-connect/catalog1",

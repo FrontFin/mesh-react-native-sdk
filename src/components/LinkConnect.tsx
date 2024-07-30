@@ -9,7 +9,7 @@ import { SDKViewContainer } from './SDKViewContainer';
 import type { LinkConfiguration } from '../';
 import { useSDKCallbacks } from '../hooks/useSDKCallbacks';
 import { sdkSpecs } from '../utils/sdkConfig';
-import { DARK_THEME_COLOR_BOTTOM, LIGHT_THEME_COLOR_BOTTOM } from '../constant';
+import { DARK_THEME_COLOR_BOTTOM, LIGHT_THEME_COLOR_BOTTOM, WHITELISTED_ORIGINS } from '../constant';
 
 const LoadingComponentWebview = ({darkTheme}: {darkTheme: boolean}) => {
   return (
@@ -90,6 +90,7 @@ export const LinkConnect = (props: LinkConfiguration) => {
           startInLoadingState={true}
           javaScriptEnabled={true}
           injectedJavaScript={injectedScript}
+          originWhitelist={WHITELISTED_ORIGINS}
           onNavigationStateChange={handleNavState}
         />
       )}
