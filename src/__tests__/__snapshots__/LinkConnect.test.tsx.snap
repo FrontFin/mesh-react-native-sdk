@@ -50,7 +50,7 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
         cacheMode="LOAD_NO_CACHE"
         injectedJavaScript="
     window.meshSdkPlatform='reactNative';
-    window.meshSdkVersion='2.1.2';
+    window.meshSdkVersion='2.1.3';
   "
         javaScriptEnabled={true}
         onLoadEnd={[Function]}
@@ -58,16 +58,30 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
         onNavigationStateChange={[Function]}
         originWhitelist={
           [
-            "https://web.meshconnect.com",
-            "https://web.getfront.com",
+            "*.meshconnect.com",
+            "*.getfront.com",
+            "*.walletconnect.com",
+            "*.walletconnect.org",
+            "*.walletlink.org",
+            "*.coinbase.com",
+            "*.okx.com",
+            "*.gemini.com",
+            "*.coinbase.com",
+            "*.hcaptcha.com",
+            "*.robinhood.com",
+            "https://meshconnect.com",
+            "https://getfront.com",
+            "https://walletconnect.com",
+            "https://walletconnect.org",
+            "https://walletlink.org",
+            "https://coinbase.com",
+            "https://okx.com",
+            "https://gemini.com",
+            "https://coinbase.com",
+            "https://hcaptcha.com",
+            "https://robinhood.com",
             "https://front-web-platform-dev",
             "https://front-b2b-api-test.azurewebsites.net",
-            "https://sandbox-web.getfront.com",
-            "https://sandbox-web.meshconnect.com",
-            "https://login.coinbase.com",
-            "https://www.okx.com",
-            "https://exchange.gemini.com",
-            "https://robinhood.com",
           ]
         }
         source={
