@@ -9,25 +9,34 @@ import { SDKViewContainer } from './SDKViewContainer';
 import type { LinkConfiguration } from '../';
 import { useSDKCallbacks } from '../hooks/useSDKCallbacks';
 import { sdkSpecs } from '../utils/sdkConfig';
-import { DARK_THEME_COLOR_BOTTOM, LIGHT_THEME_COLOR_BOTTOM, WHITELISTED_ORIGINS } from '../constant';
+import {
+  DARK_THEME_COLOR_BOTTOM,
+  LIGHT_THEME_COLOR_BOTTOM,
+  WHITELISTED_ORIGINS,
+} from '../constant';
 
-const LoadingComponentWebview = ({darkTheme}: {darkTheme: boolean}) => {
+const LoadingComponentWebview = ({ darkTheme }: { darkTheme: boolean }) => {
   return (
-    <View style={{
-      position: 'absolute',
-      zIndex: 10,
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: darkTheme ? DARK_THEME_COLOR_BOTTOM : LIGHT_THEME_COLOR_BOTTOM
-    }}/>
+    <View
+      style={{
+        position: 'absolute',
+        zIndex: 10,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: darkTheme
+          ? DARK_THEME_COLOR_BOTTOM
+          : LIGHT_THEME_COLOR_BOTTOM,
+      }}
+    />
   );
 };
 
 export const LinkConnect = (props: LinkConfiguration) => {
   const {
     showNativeNavbar,
+    setShowNativeNavbar,
     showWebView,
     linkUrl,
     darkTheme,
@@ -62,31 +71,39 @@ export const LinkConnect = (props: LinkConfiguration) => {
     ? SDKViewContainer
     : SDKContainer;
 
-
-
   const [initialLoading, setInitialLoading] = useState(true);
 
   if (darkTheme === undefined) {
-    return null
+    return null;
   }
-  
+
   return (
     <SDKWrapperComponent isDarkTheme={darkTheme}>
       {showNativeNavbar && (
-        <NavBar goBack={goBack} showCloseAlert={showCloseAlert} isDarkTheme={darkTheme} />
+        <NavBar
+          goBack={goBack}
+          showCloseAlert={showCloseAlert}
+          isDarkTheme={darkTheme}
+        />
       )}
-      {initialLoading && <LoadingComponentWebview darkTheme={darkTheme}/>}
+      {initialLoading && <LoadingComponentWebview darkTheme={darkTheme} />}
       {showWebView && linkUrl && (
         <WebView
           bounces={false}
-          style={{ backgroundColor: darkTheme ? DARK_THEME_COLOR_BOTTOM : LIGHT_THEME_COLOR_BOTTOM }}
-          testID={'webview'} ref={webViewRef}
+          style={{
+            backgroundColor: darkTheme
+              ? DARK_THEME_COLOR_BOTTOM
+              : LIGHT_THEME_COLOR_BOTTOM,
+          }}
+          testID={'webview'}
+          ref={webViewRef}
           source={{ uri: linkUrl }}
           cacheMode={'LOAD_NO_CACHE'}
           onMessage={handleMessage}
           onLoadEnd={() => {
             setInitialLoading(false);
           }}
+          onError={() => setShowNativeNavbar(true)}
           startInLoadingState={true}
           javaScriptEnabled={true}
           injectedJavaScript={injectedScript}
