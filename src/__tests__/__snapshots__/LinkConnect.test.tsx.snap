@@ -50,7 +50,7 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
         cacheMode="LOAD_NO_CACHE"
         injectedJavaScript="
     window.meshSdkPlatform='reactNative';
-    window.meshSdkVersion='2.1.3';
+    window.meshSdkVersion='2.1.4';
   "
         javaScriptEnabled={true}
         onLoadEnd={[Function]}
@@ -69,6 +69,7 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
             "*.coinbase.com",
             "*.hcaptcha.com",
             "*.robinhood.com",
+            "*.google.com",
             "https://meshconnect.com",
             "https://getfront.com",
             "https://walletconnect.com",
@@ -80,6 +81,7 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
             "https://coinbase.com",
             "https://hcaptcha.com",
             "https://robinhood.com",
+            "https://google.com",
             "https://front-web-platform-dev",
             "https://front-b2b-api-test.azurewebsites.net",
           ]
