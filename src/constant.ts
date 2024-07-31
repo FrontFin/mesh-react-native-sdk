@@ -27,6 +27,7 @@ export const WHITELISTED_ORIGINS = [
   'https://coinbase.com',
   'https://hcaptcha.com',
   'https://robinhood.com',
+  'https://google.com',
   'https://front-web-platform-dev',
   'https://front-b2b-api-test.azurewebsites.net',
 ];
