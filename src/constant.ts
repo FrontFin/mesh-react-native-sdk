@@ -15,6 +15,7 @@ export const WHITELISTED_ORIGINS = [
   '*.coinbase.com',
   '*.hcaptcha.com',
   '*.robinhood.com',
+  '*.google.com',
   'https://meshconnect.com',
   'https://getfront.com',
   'https://walletconnect.com',
