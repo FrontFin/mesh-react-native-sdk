@@ -69,6 +69,12 @@ export const LinkConnect = (props: LinkConfiguration) => {
   if (darkTheme === undefined) {
     return null
   }
+
+  // by default disableDomainWhiteList is false
+  const { disableDomainWhiteList = false } = props;
+  const finalDomainWhiteList = disableDomainWhiteList ? [
+    '*',
+  ] : WHITELISTED_ORIGINS;
   
   return (
     <SDKWrapperComponent isDarkTheme={darkTheme}>
@@ -90,7 +96,7 @@ export const LinkConnect = (props: LinkConfiguration) => {
           startInLoadingState={true}
           javaScriptEnabled={true}
           injectedJavaScript={injectedScript}
-          originWhitelist={WHITELISTED_ORIGINS}
+          originWhitelist={finalDomainWhiteList}
           onNavigationStateChange={handleNavState}
         />
       )}

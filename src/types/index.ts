@@ -183,6 +183,7 @@ export interface LinkConfiguration {
   linkToken: string;
   settings?: LinkSettings;
   renderViewContainer?: boolean; // this will render the container View instead of SafeAreaView
+  disableDomainWhiteList?: boolean; // this will disable the domain white list check
   onIntegrationConnected?: (payload: LinkPayload) => void;
   onTransferFinished?: (payload: TransferFinishedPayload) => void;
   onEvent?: (event: LinkEventType) => void;
