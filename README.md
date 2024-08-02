@@ -106,19 +106,47 @@ export default App;
 
 #### `LinkConnect` component arguments
 
-| key                       | type                                            | Required/Optional | description                                                                             |
-|---------------------------|-------------------------------------------------|-------------------|-----------------------------------------------------------------------------------------|
-| `linkToken`               | `string`                                        | required          | Link token                                                                              |
-| `settings`                | `LinkSettings`                                  | optional          | Settings object                                                                         |
-| `onIntegrationConnected`  | `(payload: LinkPayload) => void`                | optional          | Callback called when users connects their accounts                                      |
-| `onTransferFinished`      | `(payload: TransferFinishedPayload) => void`    | optional          | Callback called when a crypto transfer is executed                                      |
-| `onExit`                  | `(err: string) => void)`                        | optional          | Called if connection not happened. Returns an error message                             |
-| `onEvent`                 | `(event: LinkEventType) => void` | optional          | Callback called when an event is triggered                                              |
+| key                       | type                                            | Required/Optional | description                                                |
+|---------------------------|-------------------------------------------------|-------------------|------------------------------------------------------------|
+| `linkToken`               | `string`                                        | required          | Link token                                                 |
+| `settings`                | `LinkSettings`                                  | optional          | Settings object                                            |
+| `disableDomainWhiteList`  | `boolean`                                       | optional          | Disable origin whitelisting[1]                             |
+| `onIntegrationConnected`  | `(payload: LinkPayload) => void`                | optional          | Callback called when users connects their accounts         |
+| `onTransferFinished`      | `(payload: TransferFinishedPayload) => void`    | optional          | Callback called when a crypto transfer is executed         |
+| `onExit`                  | `(err: string) => void)`                        | optional          | Called if connection not happened. Returns an error message |
+| `onEvent`                 | `(event: LinkEventType) => void` | optional          | Callback called when an event is triggered                 |
 
 
 The `LinkSettings` option allows to configure the Link behaviour:
 - `accessTokens` - an array of `IntegrationAccessToken` objects that is used as an origin for crypto transfer flow.
 - `transferDestinationTokens` - an array of `IntegrationAccessToken` objects that is used as a destination for crypto transfer flow.
+- `disableDomainWhiteList` - a boolean flag that allows to disable origin whitelisting. By default, the origin is whitelisted, with the following domains set:
+    + `*.meshconnect.com`
+    + `*.getfront.com`
+    + `*.walletconnect.com`
+    + `*.walletconnect.org`
+    + `*.walletlink.org`
+    + `*.coinbase.com`
+    + `*.okx.com`
+    + `*.gemini.com`
+    + `*.coinbase.com`
+    + `*.hcaptcha.com`
+    + `*.robinhood.com`
+    + `*.google.com`
+    + `https://meshconnect.com`
+    + `https://getfront.com`
+    + `https://walletconnect.com`
+    + `https://walletconnect.org`
+    + `https://walletlink.org`
+    + `https://coinbase.com`
+    + `https://okx.com`
+    + `https://gemini.com`
+    + `https://coinbase.com`
+    + `https://hcaptcha.com`
+    + `https://robinhood.com`
+    + `https://google.com`
+    + `https://front-web-platform-dev`
+    + `https://front-b2b-api-test.azurewebsites.net`
 
 ## V1 -> V2 migration guide
 In Mesh Connect React Native SDK v2, `url` prop is removed from `LinkConnect` component. You should use `linkToken` prop instead of `url` prop.
