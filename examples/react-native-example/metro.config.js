@@ -5,13 +5,13 @@
  * @format
  */
 
-const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
-const path = require('path');
+import {getDefaultConfig, mergeConfig} from '@react-native/metro-config';
+import {resolve} from 'path';
 
 const defaultConfig = getDefaultConfig(__dirname);
 
 const {
-  resolver: { sourceExts, assetExts },
+  resolver: {sourceExts, assetExts},
 } = getDefaultConfig(__dirname);
 
 const config = {
@@ -26,12 +26,18 @@ const config = {
   },
   resolver: {
     extraNodeModules: {
-      '@meshconnect/react-native-link-sdk': path.resolve(__dirname, '../../packages/link'),
+      '@meshconnect/react-native-link-sdk': resolve(
+        __dirname,
+        '../../packages/link',
+      ),
     },
     assetExts: assetExts.filter(ext => ext !== 'svg'),
     sourceExts: [...sourceExts, 'svg'],
   },
-  watchFolders: [path.resolve(__dirname, '../../packages/link'), ...defaultConfig.watchFolders],
+  watchFolders: [
+    resolve(__dirname, '../../packages/link'),
+    ...defaultConfig.watchFolders,
+  ],
 };
 
-module.exports = mergeConfig(defaultConfig, config);
+export default mergeConfig(defaultConfig, config);

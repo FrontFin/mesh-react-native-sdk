@@ -25,10 +25,10 @@ const LINK_EVENT_TYPE_KEYS = [
 ] as const
 
 export const mappedLinkEvents: Record<string, string> = {
-  'brokerageAccountAccessToken': 'integrationConnected',
-  'delayedAuthentication': 'integrationConnected',
-  'transferFinished': 'transferCompleted',
-  'loaded': 'pageLoaded'
+  brokerageAccountAccessToken: 'integrationConnected',
+  delayedAuthentication: 'integrationConnected',
+  transferFinished: 'transferCompleted',
+  loaded: 'pageLoaded'
 }
 
 export type LinkEventTypeKeys = (typeof LINK_EVENT_TYPE_KEYS)[number]
@@ -111,59 +111,59 @@ export interface TransferExecutionError extends LinkEventBase {
 }
 
 export interface AccountToken {
-  account: Account;
-  accessToken: string;
-  refreshToken?: string;
+  account: Account
+  accessToken: string
+  refreshToken?: string
 }
 
 export interface Account {
-  accountId: string;
-  accountName: string;
-  fund?: number;
-  cash?: number;
-  isReconnected?: boolean;
+  accountId: string
+  accountName: string
+  fund?: number
+  cash?: number
+  isReconnected?: boolean
 }
 
 export interface BrandInfo {
-  brokerLogo: string;
-  brokerPrimaryColor?: string;
+  brokerLogo: string
+  brokerPrimaryColor?: string
 }
 
 export interface LinkPayload {
-  accessToken?: AccessTokenPayload;
-  delayedAuth?: DelayedAuthPayload;
+  accessToken?: AccessTokenPayload
+  delayedAuth?: DelayedAuthPayload
 }
 
 export interface AccessTokenPayload {
-  accountTokens: AccountToken[];
-  brokerBrandInfo: BrandInfo;
-  expiresInSeconds?: number;
-  refreshTokenExpiresInSeconds?: number;
-  brokerType: string;
-  brokerName: string;
+  accountTokens: AccountToken[]
+  brokerBrandInfo: BrandInfo
+  expiresInSeconds?: number
+  refreshTokenExpiresInSeconds?: number
+  brokerType: string
+  brokerName: string
 }
 
 export interface DelayedAuthPayload {
-  refreshTokenExpiresInSeconds?: number;
-  brokerType: string;
-  refreshToken: string;
-  brokerName: string;
-  brokerBrandInfo: BrandInfo;
+  refreshTokenExpiresInSeconds?: number
+  brokerType: string
+  refreshToken: string
+  brokerName: string
+  brokerBrandInfo: BrandInfo
 }
 
 export interface TransferFinishedSuccessPayload {
-  status: 'success';
-  txId: string;
-  fromAddress: string;
-  toAddress: string;
-  symbol: string;
-  amount: number;
-  networkId: string;
+  status: 'success'
+  txId: string
+  fromAddress: string
+  toAddress: string
+  symbol: string
+  amount: number
+  networkId: string
 }
 
 export interface TransferFinishedErrorPayload {
-  status: 'error';
-  errorMessage: string;
+  status: 'error'
+  errorMessage: string
 }
 
 export interface IntegrationAccessToken {
@@ -180,14 +180,16 @@ export interface LinkSettings {
 }
 
 export interface LinkConfiguration {
-  linkToken: string;
-  settings?: LinkSettings;
-  renderViewContainer?: boolean; // this will render the container View instead of SafeAreaView
-  disableDomainWhiteList?: boolean; // this will disable the domain white list check
-  onIntegrationConnected?: (payload: LinkPayload) => void;
-  onTransferFinished?: (payload: TransferFinishedPayload) => void;
-  onEvent?: (event: LinkEventType) => void;
-  onExit?: (err?: string) => void;
+  linkToken: string
+  settings?: LinkSettings
+  renderViewContainer?: boolean // this will render the container View instead of SafeAreaView
+  disableDomainWhiteList?: boolean // this will disable the domain white list check
+  onIntegrationConnected?: (payload: LinkPayload) => void
+  onTransferFinished?: (payload: TransferFinishedPayload) => void
+  onEvent?: (event: LinkEventType) => void
+  onExit?: (err?: string) => void
 }
 
-export type TransferFinishedPayload = TransferFinishedSuccessPayload | TransferFinishedErrorPayload;
+export type TransferFinishedPayload =
+  | TransferFinishedSuccessPayload
+  | TransferFinishedErrorPayload

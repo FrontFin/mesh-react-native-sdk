@@ -1,26 +1,26 @@
-import React from 'react';
-import { render } from '@testing-library/react-native';
+import React from 'react'
+import { render } from '@testing-library/react-native'
 
-const mockedUseColorScheme = jest.fn();
+const mockedUseColorScheme = jest.fn()
 
 jest.mock('react-native/Libraries/Utilities/useColorScheme', () => {
   return {
-    default: mockedUseColorScheme,
-  };
-});
+    default: mockedUseColorScheme
+  }
+})
 
-import { SDKContainer } from '../components/SDKContainer';
+import { SDKContainer } from '../components/SDKContainer'
 
 describe('SDKContainer', () => {
-  mockedUseColorScheme.mockReturnValue('light');
+  mockedUseColorScheme.mockReturnValue('light')
 
   test('renders correctly', () => {
-    const component = render(<SDKContainer>Test Content</SDKContainer>);
-    const { getByTestId } = component;
+    const component = render(<SDKContainer>Test Content</SDKContainer>)
+    const { getByTestId } = component
 
-    expect(getByTestId('link-connect-component')).toBeTruthy();
+    expect(getByTestId('link-connect-component')).toBeTruthy()
 
-    const snapshot = component.toJSON();
-    expect(snapshot).toMatchSnapshot();
-  });
-});
+    const snapshot = component.toJSON()
+    expect(snapshot).toMatchSnapshot()
+  })
+})

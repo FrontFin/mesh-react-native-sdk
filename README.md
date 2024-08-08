@@ -1,4 +1,4 @@
-# Mesh Connect RN SDK
+# Mesh Connect React Native SDK
 
 React Native library for integrating with Mesh Connect
 

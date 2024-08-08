@@ -16,7 +16,7 @@
     "build": "yarn before:build && rimraf dist && yarn build:esm && yarn after:build && yarn verify:build",
     "build:esm": "tsc --outDir dist",
     "clean": "rm -rf node_modules",
-    "lint": "eslint **/*.ts",
+    "lint": "eslint .",
     "precommit": "node ./tools/pre-commit.js",
     "publish:npm": "yarn build && cd dist && yarn publish --access public",
     "sync:version": "node ./tools/update-version.js",
@@ -36,8 +36,11 @@
     "@babel/core": "^7.20.0",
     "@babel/preset-env": "^7.20.0",
     "@babel/preset-typescript": "^7.20.0",
-    "@types/jest": "^29.5.12",
+    "@testing-library/react-native": "^12.2.2",
+    "@types/jest": "^29.5.4",
+    "@types/node": "^20.5.1",
     "@types/react": "^18.2.79",
+    "@types/react-test-renderer": "^18.0.0",
     "babel-jest": "^29.5.0",
     "eslint": "^7.23.0",
     "eslint-config-prettier": "^8.1.0",
@@ -48,30 +51,12 @@
     "react": "18.2.0",
     "react-native": "0.74.3",
     "react-native-webview": "^13.10.5",
-    "ts-jest": "^29.1.2"
+    "react-test-renderer": "^18.2.0",
+    "ts-jest": "^29.1.2",
+    "ts-node": "^10.9.0"
   },
   "dependencies": {
     "react-native-webview": "^13.10.5"
-  },
-  "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "jsdom",
-    "testPathIgnorePatterns": [
-      "/node_modules/",
-      "/dist/"
-    ],
-    "coverageDirectory": "./coverage",
-    "transform": {
-      "^.+\\.[tj]sx?$": [
-        "babel-jest",
-        {
-          "presets": [
-            "@babel/preset-env",
-            "@babel/preset-typescript"
-          ]
-        }
-      ]
-    }
   },
   "keywords": [
     "mesh-connect",

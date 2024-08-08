@@ -1,5 +1,5 @@
 {
-  "name": "@meshconnect/react-native",
+  "name": "@meshconnect/react-native-sdk",
   "version": "2.1.5",
   "description": "Mesh Connect React Native SDK",
   "private": true,

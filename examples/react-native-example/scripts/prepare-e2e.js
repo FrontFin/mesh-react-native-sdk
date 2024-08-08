@@ -1,6 +1,7 @@
-const fs = require('fs');
-const path = require('path');
-const axios = require('axios');
+import {writeFileSync} from 'fs';
+import {join} from 'path';
+import {get} from 'axios';
+
 const ENDPOINT_URL = 'https://integration-api.getfront.com/api/v1/cataloglink';
 const CLIENT_ID = process.env.FRONT_CLIENT_ID;
 const CLIENT_SECRET = process.env.FRONT_CLIENT_SECRET;
@@ -9,7 +10,7 @@ console.log('Preparing e2e...');
 
 const getCatalogLink = async () => {
   console.log('Fetching catalog link...');
-  const response = await axios.get(ENDPOINT_URL, {
+  const response = await get(ENDPOINT_URL, {
     headers: {
       ['Content-Type']: 'application/json',
       ['X-Client-Id']: CLIENT_ID,
@@ -33,8 +34,8 @@ const prepareE2E = async () => {
     catalogLink,
     fetchedAt: new Date().toISOString(),
   };
-  fs.writeFileSync(
-    path.join(__dirname, '..', 'e2e', 'config.json'),
+  writeFileSync(
+    join(__dirname, '..', 'e2e', 'config.json'),
     JSON.stringify(config, null, 2),
   );
   console.log('config.json updated...');
