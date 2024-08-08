@@ -1,9 +1,12 @@
 #!/usr/bin/env node
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const fs = require('fs');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const buildFolder = require('path').resolve(__dirname, '../dist');
+const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
+const __dirname = path.dirname(__filename); // get the name of the directory that the file is in
+
+const buildFolder = path.resolve(__dirname, '../dist');
 
 console.log('Verifying build folder... 🧐');
 
@@ -14,7 +17,7 @@ if (!fs.existsSync(buildFolder)) {
 
 console.log('Verifying build files... 🧐');
 
-const assetFiles = fs.readdirSync(`${buildFolder}/lib/assets`);
+const assetFiles = fs.readdirSync(`${buildFolder}/assets`);
 
 const requiredAssetFiles = ['chevron-left-dark', 'chevron-left-light', 'cross-1-small-dark', 'cross-1-small-light'];
 const requiredAssetFilesWithVariations = requiredAssetFiles.flatMap((file) => [
@@ -33,7 +36,7 @@ if (missingAssetFiles.length) {
   process.exit(1);
 }
 
-const buildFiles = ['LICENSE.md', 'README.md', 'tsconfig.json', 'package.json'];
+const buildFiles = ['LICENSE.md', 'README.md', 'package.json'];
 
 buildFiles.forEach((file) => {
   const filePath = `${buildFolder}/${file}`;
@@ -46,9 +49,9 @@ buildFiles.forEach((file) => {
 const mainFiles = ['index.js', 'index.d.ts'];
 
 mainFiles.forEach((file) => {
-  const filePath = `${buildFolder}/lib/${file}`;
+  const filePath = `${buildFolder}/${file}`;
   if (!fs.existsSync(filePath)) {
-    console.error(`Missing lib/${file} file ❌`);
+    console.error(`Missing ${file} file ❌`);
     process.exit(1);
   }
 });
@@ -59,7 +62,7 @@ const hooksFiles = [
 ]
 
 hooksFiles.forEach((file) => {
-  const filePath = `${buildFolder}/lib/hooks/${file}`;
+  const filePath = `${buildFolder}/hooks/${file}`;
   if (!fs.existsSync(filePath)) {
     console.error(`Missing hooks/${file} file ❌`);
     process.exit(1);
@@ -80,7 +83,7 @@ const componentsFiles = [
 ];
 
 componentsFiles.forEach((file) => {
-  const filePath = `${buildFolder}/lib/components/${file}`;
+  const filePath = `${buildFolder}/components/${file}`;
   if (!fs.existsSync(filePath)) {
     console.error(`Missing components/${file} file ❌`);
     process.exit(1);
@@ -93,7 +96,7 @@ const types = [
 ];
 
 types.forEach((file) => {
-  const filePath = `${buildFolder}/lib/types/${file}`;
+  const filePath = `${buildFolder}/types/${file}`;
   if (!fs.existsSync(filePath)) {
     console.error(`Missing types/${file} file ❌`);
     process.exit(1);
@@ -112,7 +115,7 @@ const utils = [
 ];
 
 utils.forEach((file) => {
-  const filePath = `${buildFolder}/lib/utils/${file}`;
+  const filePath = `${buildFolder}/utils/${file}`;
   if (!fs.existsSync(filePath)) {
     console.error(`Missing utils/${file} file ❌`);
     process.exit(1);

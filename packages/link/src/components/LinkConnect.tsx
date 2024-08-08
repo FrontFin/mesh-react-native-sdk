@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 import { WebView } from 'react-native-webview';
-import React, { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 import { NavBar } from './NavBar';
 import { SDKContainer } from './SDKContainer';

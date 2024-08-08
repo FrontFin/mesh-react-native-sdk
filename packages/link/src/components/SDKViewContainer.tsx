@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactNode } from 'react';
 import { View } from 'react-native';
 import { DARK_THEME_COLOR_BOTTOM, LIGHT_THEME_COLOR_BOTTOM } from '../constant';

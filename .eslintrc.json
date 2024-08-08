@@ -1,3 +1,59 @@
 {
-  "extends": ["plugin:@typescript-eslint/recommended"]
+  "env": {
+    "browser": true,
+    "node": true
+  },
+  "globals": {
+    "JSX": true
+  },
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "parser": "@typescript-eslint/parser",
+  "plugins": [
+    "@typescript-eslint",
+    "prettier",
+    "import"
+  ],
+  "rules": {
+    "no-undef": "warn",
+    "no-console": "off",
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-unused-vars": "warn",
+    "prettier/prettier": ["error", { "endOfLine": "auto" }, {
+      "usePrettierrc": true
+    }]
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended",
+    "plugin:import/typescript",
+    "prettier"
+  ],
+  "ignorePatterns": [
+    "**/dist/**",
+    "**/node_modules/**"
+  ],
+  "overrides": [
+    {
+      "files": [
+        "**/*.test.js",
+        "**/*.test.jsx",
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "**/*.spec.js",
+        "**/*.spec.jsx",
+        "**/*.spec.ts",
+        "**/*.spec.tsx",
+        "**/setupTests.ts"
+      ],
+      "env": {
+        "jest": true
+      }
+    }
+  ]
 }

@@ -1,5 +1,5 @@
-import { useSDKStyles } from './SDKContainer.styled';
 import { Image, TouchableOpacity, View } from 'react-native';
+import { useSDKStyles } from './SDKContainer.styled';
 
 type NavBarProps = {
   goBack: () => void;

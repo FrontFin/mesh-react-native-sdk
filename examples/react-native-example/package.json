@@ -1,23 +1,30 @@
 {
-  "name": "meshconnectrnsdkexample",
+  "name": "@meshconnect/react-native-cli-exmaple",
   "version": "2.1.5",
   "private": true,
+  "main": "index.js",
   "scripts": {
-    "preinstall": "./scripts/preinstall",
-    "android": "react-native run-android",
-    "ios": "react-native run-ios",
+    "clean": "yarn clean:android && yarn clean:ios && rm -rf node_modules",
+    "clean:android": "cd android && ./gradlew clean",
+    "clean:ios": "cd ios && rm -rf Pods && rm -rf Podfile.lock",
     "lint": "eslint .",
-    "start": "react-native start",
-    "test": "jest",
-    "reload": "rm -rf ./node_modules && yarn && yarn start"
+    "postinstall": "npx pod-install",
+    "run:app": "react-native start",
+    "start": "yarn run:app --reset-cache",
+    "test": "jest"
   },
   "dependencies": {
-    "@meshconnect/react-native-link-sdk": "../../dist",
+    "@meshconnect/react-native-link-sdk": "*",
     "react": "18.2.0",
     "react-native": "0.74.3",
     "react-native-webview": "^13.10.5"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint-config-prettier": "^8.1.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-prettier": "^3.4.0",
     "@babel/core": "^7.20.0",
     "@babel/preset-env": "^7.20.0",
     "@babel/runtime": "^7.20.0",
@@ -31,6 +38,7 @@
     "eslint": "^8.19.0",
     "jest": "^29.6.3",
     "prettier": "2.8.8",
+    "react-native-svg-transformer": "^1.5.0",
     "react-test-renderer": "18.2.0",
     "typescript": "5.0.4"
   },

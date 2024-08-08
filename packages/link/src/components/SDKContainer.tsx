@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ReactNode } from 'react';
 import { SafeAreaView, StatusBar, View } from 'react-native';
 import { useSDKStyles } from './SDKContainer.styled';

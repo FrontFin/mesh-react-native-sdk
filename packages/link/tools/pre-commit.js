@@ -1,13 +1,18 @@
 #!/usr/bin/env node
 
-/* eslint-disable @typescript-eslint/no-var-requires */
-const fs = require('fs');
-const path = require('path');
-const child = require('child_process');
+import fs from 'fs';
+import path from 'path';
+import child from 'child_process';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
+const __dirname = path.dirname(__filename); // get the name of the directory that the file is in
+
+const RN_EXAMPLE_PATH_STR = '../../../examples/react-native-example/package.json';
 
 try {
   const packageJSONExample = fs.readFileSync(
-      path.join(__dirname, '../examples/react-native-example/package.json'),
+      path.join(__dirname, RN_EXAMPLE_PATH_STR),
       'utf8',
   );
   const packageJSONSDK = fs.readFileSync(
@@ -26,7 +31,7 @@ try {
     console.log(`SDK package version: ${sdkPackageVersion}`);
     console.log('Updating example package version to SDK package version...');
     fs.writeFileSync(
-        path.join(__dirname, '../examples/react-native-example/package.json'),
+        path.join(__dirname, RN_EXAMPLE_PATH_STR),
         JSON.stringify(
             {
               ...JSON.parse(packageJSONExample),
@@ -38,7 +43,7 @@ try {
     );
 
     // add modified files to git
-    child.execSync('git add package.json', { cwd: path.join(__dirname, '../examples/react-native-example') });
+    child.execSync('git add package.json', { cwd: path.join(__dirname, RN_EXAMPLE_PATH_STR) });
   } else {
     console.log('Example package version is in sync with SDK package version');
   }
