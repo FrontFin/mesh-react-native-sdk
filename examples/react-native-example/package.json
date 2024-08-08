@@ -4,6 +4,7 @@
   "private": true,
   "main": "index.js",
   "scripts": {
+    "build": "echo 'No build needed.'",
     "clean": "yarn clean:android && yarn clean:ios && rm -rf node_modules",
     "clean:android": "cd android && ./gradlew clean",
     "clean:ios": "cd ios && rm -rf Pods && rm -rf Podfile.lock",
@@ -11,7 +12,11 @@
     "postinstall": "npx pod-install",
     "run:app": "react-native start",
     "start": "yarn run:app --reset-cache",
-    "test": "jest"
+    "publish:npm": "echo 'No publish needed.'",
+    "test": "jest",
+    "test:cov": "jest --ci --coverage",
+    "types:check": "tsc --noEmit --skipLibCheck",
+    "verify:build": "echo 'No verification needed.'"
   },
   "dependencies": {
     "@meshconnect/react-native-link-sdk": "*",
