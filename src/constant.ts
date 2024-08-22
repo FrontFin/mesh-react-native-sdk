@@ -30,4 +30,5 @@ export const WHITELISTED_ORIGINS = [
   'https://google.com',
   'https://front-web-platform-dev',
   'https://front-b2b-api-test.azurewebsites.net',
+  'https://link.trustwallet.com'
 ];

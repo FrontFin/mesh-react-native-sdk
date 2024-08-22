@@ -84,6 +84,7 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
             "https://google.com",
             "https://front-web-platform-dev",
             "https://front-b2b-api-test.azurewebsites.net",
+            "https://link.trustwallet.com",
           ]
         }
         source={
