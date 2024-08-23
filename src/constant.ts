@@ -33,6 +33,8 @@ export const WHITELISTED_ORIGINS = [
   'https://applink.robinhood.com',
   'https://bonfire.robinhood.com',
   'https://api.stripe.com',
+  'https://js.stripe.com',
+  'https://m.stripe.network',
   'https://bonfire.robinhood.com',
   'https://crumbs.robinhood.com',
   'https://fp.robinhood.com',
@@ -40,5 +42,6 @@ export const WHITELISTED_ORIGINS = [
   'https://cdn.robinhood.com',
   'https://fp.robinhood.com',
   'https://robinhood-api.arkoselabs.com',
+  'https://app.usercentrics.eu',
   'https://link.trustwallet.com',
 ];
