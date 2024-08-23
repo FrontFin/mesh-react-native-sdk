@@ -84,6 +84,17 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
             "https://google.com",
             "https://front-web-platform-dev",
             "https://front-b2b-api-test.azurewebsites.net",
+            "https://applink.robinhood.com",
+            "https://bonfire.robinhood.com",
+            "https://api.stripe.com",
+            "https://bonfire.robinhood.com",
+            "https://crumbs.robinhood.com",
+            "https://fp.robinhood.com",
+            "https://nummus.robinhood.com",
+            "https://cdn.robinhood.com",
+            "https://fp.robinhood.com",
+            "https://robinhood-api.arkoselabs.com",
+            "https://link.trustwallet.com",
           ]
         }
         source={
