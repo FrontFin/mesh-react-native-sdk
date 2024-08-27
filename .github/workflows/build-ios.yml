@@ -1,0 +1,17 @@
+name: RNSDK build iOS example app
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  MeshConnectRNSDK-iOS:
+    runs-on: macos-latest
+    timeout-minutes: 15
+
+    steps:
+      -name: Build xcarchive
+        run: xcodebuild archive -workspace MeshConnectRNSDK.xcworkspace -scheme MeshConnectRNSDK -archivePath archive
+    
+      -name: Build .ipa
+        run: xcodebuild -exportArchive -archivePath archive.xcarchive -exportPath Output -exportOptionsPlist MeshConnectRNSDK/Info.plist
