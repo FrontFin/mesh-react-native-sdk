@@ -96,7 +96,7 @@ export const LinkConnect = (props: LinkConfiguration) => {
           injectedJavaScript={injectedScript}
           {...whiteListProps}
           onNavigationStateChange={handleNavState}
-          onShouldStartLoadWithRequest={(req) => { if (req.url.startsWith('http')) { return true; }  return false; }}
+          onShouldStartLoadWithRequest={(req) => req.url.startsWith('http')}
         />
       )}
     </SDKWrapperComponent>
