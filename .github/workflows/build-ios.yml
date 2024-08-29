@@ -1,17 +1,103 @@
 name: RNSDK build iOS example app
 
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
 defaults:
   run:
     shell: bash
 
-jobs:
-  MeshConnectRNSDK-iOS:
-    runs-on: macos-latest
-    timeout-minutes: 15
+env:
+  PACKAGE_INSTALLATION_ENV: 'github'
+  NODE_VERSION: '18'
+  NODE_OPTIONS: '--max_old_space_size=4096'
+  RUBY_VERSION: '3.0'
+  WORKING_DIRECTORY: examples/react-native-example
 
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIRECTORY }}
     steps:
-      -name: Build xcarchive
-        run: xcodebuild archive -workspace MeshConnectRNSDK.xcworkspace -scheme MeshConnectRNSDK -archivePath archive
-    
-      -name: Build .ipa
-        run: xcodebuild -exportArchive -archivePath archive.xcarchive -exportPath Output -exportOptionsPlist MeshConnectRNSDK/Info.plist
+      - name: Checkout 🛎️
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+      # - name: Set image version  🔂
+      #   run: echo "ImageVersion=$ImageVersion" >> $GITHUB_ENV
+      # - name: Select Xcode 📱
+      #   run: sudo xcode-select --switch /Applications/Xcode_${{ env.XCODE_VERSION }}.app
+      - name: Node 📚
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      # - name: Node cache ☊
+      #   uses: actions/cache@v2.1.6
+      #   with:
+      #     path: ~/.yarn
+      #     key: ${{ runner.os }}-${{ env.ImageVersion }}-node-${{ hashFiles('**/package-lock.json') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-${{ env.ImageVersion }}-node-
+      - name: Install node modules 📦
+        run: yarn install --frozen-lockfile
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
+
+      # - name: CocoaPods cache 🧳
+      #   uses: actions/cache@v2.1.4
+      #   with:
+      #     path: ${{ env.WORKING_DIRECTORY }}/ios/vendor/bundle
+      #     key: ${{ runner.os }}-${{ env.ImageVersion }}-gems-${{ hashFiles('ios/Gemfile.lock') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-${{ env.ImageVersion }}-gems
+
+      - name: Install CocoaPods 🫛
+        working-directory: ${{ env.WORKING_DIRECTORY }}/ios
+        run: |
+          bundle config path vendor/bundle
+          bundle config deployment true
+          bundle install
+
+      - name: Pods cache 🏫
+        uses: actions/cache@v2.1.6
+        with:
+          path: ${{ env.WORKING_DIRECTORY }}/ios/Pods
+          key: ${{ runner.os }}-${{ env.ImageVersion }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.ImageVersion }}-pods-
+
+      - name: Install Pods and update lock 🔏
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: npx pod-install
+
+      - name: Build iOS App for firebase 🏗️
+        uses: yukiarrr/ios-build-action@v1.11.0
+        with:
+          project-path: ${{ env.WORKING_DIRECTORY }}/ios/MeshConnectRNSDK.xcodeproj
+          p12-base64: ${{ secrets.IOS_P12_BASE64 }}
+          mobileprovision-base64: ${{ secrets.IOS_MOBILE_PROVISION_BASE64 }}
+          code-signing-identity: 'iPhone Distribution'
+          team-id: ${{ secrets.IOS_TEAM_ID }}
+          certificate-password: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+          workspace-path: ${{ env.WORKING_DIRECTORY }}/ios/MeshConnectRNSDK.xcworkspace
+          output-path: ${{ env.WORKING_DIRECTORY }}/ios/build/output.ipa
+          scheme: MeshConnectRNSDK
+
+      # - name: Push to firebase 🔥
+      #   working-directory: ${{ env.WORKING_DIRECTORY }}
+      #   run: |
+      #     curl -sL https://firebase.tools | bash
+      #     echo "Firebase version: $(firebase --version)"
+      #     echo "Working directory: ios/build"
+      #     echo "Files in working directory:"
+      #     ls -l ios/build
+      #     echo "Uploading to firebase... 🚀"
+      #     firebase appdistribution:distribute ios/build/output.ipa \
+      #       --app "${{ secrets.FIREBASE_IOS_APP_ID }}" --token "${{ secrets.IOS_FIREBASE_TOKEN }}" --groups "testers" \
+      #       --release-notes "${{ github.event.head_commit.message || github.event.commits[0].message || github.event.pull_request.title || github.event.pull_request.head.ref }}"
+      #     echo "Uploaded to firebase! 🎉"
