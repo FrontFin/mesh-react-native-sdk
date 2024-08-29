@@ -48,5 +48,10 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>trust</string>
+		<string>robinhood</string>
+	</array>
 </dict>
 </plist>
