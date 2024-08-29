@@ -72,9 +72,7 @@ export const LinkConnect = (props: LinkConfiguration) => {
 
   // by default disableDomainWhiteList is false
   const { disableDomainWhiteList = false } = props;
-  const finalDomainWhiteList = disableDomainWhiteList ? [
-    '*',
-  ] : WHITELISTED_ORIGINS;
+  const whiteListProps = disableDomainWhiteList ? {} : { originWhitelist: WHITELISTED_ORIGINS }
   
   return (
     <SDKWrapperComponent isDarkTheme={darkTheme}>
@@ -96,8 +94,9 @@ export const LinkConnect = (props: LinkConfiguration) => {
           startInLoadingState={true}
           javaScriptEnabled={true}
           injectedJavaScript={injectedScript}
-          originWhitelist={finalDomainWhiteList}
+          {...whiteListProps}
           onNavigationStateChange={handleNavState}
+          onShouldStartLoadWithRequest={(req) => req.url.startsWith('http')}
         />
       )}
     </SDKWrapperComponent>

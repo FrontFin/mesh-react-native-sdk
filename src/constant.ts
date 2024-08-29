@@ -30,4 +30,12 @@ export const WHITELISTED_ORIGINS = [
   'https://google.com',
   'https://front-web-platform-dev',
   'https://front-b2b-api-test.azurewebsites.net',
+  'https://web.getfront.com',
+  'https://web.meshconnect.com',
+  'https://link.trustwallet.com',
+  'https://applink.robinhood.com',
+  'https://m.stripe.network',
+  'https://js.stripe.com',
+  'https://app.usercentrics.eu',
+  'robinhood://'
 ];
