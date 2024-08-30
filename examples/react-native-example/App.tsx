@@ -40,8 +40,6 @@ export default function App() {
           text: 'Ok',
           onPress: () => {
             setData(payload);
-            setView(false);
-            setLinkToken('');
           },
         },
       ],
@@ -58,8 +56,6 @@ export default function App() {
           text: 'Ok',
           onPress: () => {
             setData(payload);
-            setView(false);
-            setLinkToken('');
           },
         },
       ],
