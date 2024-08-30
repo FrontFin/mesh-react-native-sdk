@@ -103,4 +103,4 @@ jobs:
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_CREDENTIAL_FILE_CONTENT }}
           groups: testers
           releaseNotes: ${{ github.event.pull_request.title || github.ref_name }}\n${{ github.event.head_commit.message }}
-          file: ${{ env.WORKING_DIRECTORY }}ios/build/output.ipa
+          file: ${{ env.WORKING_DIRECTORY }}/ios/build/output.ipa
