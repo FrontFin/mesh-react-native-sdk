@@ -63,12 +63,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ env.ImageVersion }}-gems
 
-      - name: Install CocoaPods 🫛
+      - name: Install/Check CocoaPods
         working-directory: ${{ env.WORKING_DIRECTORY }}/ios
-        run: |
-          bundle config path vendor/bundle
-          bundle config deployment true
-          bundle install
+        run: pod --version
+      #   run: |
+      #     bundle config path vendor/bundle
+      #     bundle config deployment true
+      #     bundle install
 
       - name: Pods cache 🏫
         uses: actions/cache@v2.1.6
