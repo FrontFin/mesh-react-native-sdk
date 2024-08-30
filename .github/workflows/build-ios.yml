@@ -6,9 +6,6 @@ concurrency:
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - feature/SCS-268-build-ios
 
 defaults:
   run:
@@ -19,13 +16,12 @@ env:
   NODE_VERSION: '18'
   NODE_OPTIONS: '--max_old_space_size=4096'
   RUBY_VERSION: '3.0'
-  # XCODE_VERSION: '15'
   WORKING_DIRECTORY: examples/react-native-example
 
 jobs:
   build:
     runs-on: macos-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: ${{ env.WORKING_DIRECTORY }}
@@ -63,9 +59,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ env.ImageVersion }}-gems
 
-      - name: Install/Check CocoaPods
-        working-directory: ${{ env.WORKING_DIRECTORY }}/ios
-        run: pod --version
+      # - name: Install CocoaPods
+      #   working-directory: ${{ env.WORKING_DIRECTORY }}/ios
       #   run: |
       #     bundle config path vendor/bundle
       #     bundle config deployment true
