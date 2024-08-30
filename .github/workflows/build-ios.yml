@@ -19,7 +19,7 @@ env:
   NODE_VERSION: '18'
   NODE_OPTIONS: '--max_old_space_size=4096'
   RUBY_VERSION: '3.0'
-  XCODE_VERSION: '15'
+  # XCODE_VERSION: '15'
   WORKING_DIRECTORY: examples/react-native-example
 
 jobs:
@@ -36,8 +36,8 @@ jobs:
           fetch-depth: 1
       - name: Set image version  🔂
         run: echo "ImageVersion=$ImageVersion" >> $GITHUB_ENV
-      - name: Select Xcode 📱
-        run: sudo xcode-select --switch /Applications/Xcode_${{ env.XCODE_VERSION }}.app
+      # - name: Select Xcode 📱
+      #   run: sudo xcode-select --switch /Applications/Xcode_${{ env.XCODE_VERSION }}.app
       - name: Node 📚
         uses: actions/setup-node@v3
         with:
