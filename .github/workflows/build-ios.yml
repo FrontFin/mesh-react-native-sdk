@@ -97,7 +97,7 @@ jobs:
           scheme: MeshConnectRNSDK
 
       - name: Upload iOS App to Firebase App Distribution 🏁
-        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        uses: emertozd/Firebase-Distribution-Github-Action@v2
         with:
           appId: ${{ secrets.FIREBASE_IOS_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_CREDENTIAL_FILE_CONTENT }}
