@@ -19,6 +19,7 @@ env:
   NODE_VERSION: '18'
   NODE_OPTIONS: '--max_old_space_size=4096'
   RUBY_VERSION: '3.0'
+  XCODE_VERSION: '15'
   WORKING_DIRECTORY: examples/react-native-example
 
 jobs:
@@ -33,34 +34,34 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 1
-      # - name: Set image version  🔂
-      #   run: echo "ImageVersion=$ImageVersion" >> $GITHUB_ENV
-      # - name: Select Xcode 📱
-      #   run: sudo xcode-select --switch /Applications/Xcode_${{ env.XCODE_VERSION }}.app
+      - name: Set image version  🔂
+        run: echo "ImageVersion=$ImageVersion" >> $GITHUB_ENV
+      - name: Select Xcode 📱
+        run: sudo xcode-select --switch /Applications/Xcode_${{ env.XCODE_VERSION }}.app
       - name: Node 📚
         uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_VERSION }}
-      # - name: Node cache ☊
-      #   uses: actions/cache@v2.1.6
-      #   with:
-      #     path: ~/.yarn
-      #     key: ${{ runner.os }}-${{ env.ImageVersion }}-node-${{ hashFiles('**/package-lock.json') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-${{ env.ImageVersion }}-node-
+      - name: Node cache ☊
+        uses: actions/cache@v2.1.6
+        with:
+          path: ~/.yarn
+          key: ${{ runner.os }}-${{ env.ImageVersion }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.ImageVersion }}-node-
       - name: Install node modules 📦
         run: yarn install --frozen-lockfile
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ env.RUBY_VERSION }}
 
-      # - name: CocoaPods cache 🧳
-      #   uses: actions/cache@v2.1.4
-      #   with:
-      #     path: ${{ env.WORKING_DIRECTORY }}/ios/vendor/bundle
-      #     key: ${{ runner.os }}-${{ env.ImageVersion }}-gems-${{ hashFiles('ios/Gemfile.lock') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-${{ env.ImageVersion }}-gems
+      - name: CocoaPods cache 🧳
+        uses: actions/cache@v2.1.4
+        with:
+          path: ${{ env.WORKING_DIRECTORY }}/ios/vendor/bundle
+          key: ${{ runner.os }}-${{ env.ImageVersion }}-gems-${{ hashFiles('ios/Gemfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.ImageVersion }}-gems
 
       - name: Install CocoaPods 🫛
         working-directory: ${{ env.WORKING_DIRECTORY }}/ios
@@ -81,7 +82,7 @@ jobs:
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: npx pod-install
 
-      - name: Build iOS App for firebase 🏗️
+      - name: Build iOS App for Firebase 🏗️
         uses: yukiarrr/ios-build-action@v1.11.0
         with:
           project-path: ${{ env.WORKING_DIRECTORY }}/ios/MeshConnectRNSDK.xcodeproj
@@ -94,16 +95,11 @@ jobs:
           output-path: ${{ env.WORKING_DIRECTORY }}/ios/build/output.ipa
           scheme: MeshConnectRNSDK
 
-      - name: Push to firebase 🔥
-        working-directory: ${{ env.WORKING_DIRECTORY }}
-        run: |
-          curl -sL https://firebase.tools | bash
-          echo "Firebase version: $(firebase --version)"
-          echo "Working directory: ios/build"
-          echo "Files in working directory:"
-          ls -l ios/build
-          echo "Uploading to firebase... 🚀"
-          firebase appdistribution:distribute ios/build/output.ipa \
-            --app "${{ secrets.FIREBASE_IOS_APP_ID }}" --token "${{ secrets.IOS_FIREBASE_TOKEN }}" --groups "testers" \
-            --release-notes "${{ github.event.head_commit.message || github.event.commits[0].message || github.event.pull_request.title || github.event.pull_request.head.ref }}"
-          echo "Uploaded to firebase! 🎉"
+      - name: Upload iOS App to Firebase App Distribution 🏁
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ secrets.FIREBASE_IOS_APP_ID }}
+          serviceCredentialsFileContent: ${{ secrets.FIREBASE_CREDENTIAL_FILE_CONTENT }}
+          groups: testers
+          releaseNotes: ${{ github.event.pull_request.title || github.ref_name }}\n${{ github.event.head_commit.message }}
+          file: ${{ env.WORKING_DIRECTORY }}ios/build/output.ipa
