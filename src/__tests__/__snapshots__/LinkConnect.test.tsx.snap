@@ -56,6 +56,7 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
         onLoadEnd={[Function]}
         onMessage={[Function]}
         onNavigationStateChange={[Function]}
+        onShouldStartLoadWithRequest={[Function]}
         originWhitelist={
           [
             "*.meshconnect.com",
@@ -84,6 +85,13 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
             "https://google.com",
             "https://front-web-platform-dev",
             "https://front-b2b-api-test.azurewebsites.net",
+            "https://web.getfront.com",
+            "https://web.meshconnect.com",
+            "https://applink.robinhood.com",
+            "https://m.stripe.network",
+            "https://js.stripe.com",
+            "https://app.usercentrics.eu",
+            "robinhood://",
           ]
         }
         source={
