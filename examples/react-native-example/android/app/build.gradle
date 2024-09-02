@@ -76,10 +76,10 @@ android {
 
     namespace "com.meshconnectrnsdk"
     defaultConfig {
-        applicationId "com.meshconnectrnsdk"
+        applicationId "com.meshconnect.rnexample"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
+        versionCode System.getenv("BUILD_NUMBER")?.toInteger() ?: 1
         versionName "1.0"
     }
     signingConfigs {
