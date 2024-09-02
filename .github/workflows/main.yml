@@ -1,8 +1,8 @@
-name: GetFront RN SDK Testing Pipeline 🧪
+name: RN SDK Testing Pipeline 🧪
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
@@ -26,10 +26,12 @@ jobs:
     steps:
       - name: Set image version 🔂
         run: echo "ImageVersion=$ImageVersion" >> $GITHUB_ENV
+
       - name: Checkout 🛎️
         uses: actions/checkout@v3
         with:
           fetch-depth: 1
+
       - name: Node 📚
         uses: actions/setup-node@v3
         with:

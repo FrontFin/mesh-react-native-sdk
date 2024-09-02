@@ -147,6 +147,13 @@ The `LinkSettings` option allows to configure the Link behaviour:
     + `https://google.com`
     + `https://front-web-platform-dev`
     + `https://front-b2b-api-test.azurewebsites.net`
+    + `https://web.getfront.com`
+    + `https://web.meshconnect.com`
+    + `https://applink.robinhood.com`
+    + `https://m.stripe.network`
+    + `https://js.stripe.com`
+    + `https://app.usercentrics.eu`
+    + `robinhood://`
 
 ## V1 -> V2 migration guide
 In Mesh Connect React Native SDK v2, `url` prop is removed from `LinkConnect` component. You should use `linkToken` prop instead of `url` prop.

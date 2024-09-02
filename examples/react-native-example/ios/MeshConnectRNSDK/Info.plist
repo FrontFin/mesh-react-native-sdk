@@ -53,5 +53,10 @@
 	<false/>
 	<key>CFBundleIconName</key>
 	<string>AppIcon</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>trust</string>
+		<string>robinhood</string>
+	</array>
 </dict>
 </plist>
