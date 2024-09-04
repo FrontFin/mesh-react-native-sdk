@@ -79,7 +79,7 @@ jobs:
         run: npx pod-install
 
       - name: Build iOS App for Firebase 🏗️
-        uses: yukiarrr/ios-build-action@v1.11.0
+        uses: yukiarrr/ios-build-action@v1
         with:
           project-path: ${{ env.WORKING_DIRECTORY }}/ios/MeshConnectRNSDK.xcodeproj
           p12-base64: ${{ secrets.IOS_P12_BASE64 }}
@@ -90,6 +90,7 @@ jobs:
           workspace-path: ${{ env.WORKING_DIRECTORY }}/ios/MeshConnectRNSDK.xcworkspace
           output-path: ${{ env.WORKING_DIRECTORY }}/ios/build/output.ipa
           scheme: MeshConnectRNSDK
+          increment-version-number: ${{ github.run_number }}
 
       - name: Upload iOS App to Firebase App Distribution 🏁
         uses: emertozd/Firebase-Distribution-Github-Action@v2
