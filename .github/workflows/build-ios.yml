@@ -79,7 +79,7 @@ jobs:
         run: npx pod-install
 
       - name: Build iOS App for Firebase 🏗️
-        uses: yukiarrr/ios-build-action@v1
+        uses: yukiarrr/ios-build-action@v1.12.0
         with:
           project-path: ${{ env.WORKING_DIRECTORY }}/ios/MeshConnectRNSDK.xcodeproj
           p12-base64: ${{ secrets.IOS_P12_BASE64 }}
