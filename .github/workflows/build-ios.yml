@@ -33,7 +33,9 @@ jobs:
       - name: Set image version  🔂
         run: echo "ImageVersion=$ImageVersion" >> $GITHUB_ENV
       - name: Set bundle version
-        run: /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" ${{ env.WORKING_DIRECTORY }}/ios/MeshConnectRNSDK/Info.plist >> $BUNDLE_VERSION_SHORT
+        run: |
+          BUNDLE_VERSION_SHORT = `/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" ${{ env.WORKING_DIRECTORY }}/ios/MeshConnectRNSDK/Info.plist`
+          echo "BUNDLE_VERSION_SHORT=$BUNDLE_VERSION_SHORT" >> $GITHUB_ENV
       # - name: Select Xcode 📱
       #   run: sudo xcode-select --switch /Applications/Xcode_${{ env.XCODE_VERSION }}.app
       - name: Node 📚
@@ -92,7 +94,7 @@ jobs:
           workspace-path: ${{ env.WORKING_DIRECTORY }}/ios/MeshConnectRNSDK.xcworkspace
           output-path: ${{ env.WORKING_DIRECTORY }}/ios/build/output.ipa
           scheme: MeshConnectRNSDK
-          increment-version-number: $BUNDLE_VERSION_SHORT
+          increment-version-number: ${{ env.BUNDLE_VERSION_SHORT }}
           increment-build-number: ${{ github.run_number }}
 
       - name: Upload iOS App to Firebase App Distribution 🏁
