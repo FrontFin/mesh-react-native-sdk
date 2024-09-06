@@ -91,7 +91,7 @@ jobs:
           output-path: ${{ env.WORKING_DIRECTORY }}/ios/build/output.ipa
           scheme: MeshConnectRNSDK
           increment-build-number: ${{ github.run_number }}
-          export-method: ${{ IOS_EXPORT_METHOD }}
+          export-method: ${{ secrets.IOS_EXPORT_METHOD }}
 
       - name: Upload iOS App to Firebase App Distribution 🏁
         uses: emertozd/Firebase-Distribution-Github-Action@v2
