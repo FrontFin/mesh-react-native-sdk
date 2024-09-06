@@ -78,6 +78,9 @@ jobs:
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: npx pod-install
 
+      - name: Check codesigning
+        run: security find-identity -p codesigning -v
+
       - name: Build iOS App for Firebase 🏗️
         uses: yukiarrr/ios-build-action@v1.12.0
         with:
