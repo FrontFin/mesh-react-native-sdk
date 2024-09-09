@@ -1,4 +1,4 @@
-name: RNSDK build iOS example app
+name: iOS Example App Deployment
 
 concurrency:
   group: ${{ github.ref }}-${{ github.workflow }}
@@ -19,7 +19,7 @@ env:
   WORKING_DIRECTORY: examples/react-native-example
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: macos-latest
     timeout-minutes: 30
     defaults:
@@ -78,27 +78,20 @@ jobs:
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: npx pod-install
 
-      - name: Check codesigning
-        run: |
-          echo "code_sign, export_method"
-          echo ${{secrets.IOS_CODE_SIGN_IDENTITY}} | sed 's/./& /g'
-          echo ${{secrets.IOS_EXPORT_METHOD}} | sed 's/./& /g'
-          echo ${{secrets.IOS_MOBILE_PROVISION_BASE64}} | sed 's/./& /g'
-
       - name: Build iOS App for Firebase 🏗️
         uses: yukiarrr/ios-build-action@v1.12.0
         with:
           project-path: ${{ env.WORKING_DIRECTORY }}/ios/MeshConnectRNSDK.xcodeproj
-          p12-base64: ${{ secrets.IOS_P12_BASE64 }}
-          mobileprovision-base64: ${{ secrets.IOS_MOBILE_PROVISION_BASE64 }}
-          code-signing-identity: ${{ secrets.IOS_CODE_SIGN_IDENTITY }}
+          p12-base64: ${{ secrets.IOS_P12_BASE64 }} # iOS Distribution certificate
+          mobileprovision-base64: ${{ secrets.IOS_MOBILE_PROVISION_BASE64 }} # AdHoc provisioning profile
+          code-signing-identity: ${{ secrets.IOS_CODE_SIGN_IDENTITY }} # iPhone Distribution
           team-id: ${{ secrets.IOS_TEAM_ID }}
           certificate-password: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
           workspace-path: ${{ env.WORKING_DIRECTORY }}/ios/MeshConnectRNSDK.xcworkspace
           output-path: ${{ env.WORKING_DIRECTORY }}/ios/build/output.ipa
           scheme: MeshConnectRNSDK
           increment-build-number: ${{ github.run_number }}
-          export-method: ${{ secrets.IOS_EXPORT_METHOD }}
+          export-method: ${{ secrets.IOS_EXPORT_METHOD }} #ad-hoc
 
       - name: Upload iOS App to Firebase App Distribution 🏁
         uses: emertozd/Firebase-Distribution-Github-Action@v2
