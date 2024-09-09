@@ -41,7 +41,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Run type check 🩺
-        run: yarn types-check
+        run: yarn types:check
 
       - name: Run linter 🧹
         run: yarn lint
@@ -59,7 +59,7 @@ jobs:
         run: yarn build
 
       - name: Check build 🕵️‍♂️
-        run: yarn check-build
+        run: yarn check:build
 
       - name: Check for unused dependencies 🔍
         shell: bash {0}
