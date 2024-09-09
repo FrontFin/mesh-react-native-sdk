@@ -39,6 +39,7 @@
 	<array>
 		<string>trust</string>
 		<string>robinhood</string>
+		<string>metamask</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
