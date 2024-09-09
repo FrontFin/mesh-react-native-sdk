@@ -2,6 +2,15 @@
 
 ℹ️︎ If you had old changes in `node_modules` (previous version of the library) folder, please remove it and install dependencies again.
 
+💡If you want to get continues changes from the sdk, you can use the following command have a continues build.
+
+```bash
+  # run in a separate terminal/tab
+  # make sure you are in the root of the project
+  yarn build:watch
+  # after running this command switch back to the example app and proceed with the steps below
+```
+
 ##### npm
 1. install dependencies
    `npm install`

@@ -36,7 +36,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Run typecheck 🎲
-        run: yarn types-check
+        run: yarn types:check
 
       - name: Run lint 🧹
         run: yarn lint
@@ -48,7 +48,7 @@ jobs:
         run: yarn build
 
       - name: Check build 🕵️‍♂️
-        run: yarn check-build
+        run: yarn check:build
 
       - name: Install Node modules for App 🎁
         working-directory: ${{ env.EXAMPLE_DIRECTORY }}
