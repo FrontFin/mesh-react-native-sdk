@@ -167,3 +167,17 @@ The component `FrontFinance` is renamed to `LinkConnect`.
 
 #### Typescript support
 Typescript definitions for `@meshconnect/react-native-link-sdk` are built into the npm package.
+
+#### Adding URL Schemes to Info.plist
+To enable our SDK to interact with specific apps, please add the following URL schemes to your Info.plist file:
+1. Open your Info.plist file: This file is located in the ios directory of your React Native project.
+2. Add the following XML snippet within the <dict> tags (example for adding trust, robinhood, and metamask):
+    ```
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+        <string>trust</string>
+        <string>robinhood</string>
+        <string>metamask</string>
+    </array>
+    ```
+This configuration allows our SDK to query and interact with the specified apps, ensuring seamless integration and functionality.
