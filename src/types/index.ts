@@ -9,7 +9,9 @@ export type LinkEventType =
   | TransferPreviewed
   | TransferPreviewError
   | TransferExecutionError
-  | PageLoaded
+  | TransferInitiated
+  | TransferExecuted
+  | PageLoaded;
 
 const LINK_EVENT_TYPE_KEYS = [
   'integrationConnected',
@@ -21,93 +23,117 @@ const LINK_EVENT_TYPE_KEYS = [
   'transferPreviewed',
   'transferPreviewError',
   'transferExecutionError',
-  'pageLoaded'
-] as const
+  'transferExecuted',
+  'transferInitiated',
+  'pageLoaded',
+] as const;
 
 export const mappedLinkEvents: Record<string, string> = {
-  'brokerageAccountAccessToken': 'integrationConnected',
-  'delayedAuthentication': 'integrationConnected',
-  'transferFinished': 'transferCompleted',
-  'loaded': 'pageLoaded'
-}
+  brokerageAccountAccessToken: 'integrationConnected',
+  delayedAuthentication: 'integrationConnected',
+  transferFinished: 'transferCompleted',
+  loaded: 'pageLoaded',
+};
 
-export type LinkEventTypeKeys = (typeof LINK_EVENT_TYPE_KEYS)[number]
+export type LinkEventTypeKeys = (typeof LINK_EVENT_TYPE_KEYS)[number];
 
 export function isLinkEventTypeKey(key: string): key is LinkEventTypeKeys {
-  return LINK_EVENT_TYPE_KEYS.includes(key as LinkEventTypeKeys)
+  return LINK_EVENT_TYPE_KEYS.includes(key as LinkEventTypeKeys);
 }
 
 interface LinkEventBase {
-  type: LinkEventTypeKeys
+  type: LinkEventTypeKeys;
 }
 
 export interface PageLoaded {
-  type: 'pageLoaded'
+  type: 'pageLoaded';
 }
 
 export interface IntegrationConnected extends LinkEventBase {
-  type: 'integrationConnected'
-  payload: LinkPayload
+  type: 'integrationConnected';
+  payload: LinkPayload;
 }
 
 export interface IntegrationConnectionError extends LinkEventBase {
-  type: 'integrationConnectionError'
+  type: 'integrationConnectionError';
   payload: {
-    errorMessage: string
-  }
+    errorMessage: string;
+  };
 }
 
 export interface TransferCompleted extends LinkEventBase {
-  type: 'transferCompleted'
-  payload: TransferFinishedPayload
+  type: 'transferCompleted';
+  payload: TransferFinishedPayload;
 }
 
 export interface IntegrationSelected extends LinkEventBase {
-  type: 'integrationSelected'
+  type: 'integrationSelected';
   payload: {
-    integrationType: string
-    integrationName: string
-  }
+    integrationType: string;
+    integrationName: string;
+  };
 }
 
 export interface CredentialsEntered extends LinkEventBase {
-  type: 'credentialsEntered'
+  type: 'credentialsEntered';
 }
 
 export interface TransferStarted extends LinkEventBase {
-  type: 'transferStarted'
+  type: 'transferStarted';
 }
 
 export interface TransferPreviewed extends LinkEventBase {
-  type: 'transferPreviewed'
+  type: 'transferPreviewed';
   payload: {
-    amount: number
-    symbol: string
-    toAddress: string
-    networkId: string
-    previewId: string
-    networkName?: string
-    amountInFiat?: number
+    amount: number;
+    symbol: string;
+    toAddress: string;
+    networkId: string;
+    previewId: string;
+    networkName?: string;
+    amountInFiat?: number;
     estimatedNetworkGasFee?: {
-      fee?: number
-      feeCurrency?: string
-      feeInFiat?: number
-    }
-  }
+      fee?: number;
+      feeCurrency?: string;
+      feeInFiat?: number;
+    };
+  };
 }
 
 export interface TransferPreviewError extends LinkEventBase {
-  type: 'transferPreviewError'
+  type: 'transferPreviewError';
   payload: {
-    errorMessage: string
-  }
+    errorMessage: string;
+  };
 }
 
 export interface TransferExecutionError extends LinkEventBase {
-  type: 'transferExecutionError'
+  type: 'transferExecutionError';
   payload: {
-    errorMessage: string
-  }
+    errorMessage: string;
+  };
+}
+
+export interface TransferInitiated extends LinkEventBase {
+  type: 'transferInitiated';
+  payload: {
+    integrationType?: string;
+    integrationName: string;
+    status: 'pending';
+  };
+}
+
+export interface TransferExecuted extends LinkEventBase {
+  type: 'transferExecuted';
+  payload: {
+    status: 'success' | 'pending';
+    txId: string;
+    fromAddress: string;
+    toAddress: string;
+    symbol: string;
+    amount: number;
+    networkId: string;
+  };
 }
 
 export interface AccountToken {
@@ -167,16 +193,16 @@ export interface TransferFinishedErrorPayload {
 }
 
 export interface IntegrationAccessToken {
-  accountId: string
-  accountName: string
-  accessToken: string
-  brokerType: string
-  brokerName: string
+  accountId: string;
+  accountName: string;
+  accessToken: string;
+  brokerType: string;
+  brokerName: string;
 }
 
 export interface LinkSettings {
-  accessTokens?: IntegrationAccessToken[]
-  transferDestinationTokens?: IntegrationAccessToken[]
+  accessTokens?: IntegrationAccessToken[];
+  transferDestinationTokens?: IntegrationAccessToken[];
 }
 
 export interface LinkConfiguration {
@@ -190,4 +216,6 @@ export interface LinkConfiguration {
   onExit?: (err?: string) => void;
 }
 
-export type TransferFinishedPayload = TransferFinishedSuccessPayload | TransferFinishedErrorPayload;
+export type TransferFinishedPayload =
+  | TransferFinishedSuccessPayload
+  | TransferFinishedErrorPayload;
