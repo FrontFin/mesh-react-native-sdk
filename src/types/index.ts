@@ -11,6 +11,7 @@ export type LinkEventType =
   | TransferExecutionError
   | TransferInitiated
   | TransferExecuted
+  | TransferNoEligibleAssets
   | PageLoaded;
 
 const LINK_EVENT_TYPE_KEYS = [
@@ -25,6 +26,7 @@ const LINK_EVENT_TYPE_KEYS = [
   'transferExecutionError',
   'transferExecuted',
   'transferInitiated',
+  'transferNoEligibleAssets',
   'pageLoaded',
 ] as const;
 
@@ -133,6 +135,21 @@ export interface TransferExecuted extends LinkEventBase {
     symbol: string;
     amount: number;
     networkId: string;
+  };
+}
+
+export interface TransferNoEligibleAssets extends LinkEventBase {
+  type: 'transferNoEligibleAssets';
+  payload: {
+    integrationType?: string;
+    integrationName: string;
+    noAssetsType?: string;
+    arrayOfTokensHeld: {
+      symbol: string;
+      amount: number;
+      amountInFiat?: number;
+      ineligibilityReason?: string;
+    }[];
   };
 }
 
