@@ -12,6 +12,7 @@ export type LinkEventType =
   | TransferInitiated
   | TransferExecuted
   | TransferNoEligibleAssets
+  | WalletMessageSigned
   | PageLoaded;
 
 const LINK_EVENT_TYPE_KEYS = [
@@ -28,6 +29,7 @@ const LINK_EVENT_TYPE_KEYS = [
   'transferInitiated',
   'transferNoEligibleAssets',
   'pageLoaded',
+  'walletMessageSigned'
 ] as const;
 
 export const mappedLinkEvents: Record<string, string> = {
@@ -236,3 +238,14 @@ export interface LinkConfiguration {
 export type TransferFinishedPayload =
   | TransferFinishedSuccessPayload
   | TransferFinishedErrorPayload;
+
+export interface WalletMessageSigned extends LinkEventBase {
+  type: 'walletMessageSigned'
+  payload: {
+    signedMessageHash: string | undefined
+    message: string | undefined
+    address: string
+    timeStamp: number
+    isVerified: boolean
+  }
+}
