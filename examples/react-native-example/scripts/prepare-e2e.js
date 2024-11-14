@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
-const ENDPOINT_URL = 'https://integration-api.getfront.com/api/v1/cataloglink';
+const ENDPOINT_URL = 'https://integration-api.meshconnect.com/api/v1/cataloglink';
 const CLIENT_ID = process.env.FRONT_CLIENT_ID;
 const CLIENT_SECRET = process.env.FRONT_CLIENT_SECRET;
 
