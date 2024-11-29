@@ -13,7 +13,9 @@ export type LinkEventType =
   | TransferExecuted
   | TransferNoEligibleAssets
   | WalletMessageSigned
-  | PageLoaded;
+  | PageLoaded
+  | VerifyDonePage
+  | VerifyWalletRejected;
 
 const LINK_EVENT_TYPE_KEYS = [
   'integrationConnected',
@@ -29,7 +31,9 @@ const LINK_EVENT_TYPE_KEYS = [
   'transferInitiated',
   'transferNoEligibleAssets',
   'pageLoaded',
-  'walletMessageSigned'
+  'walletMessageSigned',
+  'verifyDonePage',
+  'verifyWalletRejected'
 ] as const;
 
 export const mappedLinkEvents: Record<string, string> = {
@@ -248,4 +252,12 @@ export interface WalletMessageSigned extends LinkEventBase {
     timeStamp: number
     isVerified: boolean
   }
+}
+
+export interface VerifyDonePage extends LinkEventBase {
+  type: 'verifyDonePage'
+}
+
+export interface VerifyWalletRejected extends LinkEventBase {
+  type: 'verifyWalletRejected'
 }
