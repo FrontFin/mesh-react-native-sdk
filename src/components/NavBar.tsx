@@ -1,3 +1,4 @@
+import React from 'react';
 import { useSDKStyles } from './SDKContainer.styled';
 import { Image, TouchableOpacity, View } from 'react-native';
 
