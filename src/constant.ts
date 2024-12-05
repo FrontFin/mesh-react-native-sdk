@@ -36,5 +36,8 @@ export const WHITELISTED_ORIGINS = [
   'https://m.stripe.network',
   'https://js.stripe.com',
   'https://app.usercentrics.eu',
-  'robinhood://'
+  'robinhood://',
+  'https://ramp.revolut.codes',
+  'https://sso.revolut.codes',
+  'https://ramp.revolut.com'
 ];
