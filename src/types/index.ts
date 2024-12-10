@@ -33,7 +33,21 @@ const LINK_EVENT_TYPE_KEYS = [
   'pageLoaded',
   'walletMessageSigned',
   'verifyDonePage',
-  'verifyWalletRejected'
+  'verifyWalletRejected',
+  'integrationMfaRequired',
+  'integrationMfaEntered',
+  'integrationOAuthStarted',
+  'integrationAccountSelectionRequired',
+  'transferAssetSelected',
+  'transferNetworkSelected',
+  'transferAmountEntered',
+  'transferMfaRequired',
+  'transferMfaEntered',
+  'transferKycRequired',
+  'connectionDeclined',
+  'transferConfigureError',
+  'connectionUnavailable',
+  'transferDeclined',
 ] as const;
 
 export const mappedLinkEvents: Record<string, string> = {
