@@ -92,6 +92,9 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
             "https://js.stripe.com",
             "https://app.usercentrics.eu",
             "robinhood://",
+            "https://ramp.revolut.codes",
+            "https://sso.revolut.codes",
+            "https://ramp.revolut.com",
           ]
         }
         source={
