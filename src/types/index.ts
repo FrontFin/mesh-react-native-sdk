@@ -222,6 +222,11 @@ export interface TransferFinishedSuccessPayload {
   symbol: string;
   amount: number;
   networkId: string;
+  amountInFiat?: number;
+  totalAmountInFiat?: number;
+  networkName?: string;
+  txHash?: string;
+  transferId?: string;
 }
 
 export interface TransferFinishedErrorPayload {
@@ -258,20 +263,20 @@ export type TransferFinishedPayload =
   | TransferFinishedErrorPayload;
 
 export interface WalletMessageSigned extends LinkEventBase {
-  type: 'walletMessageSigned'
+  type: 'walletMessageSigned';
   payload: {
-    signedMessageHash: string | undefined
-    message: string | undefined
-    address: string
-    timeStamp: number
-    isVerified: boolean
-  }
+    signedMessageHash: string | undefined;
+    message: string | undefined;
+    address: string;
+    timeStamp: number;
+    isVerified: boolean;
+  };
 }
 
 export interface VerifyDonePage extends LinkEventBase {
-  type: 'verifyDonePage'
+  type: 'verifyDonePage';
 }
 
 export interface VerifyWalletRejected extends LinkEventBase {
-  type: 'verifyWalletRejected'
+  type: 'verifyWalletRejected';
 }
