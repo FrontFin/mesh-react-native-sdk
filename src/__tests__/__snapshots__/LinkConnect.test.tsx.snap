@@ -50,7 +50,7 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
         cacheMode="LOAD_NO_CACHE"
         injectedJavaScript="
     window.meshSdkPlatform='reactNative';
-    window.meshSdkVersion='2.1.12';
+    window.meshSdkVersion='2.1.13';
   "
         javaScriptEnabled={true}
         onLoadEnd={[Function]}
@@ -95,6 +95,7 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
             "https://ramp.revolut.codes",
             "https://sso.revolut.codes",
             "https://ramp.revolut.com",
+            "https://api.cb-device-intelligence.com",
           ]
         }
         source={

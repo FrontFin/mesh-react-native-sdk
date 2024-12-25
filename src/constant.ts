@@ -39,5 +39,6 @@ export const WHITELISTED_ORIGINS = [
   'robinhood://',
   'https://ramp.revolut.codes',
   'https://sso.revolut.codes',
-  'https://ramp.revolut.com'
+  'https://ramp.revolut.com',
+  'https://api.cb-device-intelligence.com',
 ];
