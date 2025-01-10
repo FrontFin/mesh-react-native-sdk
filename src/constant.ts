@@ -42,3 +42,8 @@ export const WHITELISTED_ORIGINS = [
   'https://ramp.revolut.com',
   'https://api.cb-device-intelligence.com',
 ];
+
+export const EXTERNALLY_OPENED_ORIGINS = [
+  'https://link.trustwallet.com',
+  'https://appopener.meshconnect.com',
+];
