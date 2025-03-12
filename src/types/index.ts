@@ -227,6 +227,7 @@ export interface TransferFinishedSuccessPayload {
   networkName?: string;
   txHash?: string;
   transferId?: string;
+  refundAddress?: string;
 }
 
 export interface TransferFinishedErrorPayload {
