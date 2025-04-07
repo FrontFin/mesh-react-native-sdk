@@ -70,6 +70,7 @@ const transferDestinationTokens: IntegrationAccessToken = [
 const linkSettings: LinkSettings = {
     accessTokens,
     transferDestinationTokens,
+    language: 'en'
 };
 
 export const App = () => {
@@ -118,6 +119,7 @@ export default App;
 
 
 The `LinkSettings` option allows to configure the Link behaviour:
+- `language` - Link UI language.
 - `accessTokens` - an array of `IntegrationAccessToken` objects that is used as an origin for crypto transfer flow.
 - `transferDestinationTokens` - an array of `IntegrationAccessToken` objects that is used as a destination for crypto transfer flow.
 - `disableDomainWhiteList` - a boolean flag that allows to disable origin whitelisting. By default, the origin is whitelisted, with the following domains set:

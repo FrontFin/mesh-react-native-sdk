@@ -243,9 +243,12 @@ export interface IntegrationAccessToken {
   brokerName: string;
 }
 
+export type Language = 'en' | 'ru'
+
 export interface LinkSettings {
   accessTokens?: IntegrationAccessToken[];
   transferDestinationTokens?: IntegrationAccessToken[];
+  language?: Language;
 }
 
 export interface LinkConfiguration {
