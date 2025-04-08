@@ -24,7 +24,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
   useEffect(() => {
     try {
       if (props.linkToken) {
-        const decodedUrl = decode64(props.linkToken);
+        let decodedUrl = decode64(props.linkToken);
 
         if (!isValidUrl(decodedUrl)) {
           throw new Error('Invalid link token provided');
@@ -42,6 +42,10 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
           setDarkTheme(style?.th === 'dark');
         }
 
+        decodedUrl = `${decodedUrl}${decodedUrl.includes('?') ? '&' : '?'}lng=${
+          props.settings?.language || 'en'
+        }`
+
         setLinkUrl(decodedUrl);
         setShowWebView(true);
       }
@@ -56,7 +60,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
       setLinkUrl(null);
       setShowWebView(false);
     };
-  }, [props.linkToken, props.onExit]);
+  }, [props.linkToken, props.onExit, props.settings?.language]);
 
   useEffect(() => {
     const colorSchemeWatcher = Appearance.addChangeListener(({ colorScheme }) => {

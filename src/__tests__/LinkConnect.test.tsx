@@ -29,6 +29,7 @@ describe('LinkConnect Component', () => {
 
   it('renders correctly when linkToken and accessTokens and transferDestinationTokens are provided', () => {
     render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} settings={{
+      language: 'en',
       accessTokens: [
         {
           accountId: '1234567890',

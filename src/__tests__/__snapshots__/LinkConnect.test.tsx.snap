@@ -50,7 +50,7 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
         cacheMode="LOAD_NO_CACHE"
         injectedJavaScript="
     window.meshSdkPlatform='reactNative';
-    window.meshSdkVersion='2.1.15';
+    window.meshSdkVersion='2.1.16';
   "
         javaScriptEnabled={true}
         onLoadEnd={[Function]}
@@ -100,7 +100,7 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
         }
         source={
           {
-            "uri": "https://web.getfront.com/b2b-iframe/test-account-random/broker-connect/catalog1",
+            "uri": "https://web.getfront.com/b2b-iframe/test-account-random/broker-connect/catalog1?lng=en",
           }
         }
         startInLoadingState={true}
