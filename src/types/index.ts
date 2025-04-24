@@ -190,6 +190,10 @@ export interface Account {
 export interface BrandInfo {
   brokerLogo: string;
   brokerPrimaryColor?: string;
+  logoLightUrl?: string;
+  logoDarkUrl?: string;
+  iconLightUrl?: string;
+  iconDarkUrl?: string;
 }
 
 export interface LinkPayload {
@@ -243,12 +247,10 @@ export interface IntegrationAccessToken {
   brokerName: string;
 }
 
-export type Language = 'en' | 'ru'
-
 export interface LinkSettings {
   accessTokens?: IntegrationAccessToken[];
   transferDestinationTokens?: IntegrationAccessToken[];
-  language?: Language;
+  language?: string;
 }
 
 export interface LinkConfiguration {
