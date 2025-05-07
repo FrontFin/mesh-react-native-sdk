@@ -118,6 +118,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
         break;
       }
 
+      case 'integrationConnected':
       case 'brokerageAccountAccessToken': {
         const payloadData: LinkPayload = {
           accessToken: payload as AccessTokenPayload,
@@ -142,6 +143,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
         break;
       }
 
+      case 'transferCompleted':
       case 'transferFinished': {
         const payloadData = payload as TransferFinishedPayload;
 
