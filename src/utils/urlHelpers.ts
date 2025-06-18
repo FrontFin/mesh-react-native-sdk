@@ -4,13 +4,13 @@ export const urlSearchParams = (url?: string) => {
   if (!url) return {};
 
   const query = queryString.parseUrl(url).query;
-  const result: Record<string, string> = {};
+  const params: Record<string, string> = {};
 
   for (const [key, value] of Object.entries(query)) {
     if (typeof value === 'string') {
-      result[key] = value;
+      params[key] = value;
     }
   }
 
-  return result;
+  return params;
 };
