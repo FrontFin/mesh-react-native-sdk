@@ -73,6 +73,7 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
+    "query-string": "7",
     "react-native-webview": "^13.10.4"
   }
 }
