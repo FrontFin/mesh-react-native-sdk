@@ -15,7 +15,13 @@ export type LinkEventType =
   | WalletMessageSigned
   | PageLoaded
   | VerifyDonePage
-  | VerifyWalletRejected;
+  | VerifyWalletRejected
+  | LegalTermsViewed
+  | SeeWhatHappenedClicked
+  | FundingOptionsUpdated
+  | FundingOptionsViewed
+  | GasIncreaseWarning
+  | ExecuteFundingStep;
 
 const LINK_EVENT_TYPE_KEYS = [
   'integrationConnected',
@@ -48,6 +54,12 @@ const LINK_EVENT_TYPE_KEYS = [
   'transferConfigureError',
   'connectionUnavailable',
   'transferDeclined',
+  'legalTermsViewed',
+  'seeWhatHappenedClicked',
+  'executeFundingStep',
+  'fundingOptionsUpdated',
+  'fundingOptionsViewed',
+  'gasIncreaseWarning',
 ] as const;
 
 export const mappedLinkEvents: Record<string, string> = {
@@ -285,4 +297,33 @@ export interface VerifyDonePage extends LinkEventBase {
 
 export interface VerifyWalletRejected extends LinkEventBase {
   type: 'verifyWalletRejected';
+}
+
+export interface LegalTermsViewed {
+  type: 'legalTermsViewed';
+}
+
+export interface SeeWhatHappenedClicked {
+  type: 'seeWhatHappenedClicked';
+}
+
+export interface FundingOptionsUpdated {
+  type: 'fundingOptionsUpdated';
+}
+
+export interface FundingOptionsViewed {
+  type: 'fundingOptionsViewed';
+}
+
+export interface GasIncreaseWarning {
+  type: 'gasIncreaseWarning';
+}
+
+export interface ExecuteFundingStep {
+  type: 'executeFundingStep';
+  payload: {
+    cryptocurrencyFundingOptionType: string;
+    status: string;
+    errorMessage?: string;
+  };
 }
