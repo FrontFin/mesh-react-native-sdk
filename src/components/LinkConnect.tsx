@@ -123,6 +123,7 @@ export const LinkConnect = (props: LinkConfiguration) => {
             }
             return req.url.startsWith('http');
           }}
+          domStorageEnabled={true}
         />
       )}
     </SDKWrapperComponent>

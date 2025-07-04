@@ -1,5 +1,5 @@
 {
-  "version": "2.1.20",
+  "version": "2.1.21",
   "name": "@meshconnect/react-native-link-sdk",
   "description": "Mesh Connect React Native SDK.",
   "license": "MIT",
@@ -74,6 +74,6 @@
   },
   "dependencies": {
     "query-string": "7",
-    "react-native-webview": "^13.10.4"
+    "react-native-webview": "^13.15.0"
   }
 }
