@@ -48,9 +48,10 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
       <View
         bounces={false}
         cacheMode="LOAD_NO_CACHE"
+        domStorageEnabled={true}
         injectedJavaScript="
     window.meshSdkPlatform='reactNative';
-    window.meshSdkVersion='2.1.20';
+    window.meshSdkVersion='2.1.21';
   "
         javaScriptEnabled={true}
         onLoadEnd={[Function]}
@@ -64,10 +65,8 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
             "*.walletconnect.com",
             "*.walletconnect.org",
             "*.walletlink.org",
-            "*.coinbase.com",
             "*.okx.com",
             "*.gemini.com",
-            "*.coinbase.com",
             "*.hcaptcha.com",
             "*.robinhood.com",
             "*.google.com",
@@ -76,10 +75,8 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
             "https://walletconnect.com",
             "https://walletconnect.org",
             "https://walletlink.org",
-            "https://coinbase.com",
             "https://okx.com",
             "https://gemini.com",
-            "https://coinbase.com",
             "https://hcaptcha.com",
             "https://robinhood.com",
             "https://google.com",
@@ -95,7 +92,6 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
             "https://ramp.revolut.codes",
             "https://sso.revolut.codes",
             "https://ramp.revolut.com",
-            "https://api.cb-device-intelligence.com",
           ]
         }
         source={

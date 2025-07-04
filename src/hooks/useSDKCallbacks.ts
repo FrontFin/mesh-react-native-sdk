@@ -3,7 +3,12 @@ import { Alert, Appearance } from 'react-native';
 import { WebViewMessageEvent } from 'react-native-webview';
 import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes';
 
-import { decode64, isValidUrl, urlSearchParams, decodeLinkStyle } from '../utils';
+import {
+  decode64,
+  isValidUrl,
+  urlSearchParams,
+  decodeLinkStyle,
+} from '../utils';
 import {
   AccessTokenPayload,
   DelayedAuthPayload,
@@ -18,7 +23,9 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
   const [linkUrl, setLinkUrl] = useState<string | null>(null);
   const [showWebView, setShowWebView] = useState(false);
   const [showNativeNavbar, setShowNativeNavbar] = useState(false);
-  const [linkColorScheme, setLinkColorScheme] = useState<string | undefined>(undefined);
+  const [linkColorScheme, setLinkColorScheme] = useState<string | undefined>(
+    undefined
+  );
   const [darkTheme, setDarkTheme] = useState<boolean | undefined>(undefined);
 
   useEffect(() => {
@@ -44,7 +51,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
 
         decodedUrl = `${decodedUrl}${decodedUrl.includes('?') ? '&' : '?'}lng=${
           props.settings?.language || 'en'
-        }`
+        }`;
 
         setLinkUrl(decodedUrl);
         setShowWebView(true);
@@ -52,7 +59,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
       // eslint-disable-next-line
     } catch (err: any) {
       props.onExit?.(
-        err?.message || 'An error occurred during connection establishment',
+        err?.message || 'An error occurred during connection establishment'
       );
     }
 
@@ -63,11 +70,13 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
   }, [props.linkToken, props.onExit, props.settings?.language]);
 
   useEffect(() => {
-    const colorSchemeWatcher = Appearance.addChangeListener(({ colorScheme }) => {
-      if(linkColorScheme === 'system') {
-        setDarkTheme(colorScheme === 'dark');
+    const colorSchemeWatcher = Appearance.addChangeListener(
+      ({ colorScheme }) => {
+        if (linkColorScheme === 'system') {
+          setDarkTheme(colorScheme === 'dark');
+        }
       }
-    });
+    );
 
     return () => {
       colorSchemeWatcher.remove();
@@ -90,7 +99,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
             props.onExit?.();
           },
         },
-      ],
+      ]
     );
 
   // istanbul ignore next
