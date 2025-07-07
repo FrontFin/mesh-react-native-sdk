@@ -9,10 +9,8 @@ export const WHITELISTED_ORIGINS = [
   '*.walletconnect.com',
   '*.walletconnect.org',
   '*.walletlink.org',
-  '*.coinbase.com',
   '*.okx.com',
   '*.gemini.com',
-  '*.coinbase.com',
   '*.hcaptcha.com',
   '*.robinhood.com',
   '*.google.com',
@@ -21,10 +19,8 @@ export const WHITELISTED_ORIGINS = [
   'https://walletconnect.com',
   'https://walletconnect.org',
   'https://walletlink.org',
-  'https://coinbase.com',
   'https://okx.com',
   'https://gemini.com',
-  'https://coinbase.com',
   'https://hcaptcha.com',
   'https://robinhood.com',
   'https://google.com',
@@ -40,10 +36,12 @@ export const WHITELISTED_ORIGINS = [
   'https://ramp.revolut.codes',
   'https://sso.revolut.codes',
   'https://ramp.revolut.com',
-  'https://api.cb-device-intelligence.com',
 ];
 
 export const EXTERNALLY_OPENED_ORIGINS = [
   'https://link.trustwallet.com',
   'https://appopener.meshconnect.com',
+  'https://coinbase.com',
+  'https://login.coinbase.com',
+  'https://api.cb-device-intelligence.com',
 ];
