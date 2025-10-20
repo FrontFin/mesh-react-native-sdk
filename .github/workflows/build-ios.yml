@@ -47,7 +47,7 @@ jobs:
             ${{ runner.os }}-${{ env.ImageVersion }}-node-
       - name: Install node modules 📦
         run: yarn install --frozen-lockfile
-      - uses: ruby/setup-ruby@v1
+      - uses: ruby/setup-ruby@ab177d40ee5483edb974554986f56b33477e21d0 #v1.265.0
         with:
           ruby-version: ${{ env.RUBY_VERSION }}
 
@@ -79,7 +79,7 @@ jobs:
         run: npx pod-install
 
       - name: Build iOS App for Firebase 🏗️
-        uses: yukiarrr/ios-build-action@v1.12.0
+        uses: yukiarrr/ios-build-action@099d9f7b468abd4a33d027ea365a103ae9c546d6 # v1.12.0
         with:
           project-path: ${{ env.WORKING_DIRECTORY }}/ios/MeshConnectRNSDK.xcodeproj
           p12-base64: ${{ secrets.IOS_P12_BASE64 }} # iOS Distribution certificate
@@ -94,7 +94,7 @@ jobs:
           export-method: ${{ secrets.IOS_EXPORT_METHOD }} #ad-hoc
 
       - name: Upload iOS App to Firebase App Distribution 🏁
-        uses: emertozd/Firebase-Distribution-Github-Action@v2
+        uses: wzieba/Firebase-Distribution-Github-Action@bd494989dd4bec0343f78adee87fe66e48279ad6 # v1.7.1
         with:
           appId: ${{ secrets.FIREBASE_IOS_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_CREDENTIAL_FILE_CONTENT }}
