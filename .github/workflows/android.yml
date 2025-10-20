@@ -55,7 +55,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Validate Gradle ✅
-        uses: gradle/actions/wrapper-validation@v3
+        uses: gradle/actions/wrapper-validation@f9c9c575b8b21b6485636a91ffecd10e558c62f6 # v3.5.0
 
       - name: Setup Java ♨️
         uses: actions/setup-java@v4
@@ -70,7 +70,7 @@ jobs:
           BUILD_NUMBER: ${{ github.run_number }}
 
       - name: Upload Android App to Firebase App Distribution 🏁
-        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        uses: wzieba/Firebase-Distribution-Github-Action@bd494989dd4bec0343f78adee87fe66e48279ad6 # v1.7.1
         with:
           appId: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_CREDENTIAL_FILE_CONTENT }}
