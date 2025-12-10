@@ -21,7 +21,9 @@ export type LinkEventType =
   | FundingOptionsUpdated
   | FundingOptionsViewed
   | GasIncreaseWarning
-  | ExecuteFundingStep;
+  | ExecuteFundingStep
+  | LinkTransferQrGenerated
+  | HomePageMethodSelected;
 
 const LINK_EVENT_TYPE_KEYS = [
   'integrationConnected',
@@ -60,6 +62,8 @@ const LINK_EVENT_TYPE_KEYS = [
   'fundingOptionsUpdated',
   'fundingOptionsViewed',
   'gasIncreaseWarning',
+  'linkTransferQRGenerated',
+  'methodSelected',
 ] as const;
 
 export const mappedLinkEvents: Record<string, string> = {
@@ -325,5 +329,22 @@ export interface ExecuteFundingStep {
     cryptocurrencyFundingOptionType: string;
     status: string;
     errorMessage?: string;
+  };
+}
+
+export interface LinkTransferQrGenerated {
+  type: 'linkTransferQRGenerated';
+  payload: {
+    token?: string;
+    network?: string;
+    toAddress?: string;
+    qrUrl?: string;
+  };
+}
+
+export interface HomePageMethodSelected {
+  type: 'methodSelected';
+  payload: {
+    method: 'embedded' | 'manual' | 'buy';
   };
 }
