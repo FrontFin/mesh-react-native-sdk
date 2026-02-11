@@ -96,7 +96,7 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
         }
         source={
           {
-            "uri": "https://web.getfront.com/b2b-iframe/test-account-random/broker-connect/catalog1?lng=en",
+            "uri": "https://web.getfront.com/b2b-iframe/test-account-random/broker-connect/catalog1",
           }
         }
         startInLoadingState={true}

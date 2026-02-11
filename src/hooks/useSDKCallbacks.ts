@@ -49,14 +49,15 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
           setDarkTheme(style?.th === 'dark');
         }
 
-        decodedUrl = `${decodedUrl}${decodedUrl.includes('?') ? '&' : '?'}lng=${
-          props.settings?.language || 'en'
-        }`;
-
+        if (props.settings?.language) {
+          decodedUrl = addURLParam(decodedUrl, 'lng', props.settings?.language);
+        }
         if (props.settings?.displayFiatCurrency) {
-          decodedUrl = `${decodedUrl}${
-            decodedUrl.includes('?') ? '&' : '?'
-          }fiatCur=${props.settings?.displayFiatCurrency}`;
+          decodedUrl = addURLParam(
+            decodedUrl,
+            'fiatCur',
+            props.settings?.displayFiatCurrency
+          );
         }
 
         setLinkUrl(decodedUrl);
@@ -107,6 +108,10 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
         },
       ]
     );
+
+  const addURLParam = (url: string, param: string, value: string) => {
+    return `${url}${url.includes('?') ? '&' : '?'}${param}=${value}`;
+  };
 
   // istanbul ignore next
   const handleMessage = (event: WebViewMessageEvent) => {

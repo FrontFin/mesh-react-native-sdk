@@ -53,13 +53,15 @@ describe('LinkConnect Component', () => {
       <LinkConnect
         linkToken={SAMPLE_LINK_TOKEN}
         settings={{
+          language: 'en',
           displayFiatCurrency: 'USD',
         }}
       />
     );
     await waitFor(() => {
       const webview = getByTestId('webview');
-      expect(webview.props.source.uri).toContain('fiatCur');
+      expect(webview.props.source.uri).toContain('lng=en');
+      expect(webview.props.source.uri).toContain('fiatCur=USD');
     });
   });
 
