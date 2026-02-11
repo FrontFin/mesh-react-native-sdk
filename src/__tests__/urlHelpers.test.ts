@@ -18,12 +18,15 @@ describe('urlSearchParams function', () => {
 });
 
 describe('addURLParam function', () => {
-  test('should handle empty param or value', () => {
-    expect(addURLParam('https://example.com', 'key', '')).toBe(
-      'https://example.com'
-    );
+  test('should handle empty param', () => {
     expect(addURLParam('https://example.com', '', 'value')).toBe(
       'https://example.com'
+    );
+  });
+
+  test('should handle empty value', () => {
+    expect(addURLParam('https://example.com', 'key', '')).toBe(
+      'https://example.com?key'
     );
   });
 

@@ -16,8 +16,11 @@ export const urlSearchParams = (url?: string) => {
 };
 
 export const addURLParam = (url: string, param: string, value: string) => {
-  if (!param.length || !value.length) {
+  if (!param.length) {
     return url;
+  }
+  if (!value.length) {
+    return `${url}${url.includes('?') ? '&' : '?'}${param}`;
   }
   return `${url}${url.includes('?') ? '&' : '?'}${param}=${value}`;
 };
