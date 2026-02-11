@@ -8,6 +8,7 @@ import {
   isValidUrl,
   urlSearchParams,
   decodeLinkStyle,
+  addURLParam,
 } from '../utils';
 import {
   AccessTokenPayload,
@@ -49,9 +50,16 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
           setDarkTheme(style?.th === 'dark');
         }
 
-        decodedUrl = `${decodedUrl}${decodedUrl.includes('?') ? '&' : '?'}lng=${
-          props.settings?.language || 'en'
-        }`;
+        if (props.settings?.language) {
+          decodedUrl = addURLParam(decodedUrl, 'lng', props.settings?.language);
+        }
+        if (props.settings?.displayFiatCurrency) {
+          decodedUrl = addURLParam(
+            decodedUrl,
+            'fiatCur',
+            props.settings?.displayFiatCurrency
+          );
+        }
 
         setLinkUrl(decodedUrl);
         setShowWebView(true);

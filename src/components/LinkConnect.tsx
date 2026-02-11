@@ -58,9 +58,6 @@ export const LinkConnect = (props: LinkConfiguration) => {
         window.accessTokens='${JSON.stringify(
           props.settings.accessTokens || {}
         )}';
-        window.transferDestinationTokens='${JSON.stringify(
-          props.settings.transferDestinationTokens || {}
-        )}';
       `;
     }
 

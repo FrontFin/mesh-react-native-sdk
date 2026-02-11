@@ -265,8 +265,8 @@ export interface IntegrationAccessToken {
 
 export interface LinkSettings {
   accessTokens?: IntegrationAccessToken[];
-  transferDestinationTokens?: IntegrationAccessToken[];
   language?: string;
+  displayFiatCurrency?: string;
 }
 
 export interface LinkConfiguration {
