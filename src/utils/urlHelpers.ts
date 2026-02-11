@@ -14,3 +14,10 @@ export const urlSearchParams = (url?: string) => {
 
   return params;
 };
+
+export const addURLParam = (url: string, param: string, value: string) => {
+  if (!param.length || !value.length) {
+    return url;
+  }
+  return `${url}${url.includes('?') ? '&' : '?'}${param}=${value}`;
+};

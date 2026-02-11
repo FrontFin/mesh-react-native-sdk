@@ -8,6 +8,7 @@ import {
   isValidUrl,
   urlSearchParams,
   decodeLinkStyle,
+  addURLParam,
 } from '../utils';
 import {
   AccessTokenPayload,
@@ -108,10 +109,6 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
         },
       ]
     );
-
-  const addURLParam = (url: string, param: string, value: string) => {
-    return `${url}${url.includes('?') ? '&' : '?'}${param}=${value}`;
-  };
 
   // istanbul ignore next
   const handleMessage = (event: WebViewMessageEvent) => {

@@ -178,11 +178,12 @@ To enable our SDK to interact with specific apps, please add the following URL s
 
 1. Open your Info.plist file: This file is located in the ios directory of your React Native project.
 2. Add the following XML snippet within the `<dict>` tags (example for adding trust, robinhood, and metamask):
-   `    <key>LSApplicationQueriesSchemes</key>
+   ```
+   <key>LSApplicationQueriesSchemes</key>
     <array>
         <string>trust</string>
         <string>robinhood</string>
         <string>metamask</string>
     </array>
-   `
+   ```
    This configuration allows our SDK to query and interact with the specified apps, ensuring seamless integration and functionality.
