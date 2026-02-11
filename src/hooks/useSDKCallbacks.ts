@@ -53,6 +53,12 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
           props.settings?.language || 'en'
         }`;
 
+        if (props.settings?.displayFiatCurrency) {
+          decodedUrl = `${decodedUrl}${
+            decodedUrl.includes('?') ? '&' : '?'
+          }fiatCur=${props.settings?.displayFiatCurrency}`;
+        }
+
         setLinkUrl(decodedUrl);
         setShowWebView(true);
       }

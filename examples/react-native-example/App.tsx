@@ -66,6 +66,10 @@ export default function App() {
     return (
       <LinkConnect
         linkToken={linkToken}
+        settings={{
+          language: 'en',
+          displayFiatCurrency: 'USD',
+        }}
         onIntegrationConnected={(payload: LinkPayload) => {
           if (payload.accessToken) {
             showIntegrationConnectedAlert(payload.accessToken);
