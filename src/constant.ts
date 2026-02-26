@@ -44,4 +44,5 @@ export const EXTERNALLY_OPENED_ORIGINS = [
   'https://coinbase.com',
   'https://login.coinbase.com',
   'https://api.cb-device-intelligence.com',
+  'https://sandbox.meshconnect.com/authorize/Coinbase',
 ];
