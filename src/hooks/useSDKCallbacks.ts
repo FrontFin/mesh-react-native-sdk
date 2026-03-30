@@ -42,12 +42,28 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
         const styleParam = queryParams['link_style'];
         const style = decodeLinkStyle(styleParam);
 
-        if (style?.th === 'system') {
+        // settings.theme overrides the theme encoded in the link token
+        const settingsTheme = props.settings?.theme;
+        const effectiveTheme = settingsTheme ?? style?.th;
+
+        if (effectiveTheme === 'system') {
           const colorScheme = Appearance.getColorScheme();
-          setLinkColorScheme(style?.th);
+          setLinkColorScheme('system');
           setDarkTheme(colorScheme === 'dark');
         } else {
-          setDarkTheme(style?.th === 'dark');
+          setDarkTheme(effectiveTheme === 'dark');
+        }
+
+        // Append the resolved theme as a plain `th` query param so the
+        // WebView renders with the correct theme (mirrors Android SDK behaviour).
+        if (settingsTheme) {
+          const resolvedTheme =
+            settingsTheme === 'system'
+              ? Appearance.getColorScheme() === 'dark'
+                ? 'dark'
+                : 'light'
+              : settingsTheme;
+          decodedUrl = addURLParam(decodedUrl, 'th', resolvedTheme);
         }
 
         if (props.settings?.language) {
@@ -75,7 +91,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
       setLinkUrl(null);
       setShowWebView(false);
     };
-  }, [props.linkToken, props.onExit, props.settings?.language]);
+  }, [props.linkToken, props.onExit, props.settings?.language, props.settings?.theme]);
 
   useEffect(() => {
     const colorSchemeWatcher = Appearance.addChangeListener(

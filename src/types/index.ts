@@ -263,10 +263,17 @@ export interface IntegrationAccessToken {
   brokerName: string;
 }
 
+export type LinkTheme = 'light' | 'dark' | 'system';
+
 export interface LinkSettings {
   accessTokens?: IntegrationAccessToken[];
   language?: string;
   displayFiatCurrency?: string;
+  /**
+   * Colour theme applied to the Link UI.
+   * Use `'system'` to automatically follow the device's current colour scheme.
+   */
+  theme?: LinkTheme;
 }
 
 export interface LinkConfiguration {
