@@ -6,9 +6,9 @@ import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes';
 import {
   decode64,
   isValidUrl,
-  urlSearchParams,
-  decodeLinkStyle,
   addURLParam,
+  getEffectiveTheme,
+  resolveTheme,
 } from '../utils';
 import {
   AccessTokenPayload,
@@ -38,14 +38,12 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
           throw new Error('Invalid link token provided');
         }
 
-        const queryParams = urlSearchParams(decodedUrl);
-        const styleParam = queryParams['link_style'];
-        const style = decodeLinkStyle(styleParam);
-
         // settings.theme overrides the theme encoded in the link token
         const settingsTheme = props.settings?.theme;
-        const effectiveTheme = settingsTheme ?? style?.th;
+        const effectiveTheme = getEffectiveTheme(settingsTheme, decodedUrl);
 
+        // If the effective theme is 'system', we need to listen for changes
+        // in the device's colour scheme and update the theme accordingly.
         if (effectiveTheme === 'system') {
           const colorScheme = Appearance.getColorScheme();
           setLinkColorScheme('system');
@@ -57,18 +55,14 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
         // Append the resolved theme as a plain `th` query param so the
         // WebView renders with the correct theme (mirrors Android SDK behaviour).
         if (settingsTheme) {
-          const resolvedTheme =
-            settingsTheme === 'system'
-              ? Appearance.getColorScheme() === 'dark'
-                ? 'dark'
-                : 'light'
-              : settingsTheme;
+          const resolvedTheme = resolveTheme(settingsTheme);
           decodedUrl = addURLParam(decodedUrl, 'th', resolvedTheme);
         }
 
         if (props.settings?.language) {
           decodedUrl = addURLParam(decodedUrl, 'lng', props.settings?.language);
         }
+
         if (props.settings?.displayFiatCurrency) {
           decodedUrl = addURLParam(
             decodedUrl,
@@ -91,7 +85,12 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
       setLinkUrl(null);
       setShowWebView(false);
     };
-  }, [props.linkToken, props.onExit, props.settings?.language, props.settings?.theme]);
+  }, [
+    props.linkToken,
+    props.onExit,
+    props.settings?.language,
+    props.settings?.theme,
+  ]);
 
   useEffect(() => {
     const colorSchemeWatcher = Appearance.addChangeListener(
