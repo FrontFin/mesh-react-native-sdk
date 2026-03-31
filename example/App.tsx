@@ -122,7 +122,7 @@ export default function App() {
             <Text style={styles.connectButtonText}>{connectButtonTitle}</Text>
           </TouchableOpacity>
 
-          {data && (
+          {data !== null && (
             <View
               style={styles.reportsContainer}
               testID={'example-app-reports-container'}>
@@ -130,7 +130,7 @@ export default function App() {
             </View>
           )}
 
-          {error && (
+          {error !== null && (
             <Text testID={'example-app-error'} style={styles.textError}>
               Error: {error}
             </Text>
