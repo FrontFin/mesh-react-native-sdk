@@ -12,7 +12,8 @@
   "dependencies": {
     "@meshconnect/react-native-link-sdk": "../dist",
     "react": "18.3.1",
-    "react-native": "0.77.1"
+    "react-native": "0.77.1",
+    "react-native-webview": "^13.16.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
