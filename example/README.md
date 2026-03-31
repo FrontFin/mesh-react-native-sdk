@@ -50,13 +50,13 @@ yarn android
 
 For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+The first time you create a new project, run the Ruby bundler in **ios** directory to install CocoaPods itself:
 
 ```sh
 bundle install
 ```
 
-Then, and every time you update your native dependencies, run:
+Then, and every time you update your native dependencies, run in **ios** directory:
 
 ```sh
 bundle exec pod install
