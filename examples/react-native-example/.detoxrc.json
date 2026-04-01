@@ -30,9 +30,9 @@
     },
     "emulator": {
       "type": "android.emulator",
-      "device": {
-        "avdName": "TestEmulator"
-      }
+        "device": {
+            "avdName": "TestEmulator"
+        }
     }
   },
   "configurations": {

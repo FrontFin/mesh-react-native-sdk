@@ -3,6 +3,7 @@
   "version": "2.2.1",
   "private": true,
   "scripts": {
+    "preinstall": "./scripts/preinstall",
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "lint": "eslint .",
