@@ -1,111 +1,65 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# 🔗 Mesh Connect React Native SDK Example
 
-# Getting Started
+A working example app demonstrating how to integrate the Mesh Connect React Native SDK. Use it to explore SDK features and as a reference for your own integration.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## 🚀 Getting Started
 
-## Step 1: Build Mesh SDK
+### 🔨 Step 1: Build Mesh SDK
 
-Before running the example app, you need to build the Mesh SDK local dependency. From the **root folder** of the repository, run:
+From the **root** directory:
 
 ```sh
-# Install root dependencies
 yarn
-
-# Build the SDK (outputs to root/dist)
 yarn build:watch
 ```
 
-Keep `build:watch` running in the background so the `dist` directory stays up to date as you make changes to the SDK.
+Keep `build:watch` running — it recompiles the SDK on every change.
 
-## Step 2: Start Metro
+### ⚡ Step 2: Start Metro
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
-
-To start the Metro dev server, run the following command from the root of your React Native project:
+From the **example** directory:
 
 ```sh
-# Using npm
-npm start
-
-# OR using Yarn
 yarn start
 ```
 
-## Step 3: Build and run your app
+### 📱 Step 3: Build and run the app
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+#### 🤖 Android
 
-### Android
+In a separate terminal, from the **example** directory:
 
 ```sh
-# Using npm
-npm run android
-
-# OR using Yarn
 yarn android
 ```
 
-### iOS
+#### 🍏 iOS
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler in **ios** directory to install CocoaPods itself:
+The first time (or after a fresh clone), install Ruby gems from the **example/ios**:
 
 ```sh
 bundle install
 ```
 
-Then, and every time you update your native dependencies, run in **ios** directory:
+Then install native dependencies (repeat after any native dependency update):
 
 ```sh
 bundle exec pod install
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+Then run from the **example** directory:
 
 ```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
 yarn ios
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+### ✏️ Step 4: Modify
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+Edit files in `example/` or the SDK source in `src/`. Metro reloads JS changes automatically via [Fast Refresh](https://reactnative.dev/docs/fast-refresh). To force a full reload:
 
-## Step 4: Modify your app
+- **Android**: Press <kbd>R</kbd> twice, or <kbd>Ctrl</kbd>+<kbd>M</kbd> / <kbd>Cmd ⌘</kbd>+<kbd>M</kbd> to open the Dev Menu.
+- **iOS**: Press <kbd>R</kbd> in the Simulator.
 
-Now that you have successfully run the app, let's make changes!
+### 🐛 Step 5: Debug
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+With Metro running, press <kbd>j</kbd> in the Metro terminal to open React Native DevTools.
