@@ -1,6 +1,6 @@
 ## Summary
 
-<Add a link to the Jira issue here OR describe changes for reviewer>
+<Put a link to the Jira issue, or describe changes>
 
 ## Type of change
 
@@ -15,9 +15,9 @@
 
 Please tick the options you have done:
 
-- [ ] I have performed a self-review of my code and it meets the criteria specified by the ticket/issue
-- [ ] I have added a comments on my code, particularly in hard-to-understand areas
+- [ ] I have performed a self-review of my code, and it meets the criteria specified by the ticket/issue
+- [ ] I have added comments on my code, particularly in hard-to-understand areas
 - [ ] I have made corresponding changes to the documentation if necessary
 - [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] I have verified all tests pass locally with my changes
-- [ ] I have tested my chnages locally
+- [ ] I have verified that all tests pass locally with my changes
+- [ ] I have tested my changes locally
