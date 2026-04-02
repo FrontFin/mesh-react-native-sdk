@@ -8,7 +8,7 @@
     "lint": "eslint .",
     "start": "react-native start",
     "test": "jest",
-    "reload": "rm -rf ./node_modules && yarn && yarn start"
+    "reinstall": "rm -rf ./node_modules && yarn && yarn start"
   },
   "dependencies": {
     "@meshconnect/react-native-link-sdk": "../../dist",

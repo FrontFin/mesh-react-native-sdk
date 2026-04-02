@@ -55,10 +55,10 @@ After making changes you have to re-build the SDK from the `root` directory:
 yarn build
 ```
 
-Then reload an example app from `examples/react-native-example` directory:
+Then reinstall the dependencies for example app from `examples/react-native-example` directory:
 
 ```sh
-yarn reload
+yarn reinstall
 ```
 
 And click <kbd>R</kbd> to reload the app.
