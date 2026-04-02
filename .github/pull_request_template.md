@@ -20,4 +20,4 @@ Please tick the options you have done:
 - [ ] I have made corresponding changes to the documentation if necessary
 - [ ] I have added tests that prove my fix is effective or that my feature works
 - [ ] I have verified that all tests pass locally with my changes
-- [ ] I have tested my changes locally
+- [ ] I have tested my changes locally on both Android & iOS
