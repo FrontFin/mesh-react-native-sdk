@@ -5,13 +5,13 @@
 #import <React/RCTRootView.h>
 
 #define TIMEOUT_SECONDS 600
-#define TEXT_TO_LOOK_FOR @"Connect account"
+#define TEXT_TO_LOOK_FOR @"Welcome to React"
 
-@interface MeshConnectRNSDKTests : XCTestCase
+@interface MeshReactNativeExampleTests : XCTestCase
 
 @end
 
-@implementation MeshConnectRNSDKTests
+@implementation MeshReactNativeExampleTests
 
 - (BOOL)findSubviewInView:(UIView *)view matching:(BOOL (^)(UIView *view))test
 {

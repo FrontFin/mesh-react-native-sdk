@@ -14,6 +14,7 @@
     "build:watch": "tsc --build --watch",
     "check:build": "node scripts/verify-build.js",
     "clean": "tsc --build --clean",
+    "clean:modules": "rm -rf node_modules",
     "lint": "eslint --ext .js,.ts,.tsx ./src",
     "test": "jest --passWithNoTests",
     "publish:npm": "yarn build && cd dist && yarn publish --access public",
