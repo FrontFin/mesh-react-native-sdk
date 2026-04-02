@@ -1,6 +1,6 @@
 # 🔗 Mesh Connect React Native SDK Example
 
-A working example app demonstrating how to integrate the Mesh Connect React Native SDK. Use it to explore SDK features and as a reference for your own integration.
+A working example app demonstrating how to integrate the Mesh Connect React Native SDK.
 
 ## 🚀 Getting Started
 
@@ -26,7 +26,7 @@ yarn start
 
 #### 🤖 Android
 
-In a new Terminal window, build and android app from `examples/react-native-example` directory:
+In a new Terminal window build an android app from `examples/react-native-example` directory:
 
 ```sh
 yarn android
@@ -41,7 +41,7 @@ bundle install
 bundle exec pod install
 ```
 
-In a new Terminal window, build and ios app from `examples/react-native-example` directory:
+In a new Terminal window build an iOS app from `examples/react-native-example` directory:
 
 ```sh
 yarn ios
@@ -49,23 +49,23 @@ yarn ios
 
 ### ✏️ Step 4: Modify
 
-After making changes you have to re-build the sdk, from the `root` directory:
+After making changes you have to re-build the SDK from the `root` directory:
 
 ```sh
 yarn build
 ```
 
-And reload an example app, from `examples/react-native-example` directory:
+Then reload an example app from `examples/react-native-example` directory:
 
 ```sh
 yarn reload
 ```
 
-Than click <kbd>r</kbd> to reload the app.
+And click <kbd>R</kbd> to reload the app.
 
 ### 🐛 Step 5: Debug
 
-With Metro running, press <kbd>d</kbd> in the Metro terminal to open React Native DevTools.
+With Metro running, press <kbd>D</kbd> in the Metro terminal to open React Native DevTools.
 
 > [!NOTE]
-> The project will be re-stuctured to use a workspaces to achieve Fast Refresh.
+> The project will use workspaces soon.
