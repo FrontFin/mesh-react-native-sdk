@@ -2,11 +2,11 @@
 
 React Native library for integrating with Mesh Connect.
 
-[![Quality Gate Status](https://sonarqube.getfront.com/api/project_badges/measure?project=FrontFin_mesh-react-native-sdk_AYtDIH_UIVHuUYros6Ac&metric=alert_status&token=sqb_b86a73cc697768102ea42befa131cc75292d194c)](https://sonarqube.getfront.com/dashboard?id=FrontFin_mesh-react-native-sdk_AYtDIH_UIVHuUYros6Ac)
-[![Coverage](https://sonarqube.getfront.com/api/project_badges/measure?project=FrontFin_mesh-react-native-sdk_AYtDIH_UIVHuUYros6Ac&metric=coverage&token=sqb_b86a73cc697768102ea42befa131cc75292d194c)](https://sonarqube.getfront.com/dashboard?id=FrontFin_mesh-react-native-sdk_AYtDIH_UIVHuUYros6Ac)
-[![Maintainability Rating](https://sonarqube.getfront.com/api/project_badges/measure?project=FrontFin_mesh-react-native-sdk_AYtDIH_UIVHuUYros6Ac&metric=sqale_rating&token=sqb_b86a73cc697768102ea42befa131cc75292d194c)](https://sonarqube.getfront.com/dashboard?id=FrontFin_mesh-react-native-sdk_AYtDIH_UIVHuUYros6Ac)
-[![Reliability Rating](https://sonarqube.getfront.com/api/project_badges/measure?project=FrontFin_mesh-react-native-sdk_AYtDIH_UIVHuUYros6Ac&metric=reliability_rating&token=sqb_b86a73cc697768102ea42befa131cc75292d194c)](https://sonarqube.getfront.com/dashboard?id=FrontFin_mesh-react-native-sdk_AYtDIH_UIVHuUYros6Ac)
-[![Security Rating](https://sonarqube.getfront.com/api/project_badges/measure?project=FrontFin_mesh-react-native-sdk_AYtDIH_UIVHuUYros6Ac&metric=security_rating&token=sqb_b86a73cc697768102ea42befa131cc75292d194c)](https://sonarqube.getfront.com/dashboard?id=FrontFin_mesh-react-native-sdk_AYtDIH_UIVHuUYros6Ac)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=FrontFin_mesh-react-native-sdk&metric=alert_status)](https://sonarcloud.io/project/overview?id=FrontFin_mesh-react-native-sdk)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=FrontFin_mesh-react-native-sdk&metric=coverage)](https://sonarcloud.io/project/overview?id=FrontFin_mesh-react-native-sdk)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=FrontFin_mesh-react-native-sdk&metric=sqale_rating)](https://sonarcloud.io/project/overview?id=FrontFin_mesh-react-native-sdk)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=FrontFin_mesh-react-native-sdk&metric=reliability_rating)](https://sonarcloud.io/project/overview?id=FrontFin_mesh-react-native-sdk)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=FrontFin_mesh-react-native-sdk&metric=security_rating)](https://sonarcloud.io/project/overview?id=FrontFin_mesh-react-native-sdk)
 
 ## Installation
 
