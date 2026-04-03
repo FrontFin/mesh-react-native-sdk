@@ -69,6 +69,7 @@ export default function App() {
         settings={{
           language: 'en',
           displayFiatCurrency: 'USD',
+          theme: 'system',
         }}
         onIntegrationConnected={(payload: LinkPayload) => {
           if (payload.accessToken) {
