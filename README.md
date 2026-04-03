@@ -22,12 +22,17 @@ With `yarn`:
 yarn add @meshconnect/react-native-link-sdk
 ```
 
-💡 This package requires `react-native-webview` to be installed in your project. Some times it is not installed automatically (This is a known [npm issue](https://stackoverflow.com/questions/18401606/npm-doesnt-install-module-dependencies)). You should install it manually via following command in this case:
+💡 This package requires `react-native-webview` to be installed in your project.
 
-```bash
+With `npm`:
+
+```
 npm install --save react-native-webview
+```
 
-# or with yarn
+With `yarn`:
+
+```
 yarn add react-native-webview
 ```
 
@@ -70,6 +75,7 @@ const linkSettings: LinkSettings = {
   accessTokens,
   language: 'en',
   displayFiatCurrency: 'USD',
+  theme: 'system',
 };
 
 export const App = () => {
@@ -102,7 +108,7 @@ export const App = () => {
 export default App;
 ```
 
-ℹ️ See full source code examples at [examples/](https://github.com/FrontFin/mesh-react-native-sdk/tree/main/examples).
+ℹ️ See full source code examples on [App.tsx](https://github.com/FrontFin/mesh-react-native-sdk/blob/main/examples/react-native-example/App.tsx).
 
 #### `LinkConnect` component arguments
 
