@@ -120,6 +120,7 @@ The `LinkSettings` option allows to configure the Link behaviour:
 
 - `language` - Link UI language.
 - `displayFiatCurrency` - a preferred display fiat currency
+- `theme` - Link UI colour theme. Accepts: 'light', 'dark', 'system'.
 - `accessTokens` - an array of `IntegrationAccessToken` objects that is used as an origin for crypto transfer flow.
 - `disableDomainWhiteList` - a boolean flag that allows to disable origin whitelisting. By default, the origin is whitelisted, with the following domains set:
   - `*.meshconnect.com`
