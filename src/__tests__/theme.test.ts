@@ -2,12 +2,17 @@ import { extractThemeFromToken } from '../utils/theme';
 
 const BASE_URL = 'https://link.meshconnect.com';
 
-/** base64(JSON.stringify(...)) — values for the `link_style` query param */
+// base64('{"th":"dark"}')
 const LINK_STYLE_DARK = 'eyJ0aCI6ImRhcmsifQ==';
+// base64('{"th":"light"}')
 const LINK_STYLE_LIGHT = 'eyJ0aCI6ImxpZ2h0In0=';
+// base64('{"th":"system"}')
 const LINK_STYLE_SYSTEM = 'eyJ0aCI6InN5c3RlbSJ9';
+// base64('{}')
 const LINK_STYLE_EMPTY_OBJECT = 'e30=';
+// base64('{"th":""}')
 const LINK_STYLE_TH_EMPTY = 'eyJ0aCI6IiJ9';
+// base64('not json')
 const LINK_STYLE_NOT_JSON = 'bm90IGpzb24=';
 
 const urlWithLinkStyle = (linkStyleBase64: string) =>

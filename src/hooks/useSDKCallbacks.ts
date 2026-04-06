@@ -56,7 +56,6 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
           decodedUrl = addURLParam(decodedUrl, 'fiatCur', settingsFiatCurrency);
         }
 
-        // Determine the effective theme to apply based on the settings and URL, and save to state
         // The settings theme takes precedence over the URL theme,
         // and if neither is provided, the effective theme will be undefined
         setEffectiveTheme(settingsTheme ?? extractThemeFromToken(decodedUrl));
