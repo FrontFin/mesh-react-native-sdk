@@ -14,6 +14,7 @@ import {
   DelayedAuthPayload,
   LinkConfiguration,
   LinkPayload,
+  LinkTheme,
   TransferFinishedPayload,
   isLinkEventTypeKey,
   mappedLinkEvents,
@@ -26,7 +27,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
   const [deviceColorScheme, setDeviceColorScheme] = useState(
     Appearance.getColorScheme()
   );
-  const [effectiveTheme, setEffectiveTheme] = useState<string>();
+  const [effectiveTheme, setEffectiveTheme] = useState<LinkTheme>();
   const [darkTheme, setDarkTheme] = useState<boolean>();
 
   useEffect(() => {
