@@ -7,8 +7,7 @@ import {
   decode64,
   isValidUrl,
   addURLParam,
-  getEffectiveTheme,
-  resolveTheme,
+  extractThemeFromToken,
 } from '../utils';
 import {
   AccessTokenPayload,
@@ -39,34 +38,30 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
           throw new Error('Invalid link token provided');
         }
 
-        // The settings.theme overrides the theme encoded in the link token
-        // effectiveTheme can be: 'system' | 'light' | 'dark' | undefined
+        // Add the `theme` to the URL as a `th` query parameter
         const settingsTheme = props.settings?.theme;
-        const effectiveTheme = getEffectiveTheme(settingsTheme, decodedUrl);
-
-        // Store the effective theme in state
-        // This is used to determine the theme to apply to the WebView
-        setEffectiveTheme(effectiveTheme);
-
-        // Add the settings.theme (if it exists) as a query parameter
-        // to the link URL so that it can be applied in the web app
         if (settingsTheme) {
-          const resolvedTheme = resolveTheme(settingsTheme) || 'light';
-          decodedUrl = addURLParam(decodedUrl, 'th', resolvedTheme);
+          decodedUrl = addURLParam(decodedUrl, 'th', settingsTheme);
         }
 
-        if (props.settings?.language) {
-          decodedUrl = addURLParam(decodedUrl, 'lng', props.settings?.language);
+        // Add the `language` to the URL as a `lng` query parameter
+        const settingsLanguage = props.settings?.language;
+        if (settingsLanguage) {
+          decodedUrl = addURLParam(decodedUrl, 'lng', settingsLanguage);
         }
 
-        if (props.settings?.displayFiatCurrency) {
-          decodedUrl = addURLParam(
-            decodedUrl,
-            'fiatCur',
-            props.settings?.displayFiatCurrency
-          );
+        // Add the `displayFiatCurrency` to the URL as a `fiatCur` query parameter
+        const settingsFiatCurrency = props.settings?.displayFiatCurrency;
+        if (settingsFiatCurrency) {
+          decodedUrl = addURLParam(decodedUrl, 'fiatCur', settingsFiatCurrency);
         }
 
+        // Determine the effective theme to apply based on the settings and URL, and save to state
+        // The settings theme takes precedence over the URL theme,
+        // and if neither is provided, the effective theme will be undefined
+        setEffectiveTheme(settingsTheme ?? extractThemeFromToken(decodedUrl));
+
+        // Save the decoded URL to state to load in the WebView
         setLinkUrl(decodedUrl);
         setShowWebView(true);
       }
@@ -103,7 +98,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
   }, []);
 
   // Listen for changes in the device's colour scheme and effective theme
-  // and update the darkTheme state accordingly
+  // to update the darkTheme state accordingly
   useEffect(() => {
     if (effectiveTheme === 'system') {
       setIsDarkTheme(deviceColorScheme === 'dark');
