@@ -4,15 +4,15 @@ import { useSDKCallbacks } from '../hooks/useSDKCallbacks';
 import { WebViewMessageEvent } from 'react-native-webview';
 import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes';
 
-// Encode a plain string to standard base64 (compatible with the custom decode64 util)
-const encode64 = (s: string) => Buffer.from(s).toString('base64');
+/** Base64 of `https://link.meshconnect.com` — `decode64(linkToken)` yields that URL. */
+const TOKEN_BASE_ONLY = 'aHR0cHM6Ly9saW5rLm1lc2hjb25uZWN0LmNvbQ==';
 
-const BASE_URL = 'https://link.meshconnect.com';
-const makeToken = (url: string) => encode64(url);
-
-// Build a link token whose embedded URL has a link_style param with the given theme
-const makeTokenWithUrlTheme = (th: string) =>
-  makeToken(`${BASE_URL}?link_style=${encode64(JSON.stringify({ th }))}`);
+/**
+ * Base64 of `https://link.meshconnect.com?link_style=eyJ0aCI6ImRhcmsifQ==`
+ * (link_style is base64 of `{"th":"dark"}`).
+ */
+const TOKEN_URL_THEME_DARK =
+  'aHR0cHM6Ly9saW5rLm1lc2hjb25uZWN0LmNvbT9saW5rX3N0eWxlPWV5SjBhQ0k2SW1SaGNtc2lmUT09';
 
 const mockedUseColorScheme = jest.fn();
 
@@ -88,7 +88,7 @@ describe('useSDKCallbacks – theme behaviour', () => {
 
   test('darkTheme is true and th=dark appended to URL when settings.theme is "dark"', () => {
     const { result } = renderHook(() =>
-      useSDKCallbacks({ linkToken: makeToken(BASE_URL), settings: { theme: 'dark' } })
+      useSDKCallbacks({ linkToken: TOKEN_BASE_ONLY, settings: { theme: 'dark' } })
     );
 
     expect(result.current.darkTheme).toBe(true);
@@ -97,7 +97,7 @@ describe('useSDKCallbacks – theme behaviour', () => {
 
   test('darkTheme is false and th=light appended to URL when settings.theme is "light"', () => {
     const { result } = renderHook(() =>
-      useSDKCallbacks({ linkToken: makeToken(BASE_URL), settings: { theme: 'light' } })
+      useSDKCallbacks({ linkToken: TOKEN_BASE_ONLY, settings: { theme: 'light' } })
     );
 
     expect(result.current.darkTheme).toBe(false);
@@ -108,7 +108,7 @@ describe('useSDKCallbacks – theme behaviour', () => {
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
 
     const { result } = renderHook(() =>
-      useSDKCallbacks({ linkToken: makeToken(BASE_URL), settings: { theme: 'system' } })
+      useSDKCallbacks({ linkToken: TOKEN_BASE_ONLY, settings: { theme: 'system' } })
     );
 
     expect(result.current.darkTheme).toBe(true);
@@ -119,7 +119,7 @@ describe('useSDKCallbacks – theme behaviour', () => {
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('light');
 
     const { result } = renderHook(() =>
-      useSDKCallbacks({ linkToken: makeToken(BASE_URL), settings: { theme: 'system' } })
+      useSDKCallbacks({ linkToken: TOKEN_BASE_ONLY, settings: { theme: 'system' } })
     );
 
     expect(result.current.darkTheme).toBe(false);
@@ -130,7 +130,7 @@ describe('useSDKCallbacks – theme behaviour', () => {
     // Token URL has dark theme in link_style, but settings override to light
     const { result } = renderHook(() =>
       useSDKCallbacks({
-        linkToken: makeTokenWithUrlTheme('dark'),
+        linkToken: TOKEN_URL_THEME_DARK,
         settings: { theme: 'light' },
       })
     );
@@ -141,7 +141,7 @@ describe('useSDKCallbacks – theme behaviour', () => {
 
   test('falls back to link_style theme in the token when no settings.theme is set', () => {
     const { result } = renderHook(() =>
-      useSDKCallbacks({ linkToken: makeTokenWithUrlTheme('dark') })
+      useSDKCallbacks({ linkToken: TOKEN_URL_THEME_DARK })
     );
 
     expect(result.current.darkTheme).toBe(true);
@@ -151,7 +151,7 @@ describe('useSDKCallbacks – theme behaviour', () => {
 
   test('darkTheme is false when no theme is set anywhere', () => {
     const { result } = renderHook(() =>
-      useSDKCallbacks({ linkToken: makeToken(BASE_URL) })
+      useSDKCallbacks({ linkToken: TOKEN_BASE_ONLY })
     );
 
     // No theme in token and no settings.theme → darkTheme defaults to false
