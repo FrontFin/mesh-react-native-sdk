@@ -55,12 +55,12 @@ describe('resolveTheme', () => {
     expect(resolveTheme('system')).toBe('light');
   });
 
-  test('returns "light" when theme is "system" and device colour scheme is null', () => {
+  test('returns null when theme is "system" and device colour scheme is null', () => {
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue(null);
-    expect(resolveTheme('system')).toBe('light');
+    expect(resolveTheme('system')).toBeNull();
   });
 
-  test('returns "light" as default when theme is undefined', () => {
-    expect(resolveTheme(undefined)).toBe('light');
+  test('returns undefined when theme is undefined', () => {
+    expect(resolveTheme(undefined)).toBeUndefined();
   });
 });
