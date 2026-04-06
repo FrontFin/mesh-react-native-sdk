@@ -91,7 +91,9 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
     }
     const colorSchemeWatcher = Appearance.addChangeListener(
       ({ colorScheme }) => {
-        setDarkTheme(colorScheme === 'dark');
+        if (effectiveTheme === 'system') {
+          setDarkTheme(colorScheme === 'dark');
+        }
       }
     );
     return () => {

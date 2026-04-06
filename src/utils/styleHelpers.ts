@@ -1,7 +1,7 @@
 import { decode64 } from './base64';
 
 interface LinkStyle {
-  th?: string | 'dark' | 'system';
+  th?: 'light' | 'dark' | 'system';
 }
 
 export const decodeLinkStyle = (encoded?: string | null): LinkStyle | undefined => {
