@@ -27,7 +27,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
     Appearance.getColorScheme()
   );
   const [effectiveTheme, setEffectiveTheme] = useState<string>();
-  const [isDarkTheme, setIsDarkTheme] = useState<boolean>();
+  const [darkTheme, setDarkTheme] = useState<boolean>();
 
   useEffect(() => {
     try {
@@ -81,6 +81,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
     props.onExit,
     props.settings?.language,
     props.settings?.theme,
+    props.settings?.displayFiatCurrency,
   ]);
 
   // Listen for changes in the device's colour scheme and save to state
@@ -101,9 +102,9 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
   // to update the darkTheme state accordingly
   useEffect(() => {
     if (effectiveTheme === 'system') {
-      setIsDarkTheme(deviceColorScheme === 'dark');
+      setDarkTheme(deviceColorScheme === 'dark');
     } else {
-      setIsDarkTheme(effectiveTheme === 'dark');
+      setDarkTheme(effectiveTheme === 'dark');
     }
   }, [deviceColorScheme, effectiveTheme]);
 
@@ -210,7 +211,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
     linkUrl,
     showWebView,
     showNativeNavbar,
-    darkTheme: isDarkTheme,
+    darkTheme,
     handleMessage,
     handleNavState,
     showCloseAlert,
