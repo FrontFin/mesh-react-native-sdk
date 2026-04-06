@@ -24,9 +24,6 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
   const [linkUrl, setLinkUrl] = useState<string | null>(null);
   const [showWebView, setShowWebView] = useState(false);
   const [showNativeNavbar, setShowNativeNavbar] = useState(false);
-  const [deviceColorScheme, setDeviceColorScheme] = useState(
-    Appearance.getColorScheme()
-  );
   const [effectiveTheme, setEffectiveTheme] = useState<LinkTheme>();
   const [darkTheme, setDarkTheme] = useState<boolean>();
 
@@ -87,26 +84,21 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
   // Listen for changes in the device's colour scheme and save to state
   // so that it can be applied if the effective theme is 'system'
   useEffect(() => {
+    if (effectiveTheme === 'system') {
+      setDarkTheme(Appearance.getColorScheme() === 'dark');
+    } else {
+      setDarkTheme(effectiveTheme === 'dark');
+    }
     const colorSchemeWatcher = Appearance.addChangeListener(
       ({ colorScheme }) => {
-        setDeviceColorScheme(colorScheme);
+        setDarkTheme(colorScheme === 'dark');
       }
     );
     return () => {
       // Clean up the listener on unmount
       colorSchemeWatcher.remove();
     };
-  }, []);
-
-  // Listen for changes in the device's colour scheme and effective theme
-  // to update the darkTheme state accordingly
-  useEffect(() => {
-    if (effectiveTheme === 'system') {
-      setDarkTheme(deviceColorScheme === 'dark');
-    } else {
-      setDarkTheme(effectiveTheme === 'dark');
-    }
-  }, [deviceColorScheme, effectiveTheme]);
+  }, [effectiveTheme]);
 
   // istanbul ignore next
   const showCloseAlert = () =>
