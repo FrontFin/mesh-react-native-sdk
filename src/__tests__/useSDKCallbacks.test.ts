@@ -104,7 +104,7 @@ describe('useSDKCallbacks – theme behaviour', () => {
     expect(result.current.linkUrl).toContain('th=light');
   });
 
-  test('darkTheme follows device scheme and th=dark in URL when settings.theme is "system" on a dark device', () => {
+  test('darkTheme follows device scheme and th=system in URL when settings.theme is "system" on a dark device', () => {
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
 
     const { result } = renderHook(() =>
@@ -112,10 +112,10 @@ describe('useSDKCallbacks – theme behaviour', () => {
     );
 
     expect(result.current.darkTheme).toBe(true);
-    expect(result.current.linkUrl).toContain('th=dark');
+    expect(result.current.linkUrl).toContain('th=system');
   });
 
-  test('darkTheme follows device scheme and th=light in URL when settings.theme is "system" on a light device', () => {
+  test('darkTheme follows device scheme and th=system in URL when settings.theme is "system" on a light device', () => {
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('light');
 
     const { result } = renderHook(() =>
@@ -123,7 +123,7 @@ describe('useSDKCallbacks – theme behaviour', () => {
     );
 
     expect(result.current.darkTheme).toBe(false);
-    expect(result.current.linkUrl).toContain('th=light');
+    expect(result.current.linkUrl).toContain('th=system');
   });
 
   test('settings.theme overrides dark theme encoded in the link token', () => {
