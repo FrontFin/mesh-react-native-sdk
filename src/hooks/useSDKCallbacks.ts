@@ -24,10 +24,11 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
   const [linkUrl, setLinkUrl] = useState<string | null>(null);
   const [showWebView, setShowWebView] = useState(false);
   const [showNativeNavbar, setShowNativeNavbar] = useState(false);
-  const [linkColorScheme, setLinkColorScheme] = useState<string | undefined>(
-    undefined
+  const [deviceColorScheme, setDeviceColorScheme] = useState(
+    Appearance.getColorScheme()
   );
-  const [darkTheme, setDarkTheme] = useState<boolean | undefined>(undefined);
+  const [effectiveTheme, setEffectiveTheme] = useState<string>();
+  const [isDarkTheme, setIsDarkTheme] = useState<boolean>();
 
   useEffect(() => {
     try {
@@ -38,24 +39,19 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
           throw new Error('Invalid link token provided');
         }
 
-        // settings.theme overrides the theme encoded in the link token
+        // The settings.theme overrides the theme encoded in the link token
+        // effectiveTheme can be: 'system' | 'light' | 'dark' | undefined
         const settingsTheme = props.settings?.theme;
         const effectiveTheme = getEffectiveTheme(settingsTheme, decodedUrl);
 
-        // If the effective theme is 'system', we need to listen for changes
-        // in the device's colour scheme and update the theme accordingly.
-        if (effectiveTheme === 'system') {
-          const colorScheme = Appearance.getColorScheme();
-          setLinkColorScheme('system');
-          setDarkTheme(colorScheme === 'dark');
-        } else {
-          setDarkTheme(effectiveTheme === 'dark');
-        }
+        // Store the effective theme in state
+        // This is used to determine the theme to apply to the WebView
+        setEffectiveTheme(effectiveTheme);
 
-        // Append the resolved theme as a plain `th` query param so the
-        // WebView renders with the correct theme (mirrors Android SDK behaviour).
+        // Add the settings.theme (if it exists) as a query parameter
+        // to the link URL so that it can be applied in the web app
         if (settingsTheme) {
-          const resolvedTheme = resolveTheme(settingsTheme);
+          const resolvedTheme = resolveTheme(settingsTheme) || 'light';
           decodedUrl = addURLParam(decodedUrl, 'th', resolvedTheme);
         }
 
@@ -92,19 +88,29 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
     props.settings?.theme,
   ]);
 
+  // Listen for changes in the device's colour scheme and save to state
+  // so that it can be applied if the effective theme is 'system'
   useEffect(() => {
     const colorSchemeWatcher = Appearance.addChangeListener(
       ({ colorScheme }) => {
-        if (linkColorScheme === 'system') {
-          setDarkTheme(colorScheme === 'dark');
-        }
+        setDeviceColorScheme(colorScheme);
       }
     );
-
     return () => {
+      // Clean up the listener on unmount
       colorSchemeWatcher.remove();
     };
-  }, [linkColorScheme]);
+  }, []);
+
+  // Listen for changes in the device's colour scheme and effective theme
+  // and update the darkTheme state accordingly
+  useEffect(() => {
+    if (effectiveTheme === 'system') {
+      setIsDarkTheme(deviceColorScheme === 'dark');
+    } else {
+      setIsDarkTheme(effectiveTheme === 'dark');
+    }
+  }, [deviceColorScheme, effectiveTheme]);
 
   // istanbul ignore next
   const showCloseAlert = () =>
@@ -209,7 +215,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
     linkUrl,
     showWebView,
     showNativeNavbar,
-    darkTheme,
+    darkTheme: isDarkTheme,
     handleMessage,
     handleNavState,
     showCloseAlert,

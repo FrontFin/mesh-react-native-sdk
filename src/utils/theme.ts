@@ -1,9 +1,8 @@
-import { LinkTheme } from '../types';
 import { decodeLinkStyle } from './styleHelpers';
 import { urlSearchParams } from './urlHelpers';
 import { Appearance } from 'react-native';
 
-//  Determines the effective theme to apply based on the LinkConfiguration settings and
+// Determines the effective theme to apply based on the LinkConfiguration settings and
 // the link token.
 export function getEffectiveTheme(
   settingsTheme: string | undefined,
@@ -20,11 +19,11 @@ function extractThemeFromToken(decodedUrl: string): string | undefined {
   return style?.th;
 }
 
-// Resolves the theme to either 'light' or 'dark', treating 'system' as a special case that
-// uses the device's current color scheme.
-export function resolveTheme(theme: LinkTheme | undefined): 'light' | 'dark' {
-  if (theme === 'system') {
-    return Appearance.getColorScheme() === 'dark' ? 'dark' : 'light';
-  }
-  return theme === 'dark' ? 'dark' : 'light';
+// This function resolves the theme to apply based on the provided theme value.
+// If the theme is set to 'system', it returns the current color scheme of the device.
+// Otherwise, it returns the provided theme ('light' or 'dark').
+export function resolveTheme(
+  theme: string | undefined
+): string | undefined | null {
+  return theme === 'system' ? Appearance.getColorScheme() : theme;
 }
