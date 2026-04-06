@@ -14,7 +14,6 @@ import {
   DelayedAuthPayload,
   LinkConfiguration,
   LinkPayload,
-  LinkTheme,
   TransferFinishedPayload,
   isLinkEventTypeKey,
   mappedLinkEvents,
@@ -24,7 +23,6 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
   const [linkUrl, setLinkUrl] = useState<string | null>(null);
   const [showWebView, setShowWebView] = useState(false);
   const [showNativeNavbar, setShowNativeNavbar] = useState(false);
-  const [effectiveTheme, setEffectiveTheme] = useState<LinkTheme>();
   const [darkTheme, setDarkTheme] = useState<boolean>();
 
   useEffect(() => {
@@ -56,7 +54,12 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
 
         // The settings theme takes precedence over the URL theme,
         // and if neither is provided, the effective theme will be undefined
-        setEffectiveTheme(settingsTheme ?? extractThemeFromToken(decodedUrl));
+        const theme = settingsTheme ?? extractThemeFromToken(decodedUrl);
+        if (theme === 'system') {
+          setDarkTheme(Appearance.getColorScheme() === 'dark');
+        } else {
+          setDarkTheme(theme === 'dark');
+        }
 
         // Save the decoded URL to state to load in the WebView
         setLinkUrl(decodedUrl);
@@ -80,27 +83,6 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
     props.settings?.theme,
     props.settings?.displayFiatCurrency,
   ]);
-
-  // Listen for changes in the device's colour scheme and save to state
-  // so that it can be applied if the effective theme is 'system'
-  useEffect(() => {
-    if (effectiveTheme === 'system') {
-      setDarkTheme(Appearance.getColorScheme() === 'dark');
-    } else {
-      setDarkTheme(effectiveTheme === 'dark');
-    }
-    const colorSchemeWatcher = Appearance.addChangeListener(
-      ({ colorScheme }) => {
-        if (effectiveTheme === 'system') {
-          setDarkTheme(colorScheme === 'dark');
-        }
-      }
-    );
-    return () => {
-      // Clean up the listener on unmount
-      colorSchemeWatcher.remove();
-    };
-  }, [effectiveTheme]);
 
   // istanbul ignore next
   const showCloseAlert = () =>
