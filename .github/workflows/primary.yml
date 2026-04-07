@@ -18,7 +18,7 @@ env:
   NODE_OPTIONS: '--max_old_space_size=4096'
 
 jobs:
-  B2B-SDK-Quality-Assurance:
+  checks:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -34,7 +34,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Install node modules 📦
-        run: yarn install --frozen-lockfile
+        run: yarn install --frozen-lockfile --ignore-scripts
 
       - name: Run type check 🩺
         run: yarn types:check
