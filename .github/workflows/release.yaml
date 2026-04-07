@@ -1,0 +1,206 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    outputs:
+      new_version: ${{ steps.version_check.outputs.new_version }}
+      version: ${{ steps.version_check.outputs.version }}
+      previous_tag: ${{ steps.version_check.outputs.previous_tag }}
+      bump_message: ${{ steps.version_check.outputs.bump_message }}
+
+    steps:
+      - name: Checkout 🎾
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if new version & bump type 🔍📊
+        id: version_check
+        run: |
+          SEMVER_RE='^[0-9]+\.[0-9]+\.[0-9]+$'
+
+          normalize_semver() {
+            local s="$1"
+            s="${s//\"/}"
+            s="${s#"${s%%[![:space:]]*}"}"
+            s="${s%"${s##*[![:space:]]}"}"
+            s="${s#v}"
+            echo "$s"
+          }
+
+          VERSION=$(node -p "require('./package.json').version")
+          VERSION=$(normalize_semver "$VERSION")
+          LATEST_TAG=$(normalize_semver "$(git tag --sort=-v:refname | head -n 1)")
+
+          if [[ ! "$VERSION" =~ $SEMVER_RE ]]; then
+            echo "::error::version in package.json must be MAJOR.MINOR.PATCH; got: ${VERSION:-<empty>}"
+            exit 1
+          fi
+          if [[ -n "$LATEST_TAG" && ! "$LATEST_TAG" =~ $SEMVER_RE ]]; then
+            echo "::error::Latest git tag must be MAJOR.MINOR.PATCH or unset; normalize or fix tag: $(git tag --sort=-v:refname | head -n 1)"
+            exit 1
+          fi
+
+          echo "Current version in package.json: $VERSION"
+          echo "Latest git tag: ${LATEST_TAG:-<none>}"
+
+          if [[ "$VERSION" == "$LATEST_TAG" ]]; then
+            echo "No new version detected — skipping release"
+            echo "new_version=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "New version detected: $VERSION (previous: $LATEST_TAG)"
+            echo "new_version=true" >> "$GITHUB_OUTPUT"
+            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+            echo "previous_tag=$LATEST_TAG" >> "$GITHUB_OUTPUT"
+
+            # Determine version bump type for Slack (major / minor / patch vs previous tag).
+            PREV_TAG="$LATEST_TAG"
+            if [[ -z "$PREV_TAG" ]]; then
+              MESSAGE=":package: Release (no previous semver tag)"
+            else
+              IFS='.' read -r L_MAJOR L_MINOR L_PATCH <<< "$VERSION"
+              IFS='.' read -r P_MAJOR P_MINOR P_PATCH <<< "$PREV_TAG"
+
+              if [[ "$L_MAJOR" -gt "$P_MAJOR" ]]; then
+                MESSAGE=":exclamation: Major (breaking change)"
+              elif [[ "$L_MINOR" -gt "$P_MINOR" ]]; then
+                MESSAGE=":yo-yo: Minor (non-breaking change, new feature)"
+              else
+                MESSAGE=":test_tube: Patch (non-breaking change, bugfix or improvement)"
+              fi
+            fi
+            {
+              echo "bump_message<<EOF"
+              echo "$MESSAGE"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Validate changelog 📋
+        if: steps.version_check.outputs.new_version == 'true'
+        run: |
+          VERSION="${{ steps.version_check.outputs.version }}"
+          if [ ! -f CHANGELOG.md ]; then
+            echo "::error::Missing CHANGELOG.md file."
+            exit 1
+          fi
+          if ! grep -Fq "## ${VERSION}" CHANGELOG.md; then
+            echo "::error::No changelog entry found for version ${VERSION} in CHANGELOG.md"
+            exit 1
+          fi
+          echo "Changelog entry for ${VERSION} found ✓"
+
+  release:
+    needs: check-version
+    if: needs.check-version.outputs.new_version == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout 🎾
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Node 📚
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install node modules 📦
+        run: yarn install --frozen-lockfile
+
+      - name: Run type check 🩺
+        run: yarn types:check
+
+      - name: Run linter 🧹
+        run: yarn lint
+
+      - name: Run unit tests ⚛️
+        run: yarn test
+
+      - name: Build package 📦
+        run: yarn build
+
+      - name: Check build 🕵️‍♂️
+        run: yarn check:build
+
+      - name: Run sonar ✅
+        uses: SonarSource/sonarqube-scan-action@40f5b61913e891f9d316696628698051136015be # v.6.0.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Publish to npm 🎉
+        run: cd dist && yarn publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create git tag 🏷️
+        run: |
+          VERSION="${{ needs.check-version.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "$VERSION"
+          git push origin "$VERSION"
+
+      - name: Create GitHub Release 🚀
+        id: create_release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ needs.check-version.outputs.version }}"
+          PREV_TAG="${{ needs.check-version.outputs.previous_tag }}"
+
+          CHANGELOG_SECTION=$(awk -v version="$VERSION" '$0 == "## " version {found=1; next} found && /^## /{exit} found{print}' CHANGELOG.md)
+
+          cat > /tmp/release_notes.md << EOF
+          ## What's Changed
+
+          ${CHANGELOG_SECTION}
+
+          **Full Changelog**: https://github.com/FrontFin/mesh-react-native-sdk/compare/${PREV_TAG}...${VERSION}
+          EOF
+
+          gh release create "$VERSION" \
+            --title "$VERSION" \
+            --notes-file /tmp/release_notes.md \
+            --target main
+
+          RELEASE_URL="https://github.com/FrontFin/mesh-react-native-sdk/releases/tag/${VERSION}"
+          echo "release_url=$RELEASE_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Send release announcement to Slack 📣
+        uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            blocks:
+              - type: "header"
+                text:
+                  type: "plain_text"
+                  text: ":react: React Native SDK Release: ${{ needs.check-version.outputs.version }}"
+                  emoji: true
+              - type: "section"
+                text:
+                  type: "mrkdwn"
+                  text: "${{ needs.check-version.outputs.bump_message }}"
+              - type: "section"
+                text:
+                  type: "mrkdwn"
+                  text: "<!subteam^S091246FEDR> view release on <${{ steps.create_release.outputs.release_url }}|${{ github.repository }}>"

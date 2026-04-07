@@ -14,7 +14,6 @@ defaults:
     shell: bash
 
 env:
-  PACKAGE_INSTALLATION_ENV: 'github'
   NODE_VERSION: '18'
   NODE_OPTIONS: '--max_old_space_size=4096'
 
@@ -24,16 +23,13 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Set image version 🔂
-        run: echo "ImageVersion=$ImageVersion" >> $GITHUB_ENV
-
       - name: Checkout 🛎️
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0
 
       - name: Node 📚
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
 
