@@ -76,9 +76,9 @@ jobs:
               if [[ "$L_MAJOR" -gt "$P_MAJOR" ]]; then
                 MESSAGE=":exclamation: Major (breaking change)"
               elif [[ "$L_MINOR" -gt "$P_MINOR" ]]; then
-                MESSAGE=":yo-yo: Minor (non-breaking change, new feature)"
+                MESSAGE=":yo-yo: Minor (new feature)"
               else
-                MESSAGE=":test_tube: Patch (non-breaking change, bugfix or improvement)"
+                MESSAGE=":broom: Patch (bugfix or improvement)"
               fi
             fi
             {
