@@ -6,9 +6,8 @@ import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes';
 import {
   decode64,
   isValidUrl,
-  urlSearchParams,
-  decodeLinkStyle,
   addURLParam,
+  extractThemeFromToken,
 } from '../utils';
 import {
   AccessTokenPayload,
@@ -24,10 +23,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
   const [linkUrl, setLinkUrl] = useState<string | null>(null);
   const [showWebView, setShowWebView] = useState(false);
   const [showNativeNavbar, setShowNativeNavbar] = useState(false);
-  const [linkColorScheme, setLinkColorScheme] = useState<string | undefined>(
-    undefined
-  );
-  const [darkTheme, setDarkTheme] = useState<boolean | undefined>(undefined);
+  const [darkTheme, setDarkTheme] = useState<boolean>();
 
   useEffect(() => {
     try {
@@ -38,29 +34,34 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
           throw new Error('Invalid link token provided');
         }
 
-        const queryParams = urlSearchParams(decodedUrl);
-        const styleParam = queryParams['link_style'];
-        const style = decodeLinkStyle(styleParam);
+        // Add the `theme` to the URL as a `th` query parameter
+        const settingsTheme = props.settings?.theme;
+        if (settingsTheme) {
+          decodedUrl = addURLParam(decodedUrl, 'th', settingsTheme);
+        }
 
-        if (style?.th === 'system') {
-          const colorScheme = Appearance.getColorScheme();
-          setLinkColorScheme(style?.th);
-          setDarkTheme(colorScheme === 'dark');
+        // Add the `language` to the URL as a `lng` query parameter
+        const settingsLanguage = props.settings?.language;
+        if (settingsLanguage) {
+          decodedUrl = addURLParam(decodedUrl, 'lng', settingsLanguage);
+        }
+
+        // Add the `displayFiatCurrency` to the URL as a `fiatCur` query parameter
+        const settingsFiatCurrency = props.settings?.displayFiatCurrency;
+        if (settingsFiatCurrency) {
+          decodedUrl = addURLParam(decodedUrl, 'fiatCur', settingsFiatCurrency);
+        }
+
+        // The settings theme takes precedence over the URL theme,
+        // and if neither is provided, the effective theme will be undefined
+        const theme = settingsTheme ?? extractThemeFromToken(decodedUrl);
+        if (theme === 'system') {
+          setDarkTheme(Appearance.getColorScheme() === 'dark');
         } else {
-          setDarkTheme(style?.th === 'dark');
+          setDarkTheme(theme === 'dark');
         }
 
-        if (props.settings?.language) {
-          decodedUrl = addURLParam(decodedUrl, 'lng', props.settings?.language);
-        }
-        if (props.settings?.displayFiatCurrency) {
-          decodedUrl = addURLParam(
-            decodedUrl,
-            'fiatCur',
-            props.settings?.displayFiatCurrency
-          );
-        }
-
+        // Save the decoded URL to state to load in the WebView
         setLinkUrl(decodedUrl);
         setShowWebView(true);
       }
@@ -75,21 +76,13 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
       setLinkUrl(null);
       setShowWebView(false);
     };
-  }, [props.linkToken, props.onExit, props.settings?.language]);
-
-  useEffect(() => {
-    const colorSchemeWatcher = Appearance.addChangeListener(
-      ({ colorScheme }) => {
-        if (linkColorScheme === 'system') {
-          setDarkTheme(colorScheme === 'dark');
-        }
-      }
-    );
-
-    return () => {
-      colorSchemeWatcher.remove();
-    };
-  }, [linkColorScheme]);
+  }, [
+    props.linkToken,
+    props.onExit,
+    props.settings?.language,
+    props.settings?.theme,
+    props.settings?.displayFiatCurrency,
+  ]);
 
   // istanbul ignore next
   const showCloseAlert = () =>

@@ -2,11 +2,11 @@
 
 React Native library for integrating with Mesh Connect.
 
-[![Quality Gate Status](https://sonarqube.getfront.com/api/project_badges/measure?project=FrontFin_mesh-react-native-sdk_AYtDIH_UIVHuUYros6Ac&metric=alert_status&token=sqb_b86a73cc697768102ea42befa131cc75292d194c)](https://sonarqube.getfront.com/dashboard?id=FrontFin_mesh-react-native-sdk_AYtDIH_UIVHuUYros6Ac)
-[![Coverage](https://sonarqube.getfront.com/api/project_badges/measure?project=FrontFin_mesh-react-native-sdk_AYtDIH_UIVHuUYros6Ac&metric=coverage&token=sqb_b86a73cc697768102ea42befa131cc75292d194c)](https://sonarqube.getfront.com/dashboard?id=FrontFin_mesh-react-native-sdk_AYtDIH_UIVHuUYros6Ac)
-[![Maintainability Rating](https://sonarqube.getfront.com/api/project_badges/measure?project=FrontFin_mesh-react-native-sdk_AYtDIH_UIVHuUYros6Ac&metric=sqale_rating&token=sqb_b86a73cc697768102ea42befa131cc75292d194c)](https://sonarqube.getfront.com/dashboard?id=FrontFin_mesh-react-native-sdk_AYtDIH_UIVHuUYros6Ac)
-[![Reliability Rating](https://sonarqube.getfront.com/api/project_badges/measure?project=FrontFin_mesh-react-native-sdk_AYtDIH_UIVHuUYros6Ac&metric=reliability_rating&token=sqb_b86a73cc697768102ea42befa131cc75292d194c)](https://sonarqube.getfront.com/dashboard?id=FrontFin_mesh-react-native-sdk_AYtDIH_UIVHuUYros6Ac)
-[![Security Rating](https://sonarqube.getfront.com/api/project_badges/measure?project=FrontFin_mesh-react-native-sdk_AYtDIH_UIVHuUYros6Ac&metric=security_rating&token=sqb_b86a73cc697768102ea42befa131cc75292d194c)](https://sonarqube.getfront.com/dashboard?id=FrontFin_mesh-react-native-sdk_AYtDIH_UIVHuUYros6Ac)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=FrontFin_mesh-react-native-sdk&metric=alert_status)](https://sonarcloud.io/project/overview?id=FrontFin_mesh-react-native-sdk)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=FrontFin_mesh-react-native-sdk&metric=coverage)](https://sonarcloud.io/project/overview?id=FrontFin_mesh-react-native-sdk)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=FrontFin_mesh-react-native-sdk&metric=sqale_rating)](https://sonarcloud.io/project/overview?id=FrontFin_mesh-react-native-sdk)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=FrontFin_mesh-react-native-sdk&metric=reliability_rating)](https://sonarcloud.io/project/overview?id=FrontFin_mesh-react-native-sdk)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=FrontFin_mesh-react-native-sdk&metric=security_rating)](https://sonarcloud.io/project/overview?id=FrontFin_mesh-react-native-sdk)
 
 ## Installation
 
@@ -22,12 +22,17 @@ With `yarn`:
 yarn add @meshconnect/react-native-link-sdk
 ```
 
-💡 This package requires `react-native-webview` to be installed in your project. Some times it is not installed automatically (This is a known [npm issue](https://stackoverflow.com/questions/18401606/npm-doesnt-install-module-dependencies)). You should install it manually via following command in this case:
+💡 This package requires `react-native-webview` to be installed in your project.
 
-```bash
+With `npm`:
+
+```
 npm install --save react-native-webview
+```
 
-# or with yarn
+With `yarn`:
+
+```
 yarn add react-native-webview
 ```
 
@@ -70,6 +75,7 @@ const linkSettings: LinkSettings = {
   accessTokens,
   language: 'en',
   displayFiatCurrency: 'USD',
+  theme: 'system',
 };
 
 export const App = () => {
@@ -102,7 +108,7 @@ export const App = () => {
 export default App;
 ```
 
-ℹ️ See full source code examples at [examples/](https://github.com/FrontFin/mesh-react-native-sdk/tree/main/examples).
+ℹ️ See full source code examples on [App.tsx](https://github.com/FrontFin/mesh-react-native-sdk/blob/main/examples/react-native-example/App.tsx).
 
 #### `LinkConnect` component arguments
 
@@ -120,6 +126,7 @@ The `LinkSettings` option allows to configure the Link behaviour:
 
 - `language` - Link UI language.
 - `displayFiatCurrency` - a preferred display fiat currency
+- `theme` - Link UI colour theme. Accepts: 'light', 'dark', 'system'.
 - `accessTokens` - an array of `IntegrationAccessToken` objects that is used as an origin for crypto transfer flow.
 - `disableDomainWhiteList` - a boolean flag that allows to disable origin whitelisting. By default, the origin is whitelisted, with the following domains set:
   - `*.meshconnect.com`

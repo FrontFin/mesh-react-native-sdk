@@ -69,6 +69,7 @@ export default function App() {
         settings={{
           language: 'en',
           displayFiatCurrency: 'USD',
+          theme: 'system',
         }}
         onIntegrationConnected={(payload: LinkPayload) => {
           if (payload.accessToken) {
@@ -83,10 +84,10 @@ export default function App() {
           }
         }}
         onEvent={(event: LinkEventType) => {
-          console.log('mesh event', event);
+          console.log('Event received:', event);
         }}
         onExit={(err?: string) => {
-          err && setError(err);
+          console.log('onExit called:', err);
           setView(false);
           setLinkToken('');
         }}
