@@ -44,7 +44,7 @@ mesh-react-native-sdk/
 ├── dist/                       # Build output (published to npm)
 ├── .github/
 │   ├── workflows/
-│   │   ├── main.yml            # CI: type-check + lint + test + build on PRs to main
+│   │   ├── primary.yml         # CI: type-check + lint + test + build on PRs to main
 │   │   └── release.yaml        # CD: publish, tag, GitHub Release, Slack announcement
 │   └── actions/
 │       └── version-details/    # Composite action (legacy, kept for reference)
@@ -80,7 +80,7 @@ yarn build
 # Validate build output
 yarn check:build
 
-# Full CI check (matches main.yml)
+# Full CI check (matches primary.yml)
 yarn types:check && yarn lint && yarn test && yarn build && yarn check:build
 
 # Publish to npm (run from repo root — builds then publishes from dist/)
@@ -210,7 +210,7 @@ See `RELEASE.md` for full details. Summary:
 
 ## CI/CD Workflows
 
-### `main.yml` — runs on PRs to `main`
+### `primary.yml` — runs on PRs to `main`
 1. Type check (`yarn types:check`)
 2. Lint (`yarn lint`)
 3. Unit tests (`yarn test`)
