@@ -102,6 +102,8 @@ nothing else.
 
 ### Step 4 — Update CHANGELOG.md
 
+All changelog entries must follow the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
+
 Read `CHANGELOG.md` if it exists (it may not).
 
 Prepend a new section at the very top (above any existing content):
