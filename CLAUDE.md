@@ -43,11 +43,9 @@ mesh-react-native-sdk/
 │   └── verify-build.js         # Validates dist/ output
 ├── dist/                       # Build output (published to npm)
 ├── .github/
-│   ├── workflows/
-│   │   ├── primary.yml         # CI: type-check + lint + test + build on PRs to main
-│   │   └── release.yaml        # CD: publish, tag, GitHub Release, Slack announcement
-│   └── actions/
-│       └── version-details/    # Composite action (legacy, kept for reference)
+│   └── workflows/
+│       ├── primary.yml         # CI: type-check + lint + test + build on PRs to main
+│       └── release.yaml        # CD: publish, tag, GitHub Release, Slack announcement
 ├── .claude/
 │   └── commands/               # Claude slash commands (bump-version)
 ├── package.json                # Version lives here — bump `version` field to release

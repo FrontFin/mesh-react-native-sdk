@@ -21,14 +21,19 @@ published state rather than a stale local snapshot:
 git fetch origin main --tags
 ```
 
-Then find the latest tag:
+Then find the latest tag using the same selection and normalisation logic as `release.yaml`
+(semver-sorted, leading `v` stripped):
 
 ```bash
-git describe --tags --abbrev=0
+LATEST_TAG=$(git tag --sort=-v:refname | head -n 1)
+LATEST_TAG="${LATEST_TAG#v}"   # strip optional leading 'v'
+LATEST_TAG="${LATEST_TAG// /}" # strip any surrounding whitespace
+echo "Latest tag: ${LATEST_TAG:-<none>}"
 ```
 
-If no tags exist, treat the full history as the diff (use `git log --oneline` for context) and
-assume the current version in `package.json` is the starting point.
+If no tags exist (`LATEST_TAG` is empty), treat the full history as the diff
+(use `git log --oneline` for context) and assume the current version in `package.json`
+is the starting point.
 
 ```bash
 git diff <latest-tag>..HEAD --stat

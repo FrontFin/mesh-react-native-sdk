@@ -53,12 +53,28 @@ jobs:
             exit 1
           fi
 
+          semver_gt() {
+            # Returns 0 (true) if $1 is strictly greater than $2.
+            IFS='.' read -r A_MAJOR A_MINOR A_PATCH <<< "$1"
+            IFS='.' read -r B_MAJOR B_MINOR B_PATCH <<< "$2"
+            if [[ "$A_MAJOR" -gt "$B_MAJOR" ]]; then return 0; fi
+            if [[ "$A_MAJOR" -eq "$B_MAJOR" && "$A_MINOR" -gt "$B_MINOR" ]]; then return 0; fi
+            if [[ "$A_MAJOR" -eq "$B_MAJOR" && "$A_MINOR" -eq "$B_MINOR" && "$A_PATCH" -gt "$B_PATCH" ]]; then return 0; fi
+            return 1
+          }
+
           echo "Current version in package.json: $VERSION"
           echo "Latest git tag: ${LATEST_TAG:-<none>}"
 
           if [[ "$VERSION" == "$LATEST_TAG" ]]; then
             echo "No new version detected — skipping release"
             echo "new_version=false" >> "$GITHUB_OUTPUT"
+          elif [[ -n "$LATEST_TAG" ]] && ! semver_gt "$VERSION" "$LATEST_TAG"; then
+            echo "::error::version in package.json ($VERSION) is not greater than the latest tag ($LATEST_TAG) — accidental downgrade?"
+            exit 1
+          elif [[ -n "$(git tag -l "$VERSION")" ]]; then
+            echo "::error::Tag $VERSION already exists — bump the version in package.json before releasing"
+            exit 1
           else
             echo "New version detected: $VERSION (previous: $LATEST_TAG)"
             echo "new_version=true" >> "$GITHUB_OUTPUT"
