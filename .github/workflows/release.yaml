@@ -26,6 +26,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Node 📚
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
       - name: Check if new version & bump type 🔍📊
         id: version_check
         run: |
