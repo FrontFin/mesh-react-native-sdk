@@ -72,8 +72,7 @@
     "react-native": "^0.75",
     "react-test-renderer": "^18.2.0",
     "ts-jest": "^29.4.9",
-    "typescript": "^5.1.6",
-    "typescript-eslint": "^8.59.1"
+    "typescript": "^5.1.6"
   },
   "dependencies": {
     "query-string": "7",
