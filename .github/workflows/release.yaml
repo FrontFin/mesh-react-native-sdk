@@ -82,7 +82,7 @@ jobs:
             echo "::error::version in package.json ($VERSION) is not greater than the latest tag ($LATEST_TAG) — accidental downgrade?"
             exit 1
           elif [[ -n "$(git tag -l "$VERSION")" ]]; then
-            echo "::error::Tag $VERSION already exists, means that is was released before — accidental reuse?"
+            echo "::error::Tag $VERSION already exists, means that it was released before — accidental reuse?"
             exit 1
           else
             echo "New version detected: $VERSION (previous: $LATEST_TAG)"
