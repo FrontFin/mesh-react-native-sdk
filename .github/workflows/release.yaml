@@ -50,14 +50,15 @@ jobs:
 
           VERSION=$(node -p "require('./package.json').version")
           VERSION=$(normalize_semver "$VERSION")
-          LATEST_TAG=$(normalize_semver "$(git tag --sort=-v:refname | head -n 1)")
+          LATEST_RAW_TAG=$(git tag --sort=-v:refname | head -n 1)
+          LATEST_TAG=$(normalize_semver "$LATEST_RAW_TAG")
 
           if [[ ! "$VERSION" =~ $SEMVER_RE ]]; then
             echo "::error::version in package.json must be MAJOR.MINOR.PATCH; got: ${VERSION:-<empty>}"
             exit 1
           fi
           if [[ -n "$LATEST_TAG" && ! "$LATEST_TAG" =~ $SEMVER_RE ]]; then
-            echo "::error::Latest git tag must be MAJOR.MINOR.PATCH or unset; normalize or fix tag: $(git tag --sort=-v:refname | head -n 1)"
+            echo "::error::Latest git tag must be MAJOR.MINOR.PATCH or unset; normalize or fix tag: $LATEST_RAW_TAG"
             exit 1
           fi
 
@@ -81,7 +82,7 @@ jobs:
             echo "::error::version in package.json ($VERSION) is not greater than the latest tag ($LATEST_TAG) — accidental downgrade?"
             exit 1
           elif [[ -n "$(git tag -l "$VERSION")" ]]; then
-            echo "::error::Tag $VERSION already exists — bump the version in package.json before releasing"
+            echo "::error::Tag $VERSION already exists, means that is was released before — accidental reuse?"
             exit 1
           else
             echo "New version detected: $VERSION (previous: $LATEST_TAG)"
