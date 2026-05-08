@@ -9,10 +9,11 @@
 
 ## ✍🏼️ Manually
 
-1. Update `version` in [package.json](./package.json) according to [Semantic Versioning](https://semver.org/) and prepend a matching entry to `CHANGELOG.md`.
-2. Merge into `main`.
-3. The release workflow starts automatically on merge to `main`. Optionally trigger [Release](https://github.com/FrontFin/mesh-react-native-sdk/actions/workflows/release.yaml) workflow manually.
-4. Verify the new version appears on [npm](https://www.npmjs.com/package/@meshconnect/react-native-link-sdk).
+1. Update `version` in [package.json](./package.json) according to [Semantic Versioning](https://semver.org/).
+2. Add a new entry to `CHANGELOG.md`.
+3. Merge into `main`.
+4. The release workflow starts automatically on merge to `main`. Optionally trigger [Release](https://github.com/FrontFin/mesh-react-native-sdk/actions/workflows/release.yaml) workflow manually.
+5. Verify the new version appears on [npm](https://www.npmjs.com/package/@meshconnect/react-native-link-sdk).
 
 > [!NOTE]
 > Publication on npm is usually available within a minute after the workflow finishes.

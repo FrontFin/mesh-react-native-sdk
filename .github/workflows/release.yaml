@@ -123,19 +123,15 @@ jobs:
           fi
           echo "Changelog entry for ${VERSION} found ✓"
 
-  release:
+  ci-and-publish:
     needs: check-version
     if: needs.check-version.outputs.new_version == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    permissions:
-      contents: write
 
     steps:
       - name: Checkout 🎾
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Node 📚
         uses: actions/setup-node@v4
@@ -171,13 +167,18 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Create git tag 🏷️
-        run: |
-          VERSION="${{ needs.check-version.outputs.version }}"
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag "$VERSION"
-          git push origin "$VERSION"
+  release:
+    needs: [check-version, ci-and-publish]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout 🎾
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Create GitHub Release 🚀
         id: create_release
@@ -194,7 +195,7 @@ jobs:
 
           ${CHANGELOG_SECTION}
 
-          **Full Changelog**: https://github.com/FrontFin/mesh-react-native-sdk/compare/${PREV_TAG}...${VERSION}
+          **Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${VERSION}
           EOF
 
           gh release create "$VERSION" \
@@ -202,8 +203,7 @@ jobs:
             --notes-file /tmp/release_notes.md \
             --target main
 
-          RELEASE_URL="https://github.com/FrontFin/mesh-react-native-sdk/releases/tag/${VERSION}"
-          echo "release_url=$RELEASE_URL" >> "$GITHUB_OUTPUT"
+          echo "release_url=https://github.com/${{ github.repository }}/releases/tag/${VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Send release announcement to Slack 📣
         uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
