@@ -45,7 +45,7 @@ mesh-react-native-sdk/
 ├── .github/
 │   ├── pull_request_template.md
 │   └── workflows/
-│       ├── primary.yml         # CI: type-check + lint + test + build on PRs to main
+│       ├── ci.yml              # CI: type-check + lint + test + build on PRs to main
 │       └── release.yaml        # CD: publish, GitHub Release, Slack announcement
 ├── .claude/
 │   └── commands/               # Claude slash commands (bump-version)
