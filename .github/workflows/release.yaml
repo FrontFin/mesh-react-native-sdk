@@ -1,3 +1,6 @@
+# This workflow runs on pushes to the main branch and on demand.
+# It checks if the version in package.json has been updated compared to the latest git tag,
+# validates the changelog, runs the CI checks, publishes to npm, creates a GitHub release, and sends a Slack announcement.
 name: Release
 
 on:

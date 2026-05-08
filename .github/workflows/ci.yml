@@ -1,3 +1,6 @@
+# This workflow runs on pull requests to the main branch and on manual triggers.
+# It performs a series of checks including type checking, linting, unit testing, SonarQube scanning,
+# building the package, checking for unused dependencies, verifying strict licenses, and checking for circular dependencies.
 name: CI
 
 on:
