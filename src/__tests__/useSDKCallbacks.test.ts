@@ -79,7 +79,6 @@ describe('useSDKCallbacks', () => {
 
     expect(result.current.showNativeNavbar).toBe(false);
   });
-
 });
 
 describe('useSDKCallbacks – theme behaviour', () => {
