@@ -66,6 +66,69 @@ describe('useSDKCallbacks', () => {
     );
   });
 
+  test('integrationOAuthStarted hides native navbar and suppresses next showNativeNavbar:true', () => {
+    const { result } = renderHook(() => useSDKCallbacks(mockProps));
+
+    // First show the navbar
+    act(() => {
+      result.current.handleMessage({
+        nativeEvent: { data: JSON.stringify({ type: 'showNativeNavbar', payload: true }) },
+      } as WebViewMessageEvent);
+    });
+    expect(result.current.showNativeNavbar).toBe(true);
+
+    // OAuth starts — navbar should hide
+    act(() => {
+      result.current.handleMessage({
+        nativeEvent: { data: JSON.stringify({ type: 'integrationOAuthStarted' }) },
+      } as WebViewMessageEvent);
+    });
+    expect(result.current.showNativeNavbar).toBe(false);
+
+    // Web sends showNativeNavbar:true during OAuth — should be suppressed
+    act(() => {
+      result.current.handleMessage({
+        nativeEvent: { data: JSON.stringify({ type: 'showNativeNavbar', payload: true }) },
+      } as WebViewMessageEvent);
+    });
+    expect(result.current.showNativeNavbar).toBe(false);
+
+    // Flag should now be cleared — next showNativeNavbar:true should work normally
+    act(() => {
+      result.current.handleMessage({
+        nativeEvent: { data: JSON.stringify({ type: 'showNativeNavbar', payload: true }) },
+      } as WebViewMessageEvent);
+    });
+    expect(result.current.showNativeNavbar).toBe(true);
+  });
+
+  test('oauthInProgress flag clears when showNativeNavbar:false is received', () => {
+    const { result } = renderHook(() => useSDKCallbacks(mockProps));
+
+    act(() => {
+      result.current.handleMessage({
+        nativeEvent: { data: JSON.stringify({ type: 'integrationOAuthStarted' }) },
+      } as WebViewMessageEvent);
+    });
+    expect(result.current.showNativeNavbar).toBe(false);
+
+    // Web sends false — flag clears, navbar stays hidden
+    act(() => {
+      result.current.handleMessage({
+        nativeEvent: { data: JSON.stringify({ type: 'showNativeNavbar', payload: false }) },
+      } as WebViewMessageEvent);
+    });
+    expect(result.current.showNativeNavbar).toBe(false);
+
+    // Normal showNativeNavbar:true should now work
+    act(() => {
+      result.current.handleMessage({
+        nativeEvent: { data: JSON.stringify({ type: 'showNativeNavbar', payload: true }) },
+      } as WebViewMessageEvent);
+    });
+    expect(result.current.showNativeNavbar).toBe(true);
+  });
+
   test('handles nav state correctly', () => {
     const { result } = renderHook(() => useSDKCallbacks(mockProps));
 

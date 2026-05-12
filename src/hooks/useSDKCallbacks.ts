@@ -128,9 +128,13 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
       case 'showNativeNavbar': {
         if (payload === false) {
           oauthInProgress.current = false;
-        }
-        if (!oauthInProgress.current) {
-          setShowNativeNavbar(payload);
+          setShowNativeNavbar(false);
+        } else if (!oauthInProgress.current) {
+          setShowNativeNavbar(true);
+        } else {
+          // Suppress the first showNativeNavbar:true during OAuth; clear the
+          // flag so subsequent navbar messages are not blocked indefinitely.
+          oauthInProgress.current = false;
         }
         break;
       }
