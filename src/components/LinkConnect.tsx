@@ -42,7 +42,6 @@ export const LinkConnect = (props: LinkConfiguration) => {
     darkTheme,
     handleMessage,
     handleNavState,
-    markExternalNavigation,
     showCloseAlert,
   } = useSDKCallbacks(props);
   const webViewRef = useRef<WebView>(null);
@@ -117,7 +116,6 @@ export const LinkConnect = (props: LinkConfiguration) => {
               EXTERNALLY_OPENED_ORIGINS.some((orig) => req.url.startsWith(orig))
             ) {
               Linking.openURL(req.url);
-              markExternalNavigation();
               return false;
             }
             return req.url.startsWith('http');

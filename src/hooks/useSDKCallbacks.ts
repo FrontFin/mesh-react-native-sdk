@@ -24,7 +24,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
   const [showWebView, setShowWebView] = useState(false);
   const [showNativeNavbar, setShowNativeNavbar] = useState(false);
   const [darkTheme, setDarkTheme] = useState<boolean>();
-  const pendingExternalNavigation = useRef(false);
+  const oauthInProgress = useRef(false);
 
   useEffect(() => {
     try {
@@ -76,6 +76,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
     return () => {
       setLinkUrl(null);
       setShowWebView(false);
+      oauthInProgress.current = false;
     };
   }, [
     props.linkToken,
@@ -125,7 +126,19 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
       }
 
       case 'showNativeNavbar': {
-        setShowNativeNavbar(payload);
+        if (payload === false) {
+          oauthInProgress.current = false;
+        }
+        if (!oauthInProgress.current) {
+          setShowNativeNavbar(payload);
+        }
+        break;
+      }
+
+      case 'integrationOAuthStarted': {
+        setShowNativeNavbar(false);
+        oauthInProgress.current = true;
+        props?.onEvent?.(nativeEventData);
         break;
       }
 
@@ -178,15 +191,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
     }
   };
 
-  const markExternalNavigation = () => {
-    pendingExternalNavigation.current = true;
-  };
-
   const handleNavState = (event: WebViewNativeEvent) => {
-    if (pendingExternalNavigation.current) {
-      pendingExternalNavigation.current = false;
-      setShowNativeNavbar(false);
-    }
     if (event.url.endsWith('/broker-connect/catalog')) {
       setShowNativeNavbar(false);
     }
@@ -199,7 +204,6 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
     darkTheme,
     handleMessage,
     handleNavState,
-    markExternalNavigation,
     showCloseAlert,
   };
 };
