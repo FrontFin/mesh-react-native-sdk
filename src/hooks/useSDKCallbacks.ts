@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert, Appearance } from 'react-native';
 import { WebViewMessageEvent } from 'react-native-webview';
 import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes';
@@ -24,6 +24,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
   const [showWebView, setShowWebView] = useState(false);
   const [showNativeNavbar, setShowNativeNavbar] = useState(false);
   const [darkTheme, setDarkTheme] = useState<boolean>();
+  const pendingExternalNavigation = useRef(false);
 
   useEffect(() => {
     try {
@@ -177,7 +178,15 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
     }
   };
 
+  const markExternalNavigation = () => {
+    pendingExternalNavigation.current = true;
+  };
+
   const handleNavState = (event: WebViewNativeEvent) => {
+    if (pendingExternalNavigation.current) {
+      pendingExternalNavigation.current = false;
+      setShowNativeNavbar(false);
+    }
     if (event.url.endsWith('/broker-connect/catalog')) {
       setShowNativeNavbar(false);
     }
@@ -190,6 +199,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
     darkTheme,
     handleMessage,
     handleNavState,
+    markExternalNavigation,
     showCloseAlert,
   };
 };
