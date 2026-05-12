@@ -1,3 +1,6 @@
+# This workflow runs on pushes to the main branch and on demand.
+# It checks if the version in package.json has been updated compared to the latest git tag,
+# validates the changelog, runs the CI checks, publishes to npm, creates a GitHub release, and sends a Slack announcement.
 name: Release
 
 on:
@@ -22,7 +25,7 @@ jobs:
 
     steps:
       - name: Checkout 🎾
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -47,14 +50,15 @@ jobs:
 
           VERSION=$(node -p "require('./package.json').version")
           VERSION=$(normalize_semver "$VERSION")
-          LATEST_TAG=$(normalize_semver "$(git tag --sort=-v:refname | head -n 1)")
+          LATEST_RAW_TAG=$(git tag --sort=-v:refname | head -n 1)
+          LATEST_TAG=$(normalize_semver "$LATEST_RAW_TAG")
 
           if [[ ! "$VERSION" =~ $SEMVER_RE ]]; then
             echo "::error::version in package.json must be MAJOR.MINOR.PATCH; got: ${VERSION:-<empty>}"
             exit 1
           fi
           if [[ -n "$LATEST_TAG" && ! "$LATEST_TAG" =~ $SEMVER_RE ]]; then
-            echo "::error::Latest git tag must be MAJOR.MINOR.PATCH or unset; normalize or fix tag: $(git tag --sort=-v:refname | head -n 1)"
+            echo "::error::Latest git tag must be MAJOR.MINOR.PATCH or unset; normalize or fix tag: $LATEST_RAW_TAG"
             exit 1
           fi
 
@@ -78,7 +82,7 @@ jobs:
             echo "::error::version in package.json ($VERSION) is not greater than the latest tag ($LATEST_TAG) — accidental downgrade?"
             exit 1
           elif [[ -n "$(git tag -l "$VERSION")" ]]; then
-            echo "::error::Tag $VERSION already exists — bump the version in package.json before releasing"
+            echo "::error::Tag $VERSION already exists, means that it was released before — accidental reuse?"
             exit 1
           else
             echo "New version detected: $VERSION (previous: $LATEST_TAG)"
@@ -123,17 +127,15 @@ jobs:
           fi
           echo "Changelog entry for ${VERSION} found ✓"
 
-  release:
+  ci-and-publish:
     needs: check-version
     if: needs.check-version.outputs.new_version == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    permissions:
-      contents: write
 
     steps:
       - name: Checkout 🎾
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -171,13 +173,18 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Create git tag 🏷️
-        run: |
-          VERSION="${{ needs.check-version.outputs.version }}"
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag "$VERSION"
-          git push origin "$VERSION"
+  release:
+    needs: [check-version, ci-and-publish]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout 🎾
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Create GitHub Release 🚀
         id: create_release
@@ -194,7 +201,7 @@ jobs:
 
           ${CHANGELOG_SECTION}
 
-          **Full Changelog**: https://github.com/FrontFin/mesh-react-native-sdk/compare/${PREV_TAG}...${VERSION}
+          **Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${VERSION}
           EOF
 
           gh release create "$VERSION" \
@@ -202,8 +209,7 @@ jobs:
             --notes-file /tmp/release_notes.md \
             --target main
 
-          RELEASE_URL="https://github.com/FrontFin/mesh-react-native-sdk/releases/tag/${VERSION}"
-          echo "release_url=$RELEASE_URL" >> "$GITHUB_OUTPUT"
+          echo "release_url=https://github.com/${{ github.repository }}/releases/tag/${VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Send release announcement to Slack 📣
         uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
