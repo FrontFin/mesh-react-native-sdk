@@ -249,7 +249,7 @@ Typical release flow:
 
 When creating PRs (via `gh pr create` or the GitHub UI), always use the repo template at [`.github/pull_request_template.md`](../.github/pull_request_template.md):
 
-- Place the Jira task link and summary inside the `<decription>` block in the Overview section: `[PRG-xxxx](https://meshconnect.atlassian.net/browse/PRG-xxxx) - name of the feature` (extract the ticket number from the branch name)
+- Place the Jira task link and summary inside the `<description>` block in the Overview section: `[PRG-xxxx](https://meshconnect.atlassian.net/browse/PRG-xxxx) - name of the feature` (extract the ticket number from the branch name)
 - Keep the summary concise — max 8 lines
 - Leave all checklist boxes unchecked and untouched — do not remove or modify any checkboxes
 - Do **not** modify the template structure

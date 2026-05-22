@@ -1,6 +1,6 @@
 ## Overview
 
-<decription>
+<description>
 
 ### 🎨 Type of change
 
