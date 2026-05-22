@@ -1,8 +1,8 @@
-## PR overview
+## Overview
 
-<Add a link to the Jira issue and describe changes>
+<decription>
 
-## Type of change
+### 🎨 Type of change
 
 - [ ] Bug fix (non-breaking)
 - [ ] New feature (non-breaking)
@@ -11,13 +11,10 @@
 - [ ] Refactor (no functional changes)
 - [ ] Documentation update
 
-## Checklist
+### 👌 Checklist
 
-Please tick the options you have done:
-
-- [ ] Performed a self-review, and it meets ticket criteria
-- [ ] Hard-to-understand areas are commented
-- [ ] Documentation updated where necessary
-- [ ] Tests added that prove the fix or feature works
-- [ ] All tests pass locally
-- [ ] Tested locally on both Android & iOS
+- [ ] I've performed a self-review, and it meets ticket criteria.
+- [ ] I've commented hard-to-understand areas.
+- [ ] I've updated documentation where necessary.
+- [ ] I've added tests that prove the fix or feature works.
+- [ ] I've tested the changes on a physical device or emulator.
