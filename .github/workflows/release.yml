@@ -81,7 +81,7 @@ jobs:
             echo "::error::Tag $VERSION already exists, means that it was released before — accidental reuse?"
             exit 1
           else
-            echo "New version detected: $VERSION (previous: $LATEST_TAG)"
+            echo "New version detected: $VERSION (previous: ${LATEST_TAG:-<none>})"
             echo "new_version=true" >> "$GITHUB_OUTPUT"
             echo "version=$VERSION" >> "$GITHUB_OUTPUT"
             echo "previous_tag=$LATEST_TAG" >> "$GITHUB_OUTPUT"
