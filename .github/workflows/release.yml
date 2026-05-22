@@ -16,6 +16,7 @@ concurrency:
 jobs:
   check-version:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     if: github.ref == 'refs/heads/main'
     outputs:
       new_version: ${{ steps.version_check.outputs.new_version }}
@@ -28,11 +29,6 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-
-      - name: Node 📚
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
 
       - name: Check if new version & bump type 🔍📊
         id: version_check
@@ -48,7 +44,7 @@ jobs:
             echo "$s"
           }
 
-          VERSION=$(node -p "require('./package.json').version")
+          VERSION=$(grep -m1 '"version":' package.json | cut -d'"' -f4)
           VERSION=$(normalize_semver "$VERSION")
           LATEST_RAW_TAG=$(git tag --sort=-v:refname | head -n 1)
           LATEST_TAG=$(normalize_semver "$LATEST_RAW_TAG")
@@ -127,6 +123,8 @@ jobs:
           fi
           echo "Changelog entry for ${VERSION} found ✓"
 
+  # CI and publish run in the same job so that the built dist/ output produced by CI
+  # is available directly for the publish step without an artifact upload/download round-trip.
   ci-and-publish:
     needs: check-version
     if: needs.check-version.outputs.new_version == 'true'
@@ -176,7 +174,7 @@ jobs:
   release:
     needs: [check-version, ci-and-publish]
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
     permissions:
       contents: write
 
