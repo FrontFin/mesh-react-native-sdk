@@ -48,6 +48,7 @@ jobs:
       - name: Run unit tests ⚛️
         run: yarn test
 
+      # TODO: remove continue-on-error once SonarQube token is reliably configured in all environments
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@40f5b61913e891f9d316696628698051136015be # v6.0.0
         continue-on-error: true
