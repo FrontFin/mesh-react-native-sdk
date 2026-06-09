@@ -149,6 +149,14 @@ export const LinkConnect = (props: LinkConfiguration) => {
                 errorCode: nativeEvent.statusCode,
               },
             });
+            if (
+              nativeEvent.statusCode >= 500 &&
+              !isOAuthInProgress.current &&
+              !hasAutoReloaded.current
+            ) {
+              hasAutoReloaded.current = true;
+              webViewRef.current?.reload();
+            }
           }}
           onContentProcessDidTerminate={() => {
             if (!isOAuthInProgress.current && !hasAutoReloaded.current) {

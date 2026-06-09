@@ -188,6 +188,26 @@ describe('LinkConnect Component', () => {
     });
   });
 
+  it('triggers auto-reload on onHttpError for 5xx responses', async () => {
+    const { getByTestId } = render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} />);
+    await waitFor(() => {
+      getByTestId('webview').props.onHttpError({
+        nativeEvent: { url: 'https://web.meshconnect.com/', statusCode: 503 },
+      });
+      expect(mockReload).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('does not auto-reload on onHttpError for 4xx responses', async () => {
+    const { getByTestId } = render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} />);
+    await waitFor(() => {
+      getByTestId('webview').props.onHttpError({
+        nativeEvent: { url: 'https://web.meshconnect.com/', statusCode: 404 },
+      });
+      expect(mockReload).not.toHaveBeenCalled();
+    });
+  });
+
   it('triggers reload on onContentProcessDidTerminate when not OAuth in progress', async () => {
     const { getByTestId } = render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} />);
     await waitFor(() => {
