@@ -38,7 +38,7 @@ describe('LinkConnect Component', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   it('renders correctly when linkToken and accessTokens are provided', () => {

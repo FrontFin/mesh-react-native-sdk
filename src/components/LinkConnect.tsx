@@ -1,6 +1,6 @@
 import { Linking, View } from 'react-native';
 import { WebView } from 'react-native-webview';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { NavBar } from './NavBar';
 import { SDKContainer } from './SDKContainer';
@@ -48,6 +48,10 @@ export const LinkConnect = (props: LinkConfiguration) => {
   const webViewRef = useRef<WebView>(null);
   const hasAutoReloaded = useRef(false);
   const goBack = () => webViewRef?.current?.goBack();
+
+  useEffect(() => {
+    hasAutoReloaded.current = false;
+  }, [linkUrl]);
 
   const injectedScript = useMemo(() => {
     let sdkTypeScript = `
