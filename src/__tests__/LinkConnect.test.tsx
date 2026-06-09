@@ -75,4 +75,56 @@ describe('LinkConnect Component', () => {
 
     expect(mockOnExit).toHaveBeenCalledWith('Invalid link token provided');
   });
+
+  it('emits webViewLoadFailed event on WebView onError', async () => {
+    const mockOnEvent = jest.fn();
+    const { getByTestId } = render(
+      <LinkConnect linkToken={SAMPLE_LINK_TOKEN} onEvent={mockOnEvent} />
+    );
+
+    await waitFor(() => {
+      const webview = getByTestId('webview');
+      webview.props.onError({
+        nativeEvent: {
+          url: 'https://web.meshconnect.com/chunk.js',
+          code: -1009,
+          description: 'The Internet connection appears to be offline.',
+        },
+      });
+
+      expect(mockOnEvent).toHaveBeenCalledWith({
+        type: 'webViewLoadFailed',
+        payload: {
+          url: 'https://web.meshconnect.com/chunk.js',
+          errorCode: -1009,
+          errorDescription: 'The Internet connection appears to be offline.',
+        },
+      });
+    });
+  });
+
+  it('emits webViewLoadFailed event on WebView onHttpError', async () => {
+    const mockOnEvent = jest.fn();
+    const { getByTestId } = render(
+      <LinkConnect linkToken={SAMPLE_LINK_TOKEN} onEvent={mockOnEvent} />
+    );
+
+    await waitFor(() => {
+      const webview = getByTestId('webview');
+      webview.props.onHttpError({
+        nativeEvent: {
+          url: 'https://web.meshconnect.com/oauth-status',
+          statusCode: 503,
+        },
+      });
+
+      expect(mockOnEvent).toHaveBeenCalledWith({
+        type: 'webViewLoadFailed',
+        payload: {
+          url: 'https://web.meshconnect.com/oauth-status',
+          errorCode: 503,
+        },
+      });
+    });
+  });
 });

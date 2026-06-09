@@ -83,11 +83,11 @@ export default function App() {
             setError(payload.errorMessage);
           }
         }}
-        onEvent={(_event: LinkEventType) => {}}
+        onEvent={(event: LinkEventType) => {
+          console.log('Event received:', event);
+        }}
         onExit={(err?: string) => {
-          if (err) {
-            console.log('onExit error:', err);
-          }
+          console.log('onExit called:', err);
           setView(false);
           setLinkToken('');
         }}
