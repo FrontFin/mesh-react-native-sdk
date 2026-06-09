@@ -40,11 +40,13 @@ export const LinkConnect = (props: LinkConfiguration) => {
     showWebView,
     linkUrl,
     darkTheme,
+    isOAuthInProgress,
     handleMessage,
     handleNavState,
     showCloseAlert,
   } = useSDKCallbacks(props);
   const webViewRef = useRef<WebView>(null);
+  const hasAutoReloaded = useRef(false);
   const goBack = () => webViewRef?.current?.goBack();
 
   const injectedScript = useMemo(() => {
@@ -101,7 +103,7 @@ export const LinkConnect = (props: LinkConfiguration) => {
           testID={'webview'}
           ref={webViewRef}
           source={{ uri: linkUrl }}
-          cacheMode={'LOAD_NO_CACHE'}
+          cacheMode={'LOAD_DEFAULT'}
           onMessage={handleMessage}
           onLoadEnd={() => {
             setInitialLoading(false);
@@ -121,6 +123,41 @@ export const LinkConnect = (props: LinkConfiguration) => {
             return req.url.startsWith('http');
           }}
           domStorageEnabled={true}
+          onError={({ nativeEvent }) => {
+            props.onEvent?.({
+              type: 'webViewLoadFailed',
+              payload: {
+                url: nativeEvent.url,
+                errorCode: nativeEvent.code,
+                errorDescription: nativeEvent.description,
+              },
+            });
+            if (!isOAuthInProgress.current && !hasAutoReloaded.current) {
+              hasAutoReloaded.current = true;
+              webViewRef.current?.reload();
+            }
+          }}
+          onHttpError={({ nativeEvent }) => {
+            props.onEvent?.({
+              type: 'webViewLoadFailed',
+              payload: {
+                url: nativeEvent.url,
+                errorCode: nativeEvent.statusCode,
+              },
+            });
+          }}
+          onContentProcessDidTerminate={() => {
+            if (!isOAuthInProgress.current && !hasAutoReloaded.current) {
+              hasAutoReloaded.current = true;
+              webViewRef.current?.reload();
+            }
+          }}
+          onRenderProcessGone={() => {
+            if (!isOAuthInProgress.current && !hasAutoReloaded.current) {
+              hasAutoReloaded.current = true;
+              webViewRef.current?.reload();
+            }
+          }}
         />
       )}
     </SDKWrapperComponent>
