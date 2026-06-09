@@ -1,5 +1,5 @@
 {
-  "version": "2.3.1",
+  "version": "2.3.2",
   "name": "@meshconnect/react-native-link-sdk",
   "description": "Mesh Connect React Native SDK.",
   "license": "MIT",
@@ -49,7 +49,7 @@
     "react-native-webview": "*"
   },
   "devDependencies": {
-    "@babel/core": "^7.29.0",
+    "@babel/core": "^7.29.7",
     "@babel/plugin-transform-private-methods": "^7.27.1",
     "@babel/preset-env": "^7.29.3",
     "@babel/runtime": "^7.29.2",
@@ -81,8 +81,12 @@
   "resolutions": {
     "js-yaml": "^4.1.1",
     "ajv": "^6.14.0",
-    "fast-xml-parser": ">=4.5.4 <5",
+    "fast-xml-parser": ">=5.7.0",
     "flatted": ">=3.4.2",
-    "node-forge": ">=1.4.0"
+    "node-forge": ">=1.4.0",
+    "picomatch": "^4.0.4",
+    "lodash": "^4.18.0",
+    "yaml": "^2.8.3",
+    "@babel/plugin-transform-modules-systemjs": ">=7.29.4"
   }
 }
