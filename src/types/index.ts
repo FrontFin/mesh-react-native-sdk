@@ -23,7 +23,8 @@ export type LinkEventType =
   | GasIncreaseWarning
   | ExecuteFundingStep
   | LinkTransferQrGenerated
-  | HomePageMethodSelected;
+  | HomePageMethodSelected
+  | WebViewLoadFailed;
 
 const LINK_EVENT_TYPE_KEYS = [
   'integrationConnected',
@@ -353,5 +354,14 @@ export interface HomePageMethodSelected {
   type: 'methodSelected';
   payload: {
     method: 'embedded' | 'manual' | 'buy';
+  };
+}
+
+export interface WebViewLoadFailed {
+  type: 'webViewLoadFailed';
+  payload: {
+    url: string;
+    errorCode?: number;
+    errorDescription?: string;
   };
 }
