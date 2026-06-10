@@ -108,7 +108,7 @@ export const LinkConnect = (props: LinkConfiguration) => {
           }}
           startInLoadingState={true}
           javaScriptEnabled={true}
-          injectedJavaScript={injectedScript}
+          injectedJavaScriptBeforeContentLoaded={injectedScript}
           {...whiteListProps}
           onNavigationStateChange={handleNavState}
           onShouldStartLoadWithRequest={(req) => {
