@@ -40,7 +40,6 @@ export const WHITELISTED_ORIGINS = [
 
 export const EXTERNALLY_OPENED_ORIGINS = [
   'https://link.trustwallet.com',
-  'https://appopener.meshconnect.com',
   'https://coinbase.com',
   'https://login.coinbase.com',
   'https://api.cb-device-intelligence.com',
