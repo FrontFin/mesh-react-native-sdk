@@ -25,6 +25,7 @@ export type LinkEventType =
   | LinkTransferQrGenerated
   | HomePageMethodSelected
   | WebViewLoadFailed
+  | IntegrationMfaRequired
   | IntegrationMfaEntered
   | IntegrationOAuthStarted
   | IntegrationAccountSelectionRequired
@@ -397,6 +398,10 @@ export interface WebViewLoadFailed {
   };
 }
 
+export interface IntegrationMfaRequired extends LinkEventBase {
+  type: 'integrationMfaRequired';
+}
+
 export interface IntegrationMfaEntered extends LinkEventBase {
   type: 'integrationMfaEntered';
 }
@@ -504,13 +509,5 @@ export interface DefiWalletError extends LinkEventBase {
 
 export interface PaypalComplianceDeclined extends LinkEventBase {
   type: 'paypalComplianceDeclined';
-  payload: {
-    amount: number;
-    symbol: string;
-    toAddress: string;
-    networkId: string;
-    previewId: string;
-    networkName?: string;
-    amountInFiat?: number;
-  };
+  payload: TransferPreviewed['payload'];
 }
