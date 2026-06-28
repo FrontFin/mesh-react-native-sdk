@@ -148,21 +148,31 @@ export interface TransferStarted extends LinkEventBase {
   };
 }
 
+export interface TransferFee {
+  fee?: number;
+  feeCurrency?: string;
+  feeInFiat?: number;
+}
+
 export interface TransferPreviewed extends LinkEventBase {
   type: 'transferPreviewed';
   payload: {
-    amount: number;
-    symbol: string;
-    toAddress: string;
-    networkId: string;
-    previewId: string;
+    amount?: number;
+    symbol?: string;
+    toAddress?: string;
+    networkId?: string;
+    previewId?: string;
     networkName?: string;
     amountInFiat?: number;
-    estimatedNetworkGasFee?: {
-      fee?: number;
-      feeCurrency?: string;
-      feeInFiat?: number;
-    };
+    fiatCurrency?: string;
+    integrationName?: string;
+    integrationType?: string;
+    estimatedNetworkGasFee?: TransferFee;
+    institutionTransferFee?: TransferFee;
+    customClientFee?: TransferFee;
+    cryptocurrencyFundingOptions?: unknown[];
+    userId?: string;
+    clientTransactionId?: string;
   };
 }
 
