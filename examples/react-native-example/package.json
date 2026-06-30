@@ -17,9 +17,9 @@
     "react-native-webview": "^13.10.5"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0",
-    "@babel/preset-env": "^7.20.0",
-    "@babel/runtime": "^7.20.0",
+    "@babel/core": "^7.29.4",
+    "@babel/preset-env": "^7.29.4",
+    "@babel/runtime": "^7.29.4",
     "@react-native/babel-preset": "0.75.5",
     "@react-native/eslint-config": "0.75.5",
     "@react-native/metro-config": "0.75.5",
