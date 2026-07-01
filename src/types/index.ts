@@ -40,8 +40,7 @@ export type LinkEventType =
   | TransferConfigureError
   | TransferAssetSelected
   | TransferNetworkSelected
-  | DefiWalletError
-  | PaypalComplianceDeclined;
+  | DefiWalletError;
 
 const LINK_EVENT_TYPE_KEYS = [
   'integrationConnected',
@@ -84,7 +83,6 @@ const LINK_EVENT_TYPE_KEYS = [
   'methodSelected',
   'homePageLoaded',
   'defiWalletError',
-  'paypalComplianceDeclined',
 ] as const;
 
 export const mappedLinkEvents: Record<string, string> = {
@@ -154,6 +152,23 @@ export interface TransferFee {
   feeInFiat?: number;
 }
 
+export interface CryptocurrencyFundingOption {
+  cryptocurrencyFundingOptionType?: string;
+  name?: string;
+  paymentMethodType?: string;
+  usedAmountInCryptocurrency?: number;
+  usedAmountInFiat?: number;
+  cryptocurrencySymbol?: string;
+  fee?: {
+    amountInFiat?: number;
+    fiatSymbol?: string;
+    amountInCryptocurrency?: number;
+    cryptocurrencySymbol?: string;
+    isInclusive?: boolean;
+    usedCurrencyType?: string;
+  };
+}
+
 export interface TransferPreviewed extends LinkEventBase {
   type: 'transferPreviewed';
   payload: {
@@ -170,7 +185,7 @@ export interface TransferPreviewed extends LinkEventBase {
     estimatedNetworkGasFee?: TransferFee;
     institutionTransferFee?: TransferFee;
     customClientFee?: TransferFee;
-    cryptocurrencyFundingOptions?: unknown[];
+    cryptocurrencyFundingOptions?: CryptocurrencyFundingOption[];
     userId?: string;
     clientTransactionId?: string;
   };
@@ -515,9 +530,4 @@ export interface DefiWalletError extends LinkEventBase {
     };
     timeStamp: number;
   };
-}
-
-export interface PaypalComplianceDeclined extends LinkEventBase {
-  type: 'paypalComplianceDeclined';
-  payload: TransferPreviewed['payload'];
 }
