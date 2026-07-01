@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert, Appearance } from 'react-native';
 import { WebViewMessageEvent } from 'react-native-webview';
 import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes';
@@ -24,6 +24,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
   const [showWebView, setShowWebView] = useState(false);
   const [showNativeNavbar, setShowNativeNavbar] = useState(false);
   const [darkTheme, setDarkTheme] = useState<boolean>();
+  const isOAuthInProgress = useRef(false);
 
   useEffect(() => {
     try {
@@ -75,6 +76,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
     return () => {
       setLinkUrl(null);
       setShowWebView(false);
+      isOAuthInProgress.current = false;
     };
   }, [
     props.linkToken,
@@ -114,6 +116,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
       case 'close':
       case 'done':
       case 'exit': {
+        isOAuthInProgress.current = false;
         props.onExit?.(payload);
         break;
       }
@@ -129,6 +132,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
       }
 
       case 'brokerageAccountAccessToken': {
+        isOAuthInProgress.current = false;
         const payloadData: LinkPayload = {
           accessToken: payload as AccessTokenPayload,
         };
@@ -141,6 +145,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
       }
 
       case 'delayedAuthentication': {
+        isOAuthInProgress.current = false;
         const payloadData: LinkPayload = {
           delayedAuth: payload as DelayedAuthPayload,
         };
@@ -169,6 +174,9 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
       }
 
       default: {
+        if (type === 'integrationOAuthStarted') {
+          isOAuthInProgress.current = true;
+        }
         if (isLinkEventTypeKey(type)) {
           props?.onEvent?.(nativeEventData);
         }
@@ -188,6 +196,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
     showWebView,
     showNativeNavbar,
     darkTheme,
+    isOAuthInProgress, // MutableRefObject<boolean> — read .current in callbacks
     handleMessage,
     handleNavState,
     showCloseAlert,

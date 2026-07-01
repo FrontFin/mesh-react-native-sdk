@@ -79,6 +79,138 @@ describe('useSDKCallbacks', () => {
 
     expect(result.current.showNativeNavbar).toBe(false);
   });
+
+  test('isOAuthInProgress is false initially', () => {
+    const { result } = renderHook(() => useSDKCallbacks(mockProps));
+    expect(result.current.isOAuthInProgress.current).toBe(false);
+  });
+
+  test('isOAuthInProgress becomes true on integrationOAuthStarted', () => {
+    const { result } = renderHook(() => useSDKCallbacks(mockProps));
+
+    act(() => {
+      result.current.handleMessage({
+        nativeEvent: { data: JSON.stringify({ type: 'integrationOAuthStarted' }) },
+      } as WebViewMessageEvent);
+    });
+
+    expect(result.current.isOAuthInProgress.current).toBe(true);
+  });
+
+  test('isOAuthInProgress resets to false on exit', () => {
+    const { result } = renderHook(() => useSDKCallbacks(mockProps));
+
+    act(() => {
+      result.current.handleMessage({
+        nativeEvent: { data: JSON.stringify({ type: 'integrationOAuthStarted' }) },
+      } as WebViewMessageEvent);
+    });
+
+    act(() => {
+      result.current.handleMessage({
+        nativeEvent: { data: JSON.stringify({ type: 'exit' }) },
+      } as WebViewMessageEvent);
+    });
+
+    expect(result.current.isOAuthInProgress.current).toBe(false);
+  });
+
+  test('isOAuthInProgress resets to false on close and done', () => {
+    const { result } = renderHook(() => useSDKCallbacks(mockProps));
+
+    for (const type of ['close', 'done'] as const) {
+      act(() => {
+        result.current.handleMessage({
+          nativeEvent: { data: JSON.stringify({ type: 'integrationOAuthStarted' }) },
+        } as WebViewMessageEvent);
+      });
+
+      act(() => {
+        result.current.handleMessage({
+          nativeEvent: { data: JSON.stringify({ type }) },
+        } as WebViewMessageEvent);
+      });
+
+      expect(result.current.isOAuthInProgress.current).toBe(false);
+    }
+  });
+
+  test('isOAuthInProgress resets to false on brokerageAccountAccessToken', () => {
+    const { result } = renderHook(() => useSDKCallbacks(mockProps));
+
+    act(() => {
+      result.current.handleMessage({
+        nativeEvent: { data: JSON.stringify({ type: 'integrationOAuthStarted' }) },
+      } as WebViewMessageEvent);
+    });
+
+    act(() => {
+      result.current.handleMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'brokerageAccountAccessToken',
+            payload: {
+              accountTokens: [],
+              brokerBrandInfo: {},
+              brokerType: 'test',
+              brokerName: 'Test',
+            },
+          }),
+        },
+      } as WebViewMessageEvent);
+    });
+
+    expect(result.current.isOAuthInProgress.current).toBe(false);
+  });
+
+  test('isOAuthInProgress resets to false on delayedAuthentication', () => {
+    const { result } = renderHook(() => useSDKCallbacks(mockProps));
+
+    act(() => {
+      result.current.handleMessage({
+        nativeEvent: { data: JSON.stringify({ type: 'integrationOAuthStarted' }) },
+      } as WebViewMessageEvent);
+    });
+
+    act(() => {
+      result.current.handleMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'delayedAuthentication',
+            payload: {
+              brokerType: 'test',
+              refreshToken: 'token123',
+              brokerName: 'Test',
+              brokerBrandInfo: {},
+            },
+          }),
+        },
+      } as WebViewMessageEvent);
+    });
+
+    expect(result.current.isOAuthInProgress.current).toBe(false);
+  });
+
+  test('isOAuthInProgress resets to false when linkToken changes', () => {
+    const { result, rerender } = renderHook(
+      (props) => useSDKCallbacks(props),
+      { initialProps: mockProps }
+    );
+
+    act(() => {
+      result.current.handleMessage({
+        nativeEvent: { data: JSON.stringify({ type: 'integrationOAuthStarted' }) },
+      } as WebViewMessageEvent);
+    });
+
+    expect(result.current.isOAuthInProgress.current).toBe(true);
+
+    act(() => {
+      rerender({ ...mockProps, linkToken: TOKEN_BASE_ONLY });
+    });
+
+    expect(result.current.isOAuthInProgress.current).toBe(false);
+  });
 });
 
 describe('useSDKCallbacks – theme behaviour', () => {

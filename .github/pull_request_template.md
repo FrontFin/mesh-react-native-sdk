@@ -1,23 +1,23 @@
-## Summary
+## PR overview
 
-<Put a link to the Jira issue, or describe changes>
+<Add a link to the Jira issue and describe changes>
 
 ## Type of change
 
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality not to work as expected)
-- [ ] Refactor (none of the core functionality has changed)
-- [ ] Maintenance (new tests, build processes, tooling, performance)
+- [ ] Bug fix (non-breaking)
+- [ ] New feature (non-breaking)
+- [ ] Breaking change (existing functionality affected)
+- [ ] Maintenance (tests, build, tooling, performance)
+- [ ] Refactor (no functional changes)
 - [ ] Documentation update
 
 ## Checklist
 
 Please tick the options you have done:
 
-- [ ] I have performed a self-review of my code, and it meets the criteria specified by the ticket/issue
-- [ ] I have added comments on my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation if necessary
-- [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] I have verified that all tests pass locally with my changes
-- [ ] I have tested my changes locally on both Android & iOS
+- [ ] Performed a self-review, and it meets ticket criteria
+- [ ] Hard-to-understand areas are commented
+- [ ] Documentation updated where necessary
+- [ ] Tests added that prove the fix or feature works
+- [ ] All tests pass locally
+- [ ] Tested locally on both Android & iOS

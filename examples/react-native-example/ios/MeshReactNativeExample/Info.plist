@@ -24,6 +24,28 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>bitcoin</string>
+		<string>bitkeep</string>
+		<string>bitcoincom</string>
+		<string>bnc</string>
+		<string>cbwallet</string>
+		<string>dfw</string>
+		<string>exodus</string>
+		<string>ledgerlive</string>
+		<string>metamask</string>
+		<string>okx</string>
+		<string>phantom</string>
+		<string>rabby</string>
+		<string>rainbow</string>
+		<string>robinhood-wallet</string>
+		<string>tpoutside</string>
+		<string>tronlinkoutside</string>
+		<string>trust</string>
+		<string>uniswap</string>
+		<string>zengo</string>
+	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 	  <!-- Do not change NSAllowsArbitraryLoads to true, or you will risk app rejection! -->

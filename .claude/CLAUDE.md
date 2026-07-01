@@ -43,9 +43,10 @@ mesh-react-native-sdk/
 │   └── verify-build.js         # Validates dist/ output
 ├── dist/                       # Build output (published to npm)
 ├── .github/
+│   ├── pull_request_template.md
 │   └── workflows/
-│       ├── primary.yml         # CI: type-check + lint + test + build on PRs to main
-│       └── release.yaml        # CD: publish, tag, GitHub Release, Slack announcement
+│       ├── ci.yml              # CI: type-check + lint + test + build on PRs to main
+│       └── release.yaml        # CD: publish, GitHub Release, Slack announcement
 ├── .claude/
 │   └── commands/               # Claude slash commands (bump-version)
 ├── package.json                # Version lives here — bump `version` field to release
@@ -220,13 +221,14 @@ See `RELEASE.md` for full details. Summary:
 9. Circular dependency check
 
 ### `release.yaml` — push to `main` or manual trigger
-- Detects new version (compares `version` in `package.json` to latest tag) — skips if already released
-- Validates CHANGELOG has a matching entry
-- Runs CI checks (type-check, lint, tests, build, SonarQube)
-- Publishes to npm
-- Creates and pushes git tag `X.Y.Z` (matching the version from `package.json`, without a `v` prefix)
-- Creates GitHub Release with changelog notes and full-diff link
-- Posts Slack announcement
+
+Three jobs run in sequence: `check-version` → `ci-and-publish` → `release`
+
+- **`check-version`**: Detects new version (compares `package.json` to latest git tag) — skips if already released; validates CHANGELOG has a matching entry
+- **`ci-and-publish`**: Type-check, lint, tests, build, build validation, SonarQube, then publishes to npm
+- **`release`**: Creates GitHub Release with changelog notes and full-diff link; posts Slack announcement
+
+The GitHub Release creation implicitly creates the git tag `X.Y.Z`.
 
 ---
 
