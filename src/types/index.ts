@@ -24,7 +24,23 @@ export type LinkEventType =
   | ExecuteFundingStep
   | LinkTransferQrGenerated
   | HomePageMethodSelected
-  | WebViewLoadFailed;
+  | WebViewLoadFailed
+  | IntegrationMfaRequired
+  | IntegrationMfaEntered
+  | IntegrationOAuthStarted
+  | IntegrationAccountSelectionRequired
+  | TransferAmountEntered
+  | TransferMfaRequired
+  | TransferMfaEntered
+  | TransferKycRequired
+  | HomePageLoaded
+  | ConnectionDeclined
+  | ConnectionUnavailable
+  | TransferDeclined
+  | TransferConfigureError
+  | TransferAssetSelected
+  | TransferNetworkSelected
+  | DefiWalletError;
 
 const LINK_EVENT_TYPE_KEYS = [
   'integrationConnected',
@@ -65,6 +81,8 @@ const LINK_EVENT_TYPE_KEYS = [
   'gasIncreaseWarning',
   'linkTransferQRGenerated',
   'methodSelected',
+  'homePageLoaded',
+  'defiWalletError',
 ] as const;
 
 export const mappedLinkEvents: Record<string, string> = {
@@ -97,6 +115,7 @@ export interface IntegrationConnectionError extends LinkEventBase {
   type: 'integrationConnectionError';
   payload: {
     errorMessage: string;
+    requestId?: string;
   };
 }
 
@@ -110,6 +129,8 @@ export interface IntegrationSelected extends LinkEventBase {
   payload: {
     integrationType: string;
     integrationName: string;
+    nativeLink?: string;
+    userSearched?: boolean;
   };
 }
 
@@ -119,23 +140,54 @@ export interface CredentialsEntered extends LinkEventBase {
 
 export interface TransferStarted extends LinkEventBase {
   type: 'transferStarted';
+  payload: {
+    integrationType?: string;
+    integrationName: string;
+  };
+}
+
+export interface TransferFee {
+  fee?: number;
+  feeCurrency?: string;
+  feeInFiat?: number;
+}
+
+export interface CryptocurrencyFundingOption {
+  cryptocurrencyFundingOptionType?: string;
+  name?: string;
+  paymentMethodType?: string;
+  usedAmountInCryptocurrency?: number;
+  usedAmountInFiat?: number;
+  cryptocurrencySymbol?: string;
+  fee?: {
+    amountInFiat?: number;
+    fiatSymbol?: string;
+    amountInCryptocurrency?: number;
+    cryptocurrencySymbol?: string;
+    isInclusive?: boolean;
+    usedCurrencyType?: string;
+  };
 }
 
 export interface TransferPreviewed extends LinkEventBase {
   type: 'transferPreviewed';
   payload: {
-    amount: number;
-    symbol: string;
-    toAddress: string;
-    networkId: string;
-    previewId: string;
+    amount?: number;
+    symbol?: string;
+    toAddress?: string;
+    networkId?: string;
+    previewId?: string;
     networkName?: string;
     amountInFiat?: number;
-    estimatedNetworkGasFee?: {
-      fee?: number;
-      feeCurrency?: string;
-      feeInFiat?: number;
-    };
+    fiatCurrency?: string;
+    integrationName?: string;
+    integrationType?: string;
+    estimatedNetworkGasFee?: TransferFee;
+    institutionTransferFee?: TransferFee;
+    customClientFee?: TransferFee;
+    cryptocurrencyFundingOptions?: CryptocurrencyFundingOption[];
+    userId?: string;
+    clientTransactionId?: string;
   };
 }
 
@@ -143,6 +195,7 @@ export interface TransferPreviewError extends LinkEventBase {
   type: 'transferPreviewError';
   payload: {
     errorMessage: string;
+    requestId?: string;
   };
 }
 
@@ -150,6 +203,7 @@ export interface TransferExecutionError extends LinkEventBase {
   type: 'transferExecutionError';
   payload: {
     errorMessage: string;
+    requestId?: string;
   };
 }
 
@@ -172,6 +226,8 @@ export interface TransferExecuted extends LinkEventBase {
     symbol: string;
     amount: number;
     networkId: string;
+    userId?: string;
+    clientTransactionId?: string;
   };
 }
 
@@ -300,6 +356,7 @@ export interface WalletMessageSigned extends LinkEventBase {
     address: string;
     timeStamp: number;
     isVerified: boolean;
+    verifiedAddresses?: string[];
   };
 }
 
@@ -363,5 +420,114 @@ export interface WebViewLoadFailed {
     url: string;
     errorCode?: number;
     errorDescription?: string;
+  };
+}
+
+export interface IntegrationMfaRequired extends LinkEventBase {
+  type: 'integrationMfaRequired';
+}
+
+export interface IntegrationMfaEntered extends LinkEventBase {
+  type: 'integrationMfaEntered';
+}
+
+export interface IntegrationOAuthStarted extends LinkEventBase {
+  type: 'integrationOAuthStarted';
+}
+
+export interface IntegrationAccountSelectionRequired extends LinkEventBase {
+  type: 'integrationAccountSelectionRequired';
+}
+
+export interface TransferAmountEntered extends LinkEventBase {
+  type: 'transferAmountEntered';
+}
+
+export interface TransferMfaRequired extends LinkEventBase {
+  type: 'transferMfaRequired';
+}
+
+export interface TransferMfaEntered extends LinkEventBase {
+  type: 'transferMfaEntered';
+}
+
+export interface TransferKycRequired extends LinkEventBase {
+  type: 'transferKycRequired';
+}
+
+export interface HomePageLoaded extends LinkEventBase {
+  type: 'homePageLoaded';
+}
+
+export interface ConnectionDeclined extends LinkEventBase {
+  type: 'connectionDeclined';
+  payload: {
+    integrationType?: string;
+    integrationName: string;
+    reason: string;
+    networkId?: string;
+    toAddress?: string;
+    errorMessage?: string;
+  };
+}
+
+export interface ConnectionUnavailable extends LinkEventBase {
+  type: 'connectionUnavailable';
+  payload: {
+    integrationType?: string;
+    integrationName: string;
+    reason: string;
+  };
+}
+
+export interface TransferDeclined extends LinkEventBase {
+  type: 'transferDeclined';
+  payload: {
+    integrationType?: string;
+    integrationName: string;
+    toAddress?: string;
+    token?: string;
+    network?: string;
+    amount?: number;
+    status: string;
+  };
+}
+
+export interface TransferConfigureError extends LinkEventBase {
+  type: 'transferConfigureError';
+  payload: {
+    errorMessage: string;
+    requestId?: string;
+  };
+}
+
+export interface TransferAssetSelected extends LinkEventBase {
+  type: 'transferAssetSelected';
+  payload: {
+    symbol: string;
+  };
+}
+
+export interface TransferNetworkSelected extends LinkEventBase {
+  type: 'transferNetworkSelected';
+  payload: {
+    id: string;
+    name: string;
+  };
+}
+
+export interface DefiWalletError extends LinkEventBase {
+  type: 'defiWalletError';
+  payload: {
+    integrationName: string;
+    errorType: 'timeout' | 'verifyMismatch';
+    details: {
+      requestedAddress?: string;
+      connectedAddress?: string;
+      requestedNetwork?: string;
+      connectedNetwork?: string;
+      connectUri?: string;
+    };
+    timeStamp: number;
   };
 }

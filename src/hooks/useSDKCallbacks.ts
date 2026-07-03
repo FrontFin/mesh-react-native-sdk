@@ -9,6 +9,7 @@ import {
   addURLParam,
   extractThemeFromToken,
 } from '../utils';
+import { sdkSpecs } from '../utils/sdkConfig';
 import {
   AccessTokenPayload,
   DelayedAuthPayload,
@@ -60,6 +61,10 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
           setDarkTheme(Appearance.getColorScheme() === 'dark');
         } else {
           setDarkTheme(theme === 'dark');
+        }
+
+        if (!/[?&]platform=/.test(decodedUrl)) {
+          decodedUrl = addURLParam(decodedUrl, 'platform', sdkSpecs.platform);
         }
 
         // Save the decoded URL to state to load in the WebView
