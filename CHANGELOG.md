@@ -7,7 +7,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- Added typed interfaces for all event types in `LinkEventType` — `ConnectionDeclined`, `ConnectionUnavailable`, `TransferDeclined`, `TransferConfigureError`, `TransferAssetSelected`, `TransferNetworkSelected`, `DefiWalletError`, `PaypalComplianceDeclined`, and simple events (`IntegrationMfaEntered`, `IntegrationOAuthStarted`, `IntegrationAccountSelectionRequired`, `TransferAmountEntered`, `TransferMfaRequired`, `TransferMfaEntered`, `TransferKycRequired`, `HomePageLoaded`).
+- Added typed interfaces for all event types in `LinkEventType` — `ConnectionDeclined`, `ConnectionUnavailable`, `TransferDeclined`, `TransferConfigureError`, `TransferAssetSelected`, `TransferNetworkSelected`, `DefiWalletError`, and simple events (`IntegrationMfaRequired`, `IntegrationMfaEntered`, `IntegrationOAuthStarted`, `IntegrationAccountSelectionRequired`, `TransferAmountEntered`, `TransferMfaRequired`, `TransferMfaEntered`, `TransferKycRequired`, `HomePageLoaded`).
 - Added missing optional fields to existing event payloads: `requestId` on error events, `nativeLink` and `userSearched` on `IntegrationSelected`, `userId` and `clientTransactionId` on `TransferExecuted`, `verifiedAddresses` on `WalletMessageSigned`.
 - Added `platform=reactNative` to the WebView URL so Link v2 correctly identifies the hosting SDK.
 
