@@ -51,7 +51,7 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
         domStorageEnabled={true}
         injectedJavaScript="
     window.meshSdkPlatform='reactNative';
-    window.meshSdkVersion='2.4.1';
+    window.meshSdkVersion='2.4.2';
   "
         javaScriptEnabled={true}
         onContentProcessDidTerminate={[Function]}
@@ -93,9 +93,6 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
             "https://js.stripe.com",
             "https://app.usercentrics.eu",
             "robinhood://",
-            "https://ramp.revolut.codes",
-            "https://sso.revolut.codes",
-            "https://ramp.revolut.com",
           ]
         }
         source={
