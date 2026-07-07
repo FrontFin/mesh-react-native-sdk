@@ -7,7 +7,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
-- Updated the `WhitelistedOrigins.kt`
+- Removed hardcoded Revolut origins from the WebView domain whitelist.
 
 ## 2.4.1
 
