@@ -47,16 +47,20 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
       />
       <View
         bounces={false}
-        cacheMode="LOAD_NO_CACHE"
+        cacheMode="LOAD_DEFAULT"
         domStorageEnabled={true}
         injectedJavaScript="
     window.meshSdkPlatform='reactNative';
-    window.meshSdkVersion='2.3.1';
+    window.meshSdkVersion='2.4.2';
   "
         javaScriptEnabled={true}
+        onContentProcessDidTerminate={[Function]}
+        onError={[Function]}
+        onHttpError={[Function]}
         onLoadEnd={[Function]}
         onMessage={[Function]}
         onNavigationStateChange={[Function]}
+        onRenderProcessGone={[Function]}
         onShouldStartLoadWithRequest={[Function]}
         originWhitelist={
           [
@@ -89,14 +93,11 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
             "https://js.stripe.com",
             "https://app.usercentrics.eu",
             "robinhood://",
-            "https://ramp.revolut.codes",
-            "https://sso.revolut.codes",
-            "https://ramp.revolut.com",
           ]
         }
         source={
           {
-            "uri": "https://web.getfront.com/b2b-iframe/test-account-random/broker-connect/catalog1",
+            "uri": "https://web.getfront.com/b2b-iframe/test-account-random/broker-connect/catalog1?platform=reactNative",
           }
         }
         startInLoadingState={true}

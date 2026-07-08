@@ -33,14 +33,10 @@ export const WHITELISTED_ORIGINS = [
   'https://js.stripe.com',
   'https://app.usercentrics.eu',
   'robinhood://',
-  'https://ramp.revolut.codes',
-  'https://sso.revolut.codes',
-  'https://ramp.revolut.com',
 ];
 
 export const EXTERNALLY_OPENED_ORIGINS = [
   'https://link.trustwallet.com',
-  'https://appopener.meshconnect.com',
   'https://coinbase.com',
   'https://login.coinbase.com',
   'https://api.cb-device-intelligence.com',
