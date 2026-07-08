@@ -245,6 +245,14 @@ Typical release flow:
 2. Merge the version bump PR to `main`
 3. Release workflow auto-triggers and publishes to npm
 
+### Pull Request Template
+
+When creating PRs (via `gh pr create` or the GitHub UI), always use the repo template at [`.github/pull_request_template.md`](../.github/pull_request_template.md):
+
+- Replace the `<description>` block with a Jira task link and a concise summary (max 8 lines): `[PRG-xxxx](https://meshconnect.atlassian.net/browse/PRG-xxxx) - name of the feature` (extract the ticket number from the branch name)
+- Leave all checklist boxes **unchecked** — do not remove or check them; the author fills those in manually
+- Do **not** modify the template structure
+
 ---
 
 ## Development Tips
