@@ -1,0 +1,50 @@
+# This workflow automatically labels pull requests based on the number of lines changed.
+name: Label
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  review-time-label:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+    permissions:
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Apply review time label 🏷️
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          REPO=${{ github.repository }}
+
+          ADDITIONS=$(gh api repos/$REPO/pulls/$PR_NUMBER --jq '.additions')
+          DELETIONS=$(gh api repos/$REPO/pulls/$PR_NUMBER --jq '.deletions')
+          TOTAL=$((ADDITIONS + DELETIONS))
+
+          echo "Lines changed: $TOTAL ($ADDITIONS added, $DELETIONS deleted)"
+
+          if [[ $TOTAL -lt 100 ]]; then
+            LABEL="1 min review"
+          elif [[ $TOTAL -le 500 ]]; then
+            LABEL="5 min review"
+          elif [[ $TOTAL -le 1500 ]]; then
+            LABEL="10 min review"
+          else
+            LABEL="30 min review"
+          fi
+
+          echo "Applying label: $LABEL"
+
+          for existing in "1 min review" "5 min review" "10 min review" "30 min review"; do
+            if [[ "$existing" != "$LABEL" ]]; then
+              gh pr edit $PR_NUMBER --repo $REPO --remove-label "$existing" 2>/dev/null || true
+            fi
+          done
+
+          gh pr edit $PR_NUMBER --repo $REPO --add-label "$LABEL"
