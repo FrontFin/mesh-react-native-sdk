@@ -119,9 +119,12 @@ export const LinkConnect = (props: LinkConfiguration) => {
           onNavigationStateChange={handleNavState}
           onShouldStartLoadWithRequest={(req) => {
             if (isExternallyOpenedOrigin(req.url)) {
-              // Voided + caught so a failed open (no handler app) can't surface
-              // as an unhandled promise rejection.
-              void Linking.openURL(req.url).catch(() => undefined);
+              // These origins are https and are handled by the browser, so a
+              // rejection is unlikely; catch + warn anyway so a failed open
+              // can't surface as an unhandled promise rejection.
+              void Linking.openURL(req.url).catch((err) => {
+                console.warn('Failed to open external URL', req.url, err);
+              });
               return false;
             }
             return req.url.startsWith('http');
