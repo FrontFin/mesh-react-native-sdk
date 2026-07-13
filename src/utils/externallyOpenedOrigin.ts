@@ -34,8 +34,9 @@ const parseUrlParts = (url: string): UrlParts | null => {
  * match https://app.binance.com). When an allowlisted origin pins a path, the
  * URL path must equal it or be nested under it on a segment boundary, so
  * /authorize/CoinbaseEvil does not match /authorize/Coinbase. Paths containing
- * `.`/`..` segments are rejected against a pinned origin so a dot-segment can't
- * escape the pin after normalization (e.g. /authorize/Coinbase/../CoinbaseEvil).
+ * `.`/`..` segments (literal or percent-encoded) are rejected against a pinned
+ * origin so a dot-segment can't escape the pin after normalization (e.g.
+ * /authorize/Coinbase/../CoinbaseEvil or the %2e%2e-encoded equivalent).
  */
 export const isExternallyOpenedOrigin = (url: string): boolean => {
   const target = parseUrlParts(url);
@@ -55,7 +56,15 @@ export const isExternallyOpenedOrigin = (url: string): boolean => {
 
     if (allowed.path && allowed.path !== '/') {
       // Reject dot-segments so a path can't escape the pin after normalization.
-      const segments = target.path.split('/');
+      // Decode first (failing closed on malformed input) so percent-encoded
+      // segments like %2e%2e (`..`) or %2f (`/`) can't slip past the check.
+      let decodedPath: string;
+      try {
+        decodedPath = decodeURIComponent(target.path);
+      } catch {
+        return false;
+      }
+      const segments = decodedPath.split('/');
       if (segments.includes('.') || segments.includes('..')) {
         return false;
       }

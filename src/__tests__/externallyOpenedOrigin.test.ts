@@ -47,6 +47,24 @@ describe('isExternallyOpenedOrigin', () => {
         'https://sandbox.meshconnect.com/authorize/Coinbase/../CoinbaseEvil'
       )
     ).toBe(false);
+    // percent-encoded dot-segment (%2e%2e) must NOT escape the pin either
+    expect(
+      isExternallyOpenedOrigin(
+        'https://sandbox.meshconnect.com/authorize/Coinbase/%2e%2e/CoinbaseEvil'
+      )
+    ).toBe(false);
+    // percent-encoded slash (%2f) hiding a dot-segment must NOT escape the pin
+    expect(
+      isExternallyOpenedOrigin(
+        'https://sandbox.meshconnect.com/authorize/Coinbase%2f..%2fCoinbaseEvil'
+      )
+    ).toBe(false);
+    // malformed percent-encoding fails closed
+    expect(
+      isExternallyOpenedOrigin(
+        'https://sandbox.meshconnect.com/authorize/Coinbase/%zz'
+      )
+    ).toBe(false);
   });
 
   it('rejects host lookalike attacks', () => {
