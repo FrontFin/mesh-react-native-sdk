@@ -130,6 +130,9 @@ jobs:
     if: needs.check-version.outputs.new_version == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      id-token: write # required for npm OIDC trusted publishing
+      contents: read
 
     steps:
       - name: Checkout 🎾
@@ -140,7 +143,7 @@ jobs:
       - name: Node 📚
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install node modules 📦
@@ -166,10 +169,13 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
+      # OIDC trusted publishing requires npm >= 11.5.1; pin for reproducible releases
+      - name: Pin npm for OIDC 📌
+        run: npm install -g npm@11.5.1 --ignore-scripts
+
       - name: Publish to npm 🎉
-        run: cd dist && yarn publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        # No NODE_AUTH_TOKEN: publish authenticates via npm OIDC trusted publishing.
+        run: cd dist && npm publish --access public --provenance --registry https://registry.npmjs.org
 
   release:
     needs: [check-version, ci-and-publish]
