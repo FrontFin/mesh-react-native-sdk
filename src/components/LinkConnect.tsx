@@ -120,10 +120,13 @@ export const LinkConnect = (props: LinkConfiguration) => {
           onShouldStartLoadWithRequest={(req) => {
             if (isExternallyOpenedOrigin(req.url)) {
               // These origins are https and are handled by the browser, so a
-              // rejection is unlikely; catch + warn anyway so a failed open
-              // can't surface as an unhandled promise rejection.
+              // rejection is unlikely; catch anyway so a failed open can't
+              // surface as an unhandled promise rejection. Warn in dev only, to
+              // avoid noise in integrators' production builds.
               void Linking.openURL(req.url).catch((err) => {
-                console.warn('Failed to open external URL', req.url, err);
+                if (__DEV__) {
+                  console.warn('Failed to open external URL', req.url, err);
+                }
               });
               return false;
             }
