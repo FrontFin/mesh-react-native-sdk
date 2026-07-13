@@ -41,4 +41,5 @@ export const EXTERNALLY_OPENED_ORIGINS = [
   'https://login.coinbase.com',
   'https://api.cb-device-intelligence.com',
   'https://sandbox.meshconnect.com/authorize/Coinbase',
+  'https://app.binance.com', // Binance auth hands off to the Binance mobile app; must open externally, not in the WebView
 ];

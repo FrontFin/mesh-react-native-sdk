@@ -9,11 +9,11 @@ import { SDKViewContainer } from './SDKViewContainer';
 import type { LinkConfiguration } from '../';
 import { useSDKCallbacks } from '../hooks/useSDKCallbacks';
 import { sdkSpecs } from '../utils/sdkConfig';
+import { isExternallyOpenedOrigin } from '../utils';
 import {
   DARK_THEME_COLOR_BOTTOM,
   LIGHT_THEME_COLOR_BOTTOM,
   WHITELISTED_ORIGINS,
-  EXTERNALLY_OPENED_ORIGINS,
 } from '../constant';
 
 const LoadingComponentWebview = ({ darkTheme }: { darkTheme: boolean }) => {
@@ -118,9 +118,7 @@ export const LinkConnect = (props: LinkConfiguration) => {
           {...whiteListProps}
           onNavigationStateChange={handleNavState}
           onShouldStartLoadWithRequest={(req) => {
-            if (
-              EXTERNALLY_OPENED_ORIGINS.some((orig) => req.url.startsWith(orig))
-            ) {
+            if (isExternallyOpenedOrigin(req.url)) {
               Linking.openURL(req.url);
               return false;
             }
