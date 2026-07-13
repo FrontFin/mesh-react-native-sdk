@@ -17,7 +17,7 @@ const parseUrlParts = (url: string): UrlParts | null => {
   }
 
   const authority = match[2]
-    .replace(/^[^@]*@/, '') // drop userinfo
+    .replace(/^.*@/, '') // drop userinfo up to the last @ (host is what follows)
     .replace(/:\d+$/, ''); // drop port
 
   return {
@@ -33,7 +33,9 @@ const parseUrlParts = (url: string): UrlParts | null => {
  * prevent lookalike attacks (e.g. https://app.binance.com.evil.com must NOT
  * match https://app.binance.com). When an allowlisted origin pins a path, the
  * URL path must equal it or be nested under it on a segment boundary, so
- * /authorize/CoinbaseEvil does not match /authorize/Coinbase.
+ * /authorize/CoinbaseEvil does not match /authorize/Coinbase. Paths containing
+ * `.`/`..` segments are rejected against a pinned origin so a dot-segment can't
+ * escape the pin after normalization (e.g. /authorize/Coinbase/../CoinbaseEvil).
  */
 export const isExternallyOpenedOrigin = (url: string): boolean => {
   const target = parseUrlParts(url);
@@ -52,6 +54,11 @@ export const isExternallyOpenedOrigin = (url: string): boolean => {
     }
 
     if (allowed.path && allowed.path !== '/') {
+      // Reject dot-segments so a path can't escape the pin after normalization.
+      const segments = target.path.split('/');
+      if (segments.includes('.') || segments.includes('..')) {
+        return false;
+      }
       const base = allowed.path.endsWith('/')
         ? allowed.path
         : `${allowed.path}/`;

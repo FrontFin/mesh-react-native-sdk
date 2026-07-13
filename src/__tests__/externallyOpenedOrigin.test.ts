@@ -14,7 +14,7 @@ describe('isExternallyOpenedOrigin', () => {
     });
   });
 
-  it('returns true for Binance app auth URLs (PRG-3107)', () => {
+  it('returns true for Binance app auth URLs', () => {
     expect(isExternallyOpenedOrigin('https://app.binance.com')).toBe(true);
     expect(
       isExternallyOpenedOrigin(
@@ -41,6 +41,12 @@ describe('isExternallyOpenedOrigin', () => {
         'https://sandbox.meshconnect.com/authorize/CoinbaseEvil'
       )
     ).toBe(false);
+    // a dot-segment must NOT escape the pin (normalizes to /authorize/CoinbaseEvil)
+    expect(
+      isExternallyOpenedOrigin(
+        'https://sandbox.meshconnect.com/authorize/Coinbase/../CoinbaseEvil'
+      )
+    ).toBe(false);
   });
 
   it('rejects host lookalike attacks', () => {
@@ -53,6 +59,10 @@ describe('isExternallyOpenedOrigin', () => {
     // userinfo trick: real host is evil.com, not app.binance.com
     expect(
       isExternallyOpenedOrigin('https://app.binance.com@evil.com/oauth')
+    ).toBe(false);
+    // multi-@ authority: host is what follows the LAST @, so this is evil.com
+    expect(
+      isExternallyOpenedOrigin('https://app.binance.com@x@evil.com/oauth')
     ).toBe(false);
   });
 

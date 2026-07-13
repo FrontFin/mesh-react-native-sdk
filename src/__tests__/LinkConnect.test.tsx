@@ -118,7 +118,7 @@ describe('LinkConnect Component', () => {
     });
   });
 
-  it('onShouldStartLoadWithRequest opens Binance app auth externally (PRG-3107)', async () => {
+  it('onShouldStartLoadWithRequest opens Binance app auth externally', async () => {
     const { getByTestId } = render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} />);
     await waitFor(() => {
       const result = getByTestId('webview').props.onShouldStartLoadWithRequest({

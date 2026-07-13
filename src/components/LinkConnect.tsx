@@ -119,7 +119,9 @@ export const LinkConnect = (props: LinkConfiguration) => {
           onNavigationStateChange={handleNavState}
           onShouldStartLoadWithRequest={(req) => {
             if (isExternallyOpenedOrigin(req.url)) {
-              Linking.openURL(req.url);
+              // Voided + caught so a failed open (no handler app) can't surface
+              // as an unhandled promise rejection.
+              void Linking.openURL(req.url).catch(() => undefined);
               return false;
             }
             return req.url.startsWith('http');
