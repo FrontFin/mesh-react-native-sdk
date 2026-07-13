@@ -171,7 +171,7 @@ jobs:
 
       # OIDC trusted publishing requires npm >= 11.5.1; pin for reproducible releases
       - name: Pin npm for OIDC 📌
-        run: npm install -g npm@11.5.1
+        run: npm install -g npm@11.5.1 --ignore-scripts
 
       - name: Publish to npm 🎉
         # No NODE_AUTH_TOKEN: publish authenticates via npm OIDC trusted publishing.
