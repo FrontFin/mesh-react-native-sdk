@@ -1,0 +1,85 @@
+import { EXTERNALLY_OPENED_ORIGINS } from '../constant';
+
+interface UrlParts {
+  scheme: string;
+  host: string;
+  path: string;
+}
+
+// Parse scheme, host and path without relying on the URL global, which is only
+// partially implemented on some React Native runtimes. Userinfo and port are
+// stripped so the host compares cleanly (and lookalikes can't sneak in via
+// userinfo, e.g. https://app.binance.com@evil.com resolves to host evil.com).
+const parseUrlParts = (url: string): UrlParts | null => {
+  // Mirror WHATWG: a browser treats backslashes as forward slashes, so
+  // https://evil.com\@app.binance.com really opens evil.com. Normalize first so
+  // that lookalike can't be mis-parsed as app.binance.com and opened externally.
+  const normalized = url.replace(/\\/g, '/');
+  const match = /^([a-z][a-z0-9+.-]*):\/\/([^/?#]+)([^?#]*)/i.exec(normalized);
+  if (!match) {
+    return null;
+  }
+
+  const authority = match[2]
+    .replace(/^.*@/, '') // drop userinfo up to the last @ (host is what follows)
+    .replace(/:\d+$/, ''); // drop port
+
+  return {
+    scheme: match[1].toLowerCase(),
+    host: authority.toLowerCase(),
+    path: match[3] || '',
+  };
+};
+
+// Parse the allowlist once at module load rather than on every navigation.
+const ALLOWED_ORIGINS: UrlParts[] = EXTERNALLY_OPENED_ORIGINS.map(
+  parseUrlParts
+).filter((parts): parts is UrlParts => parts !== null);
+
+/**
+ * True when `url` should be opened in the external browser / native app rather
+ * than loaded inside the SDK WebView. Scheme and host are matched exactly to
+ * prevent lookalike attacks (e.g. https://app.binance.com.evil.com must NOT
+ * match https://app.binance.com). When an allowlisted origin pins a path, the
+ * URL path must equal it or be nested under it on a segment boundary, so
+ * /authorize/CoinbaseEvil does not match /authorize/Coinbase. Paths containing
+ * `.`/`..` segments (literal or percent-encoded) are rejected against a pinned
+ * origin so a dot-segment can't escape the pin after normalization (e.g.
+ * /authorize/Coinbase/../CoinbaseEvil or the %2e%2e-encoded equivalent).
+ */
+export const isExternallyOpenedOrigin = (url: string): boolean => {
+  const target = parseUrlParts(url);
+  if (!target) {
+    return false;
+  }
+
+  return ALLOWED_ORIGINS.some((allowed) => {
+    if (target.scheme !== allowed.scheme || target.host !== allowed.host) {
+      return false;
+    }
+
+    if (allowed.path && allowed.path !== '/') {
+      // Reject dot-segments so a path can't escape the pin after normalization.
+      // Decode first (failing closed on malformed input) so percent-encoded
+      // segments like %2e%2e (`..`) or %2f (`/`) can't slip past the check.
+      let decodedPath: string;
+      try {
+        decodedPath = decodeURIComponent(target.path);
+      } catch {
+        return false;
+      }
+      const segments = decodedPath.split('/');
+      if (segments.includes('.') || segments.includes('..')) {
+        return false;
+      }
+      const base = allowed.path.endsWith('/')
+        ? allowed.path
+        : `${allowed.path}/`;
+      if (target.path !== allowed.path && !target.path.startsWith(base)) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+};

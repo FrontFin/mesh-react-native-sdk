@@ -46,7 +46,7 @@ mesh-react-native-sdk/
 │   ├── pull_request_template.md
 │   └── workflows/
 │       ├── ci.yml              # CI: type-check + lint + test + build on PRs to main
-│       └── release.yaml        # CD: publish, GitHub Release, Slack announcement
+│       └── release.yml         # CD: publish, GitHub Release, Slack announcement
 ├── .claude/
 │   └── commands/               # Claude slash commands (bump-version)
 ├── package.json                # Version lives here — bump `version` field to release
@@ -220,7 +220,7 @@ See `RELEASE.md` for full details. Summary:
 8. License check
 9. Circular dependency check
 
-### `release.yaml` — push to `main` or manual trigger
+### `release.yml` — push to `main` or manual trigger
 
 Three jobs run in sequence: `check-version` → `ci-and-publish` → `release`
 

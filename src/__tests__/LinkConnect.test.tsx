@@ -118,6 +118,19 @@ describe('LinkConnect Component', () => {
     });
   });
 
+  it('onShouldStartLoadWithRequest opens Binance app auth externally', async () => {
+    const { getByTestId } = render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} />);
+    await waitFor(() => {
+      const result = getByTestId('webview').props.onShouldStartLoadWithRequest({
+        url: 'https://app.binance.com/en/oauth/authorize?client_id=mesh',
+      });
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'https://app.binance.com/en/oauth/authorize?client_id=mesh'
+      );
+      expect(result).toBe(false);
+    });
+  });
+
   it('emits webViewLoadFailed event on WebView onError', async () => {
     const mockOnEvent = jest.fn();
     const { getByTestId } = render(

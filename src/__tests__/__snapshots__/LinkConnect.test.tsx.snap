@@ -51,7 +51,7 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
         domStorageEnabled={true}
         injectedJavaScript="
     window.meshSdkPlatform='reactNative';
-    window.meshSdkVersion='2.4.2';
+    window.meshSdkVersion='2.4.3';
   "
         javaScriptEnabled={true}
         onContentProcessDidTerminate={[Function]}
@@ -95,6 +95,7 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
             "robinhood://",
           ]
         }
+        setSupportMultipleWindows={false}
         source={
           {
             "uri": "https://web.getfront.com/b2b-iframe/test-account-random/broker-connect/catalog1?platform=reactNative",

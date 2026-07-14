@@ -3,6 +3,16 @@
 All notable changes to the Mesh Connect React Native SDK are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2.4.3
+
+### Fixed
+
+- Binance app auth now opens in the external browser instead of hanging in the WebView.
+
+### Changed
+
+- Hardened external-origin matching against lookalike-host and path spoofing.
+
 ## 2.4.2
 
 ### Removed

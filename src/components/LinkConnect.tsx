@@ -9,11 +9,11 @@ import { SDKViewContainer } from './SDKViewContainer';
 import type { LinkConfiguration } from '../';
 import { useSDKCallbacks } from '../hooks/useSDKCallbacks';
 import { sdkSpecs } from '../utils/sdkConfig';
+import { isExternallyOpenedOrigin } from '../utils';
 import {
   DARK_THEME_COLOR_BOTTOM,
   LIGHT_THEME_COLOR_BOTTOM,
   WHITELISTED_ORIGINS,
-  EXTERNALLY_OPENED_ORIGINS,
 } from '../constant';
 
 const LoadingComponentWebview = ({ darkTheme }: { darkTheme: boolean }) => {
@@ -117,11 +117,19 @@ export const LinkConnect = (props: LinkConfiguration) => {
           injectedJavaScript={injectedScript}
           {...whiteListProps}
           onNavigationStateChange={handleNavState}
+          setSupportMultipleWindows={false}
           onShouldStartLoadWithRequest={(req) => {
-            if (
-              EXTERNALLY_OPENED_ORIGINS.some((orig) => req.url.startsWith(orig))
-            ) {
-              Linking.openURL(req.url);
+            if (isExternallyOpenedOrigin(req.url)) {
+              // These origins open in the browser or a native app (e.g. the
+              // Binance app via the bnc:// deep link), so a rejection is
+              // unlikely; catch anyway so a failed open can't surface as an
+              // unhandled promise rejection. Warn in dev only, to avoid noise
+              // in integrators' production builds.
+              void Linking.openURL(req.url).catch((err) => {
+                if (__DEV__) {
+                  console.warn('Failed to open external URL', req.url, err);
+                }
+              });
               return false;
             }
             return req.url.startsWith('http');
