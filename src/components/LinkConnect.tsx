@@ -117,12 +117,14 @@ export const LinkConnect = (props: LinkConfiguration) => {
           injectedJavaScript={injectedScript}
           {...whiteListProps}
           onNavigationStateChange={handleNavState}
+          setSupportMultipleWindows={false}
           onShouldStartLoadWithRequest={(req) => {
             if (isExternallyOpenedOrigin(req.url)) {
-              // These origins are https and are handled by the browser, so a
-              // rejection is unlikely; catch anyway so a failed open can't
-              // surface as an unhandled promise rejection. Warn in dev only, to
-              // avoid noise in integrators' production builds.
+              // These origins open in the browser or a native app (e.g. the
+              // Binance app via the bnc:// deep link), so a rejection is
+              // unlikely; catch anyway so a failed open can't surface as an
+              // unhandled promise rejection. Warn in dev only, to avoid noise
+              // in integrators' production builds.
               void Linking.openURL(req.url).catch((err) => {
                 if (__DEV__) {
                   console.warn('Failed to open external URL', req.url, err);

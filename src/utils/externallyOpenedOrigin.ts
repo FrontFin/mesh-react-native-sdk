@@ -11,7 +11,11 @@ interface UrlParts {
 // stripped so the host compares cleanly (and lookalikes can't sneak in via
 // userinfo, e.g. https://app.binance.com@evil.com resolves to host evil.com).
 const parseUrlParts = (url: string): UrlParts | null => {
-  const match = /^([a-z][a-z0-9+.-]*):\/\/([^/?#]+)([^?#]*)/i.exec(url);
+  // Mirror WHATWG: a browser treats backslashes as forward slashes, so
+  // https://evil.com\@app.binance.com really opens evil.com. Normalize first so
+  // that lookalike can't be mis-parsed as app.binance.com and opened externally.
+  const normalized = url.replace(/\\/g, '/');
+  const match = /^([a-z][a-z0-9+.-]*):\/\/([^/?#]+)([^?#]*)/i.exec(normalized);
   if (!match) {
     return null;
   }
@@ -26,6 +30,11 @@ const parseUrlParts = (url: string): UrlParts | null => {
     path: match[3] || '',
   };
 };
+
+// Parse the allowlist once at module load rather than on every navigation.
+const ALLOWED_ORIGINS: UrlParts[] = EXTERNALLY_OPENED_ORIGINS.map(
+  parseUrlParts
+).filter((parts): parts is UrlParts => parts !== null);
 
 /**
  * True when `url` should be opened in the external browser / native app rather
@@ -44,12 +53,7 @@ export const isExternallyOpenedOrigin = (url: string): boolean => {
     return false;
   }
 
-  return EXTERNALLY_OPENED_ORIGINS.some((origin) => {
-    const allowed = parseUrlParts(origin);
-    if (!allowed) {
-      return false;
-    }
-
+  return ALLOWED_ORIGINS.some((allowed) => {
     if (target.scheme !== allowed.scheme || target.host !== allowed.host) {
       return false;
     }

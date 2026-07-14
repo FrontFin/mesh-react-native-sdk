@@ -21,6 +21,12 @@ describe('isExternallyOpenedOrigin', () => {
         'https://app.binance.com/en/oauth/authorize?client_id=mesh'
       )
     ).toBe(true);
+    // Android hands off via the bnc:// scheme (QR scanner deep link)
+    expect(
+      isExternallyOpenedOrigin(
+        'bnc://app.binance.com/qrcode/qr_scan?bundle_target=1'
+      )
+    ).toBe(true);
   });
 
   it('honors path-pinned origins on a segment boundary', () => {
@@ -81,6 +87,14 @@ describe('isExternallyOpenedOrigin', () => {
     // multi-@ authority: host is what follows the LAST @, so this is evil.com
     expect(
       isExternallyOpenedOrigin('https://app.binance.com@x@evil.com/oauth')
+    ).toBe(false);
+    // bnc:// scheme must still host-match: a lookalike host is rejected
+    expect(isExternallyOpenedOrigin('bnc://evil.com/qrcode/qr_scan')).toBe(
+      false
+    );
+    // backslash lookalike: a browser reads \ as /, so the real host is evil.com
+    expect(
+      isExternallyOpenedOrigin('https://evil.com\\@app.binance.com/oauth')
     ).toBe(false);
   });
 

@@ -42,4 +42,5 @@ export const EXTERNALLY_OPENED_ORIGINS = [
   'https://api.cb-device-intelligence.com',
   'https://sandbox.meshconnect.com/authorize/Coinbase',
   'https://app.binance.com', // Binance auth hands off to the Binance mobile app; must open externally, not in the WebView
+  'bnc://app.binance.com', // Binance app deep link (Android QR-scan handoff uses the bnc:// scheme)
 ];
