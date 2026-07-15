@@ -118,6 +118,11 @@ export const LinkConnect = (props: LinkConfiguration) => {
           {...whiteListProps}
           onNavigationStateChange={handleNavState}
           setSupportMultipleWindows={false}
+          // iOS blocks a gestureless window.open (e.g. link-v2's Coinbase
+          // deposit handoff fires it after an async fetch, outside the tap).
+          // Without this, WebKit never calls the popup delegate, so
+          // onOpenWindow below never fires and the deposit dead-ends.
+          javaScriptCanOpenWindowsAutomatically={true}
           onShouldStartLoadWithRequest={(req) => {
             if (isExternallyOpenedOrigin(req.url)) {
               // These origins open in the browser or a native app (e.g. the
@@ -133,6 +138,24 @@ export const LinkConnect = (props: LinkConfiguration) => {
               return false;
             }
             return req.url.startsWith('http');
+          }}
+          onOpenWindow={({ nativeEvent }) => {
+            // link-v2 hands off OAuth/onramp via window.open('_blank') on a
+            // catalog tap. On iOS the WebView surfaces that here instead of
+            // navigating, so without forwarding it the popup is dropped and the
+            // flow dead-ends. Open it in the external browser, same
+            // as the in-page "Re-open" fallback and the Android
+            // onShouldStartLoadWithRequest path. Require https so a blank,
+            // opaque, or non-https (javascript:/data:/custom-scheme) target is
+            // ignored.
+            const { targetUrl } = nativeEvent;
+            if (targetUrl?.startsWith('https://')) {
+              void Linking.openURL(targetUrl).catch((err) => {
+                if (__DEV__) {
+                  console.warn('Failed to open external URL', targetUrl, err);
+                }
+              });
+            }
           }}
           domStorageEnabled={true}
           onError={({ nativeEvent }) => {

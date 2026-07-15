@@ -1,86 +1,39 @@
 {
-  "version": "2.4.3",
-  "name": "@meshconnect/react-native-link-sdk",
-  "description": "Mesh Connect React Native SDK.",
-  "license": "MIT",
-  "author": "Mesh Connect, Inc",
-  "repository": "https://github.com/FrontFin/mesh-react-native-sdk.git",
-  "homepage": "https://github.com/FrontFin/mesh-react-native-sdk",
-  "main": "src/index.ts",
-  "typings": "src/types.ts",
-  "module": "src/index.ts",
+  "name": "meshconnect-react-native-example",
+  "version": "2.4.4",
+  "private": true,
   "scripts": {
-    "build": "rm -rf dist && tsc --build && node scripts/build.js",
-    "build:watch": "tsc --build --watch",
-    "check:build": "node scripts/verify-build.js",
-    "clean": "tsc --build --clean",
-    "clean:modules": "rm -rf node_modules",
-    "lint": "eslint --ext .js,.ts,.tsx ./src",
-    "test": "jest --passWithNoTests",
-    "publish:npm": "yarn build && cd dist && yarn publish --access public",
-    "prepare": "husky install",
-    "types:check": "tsc --noEmit"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "node scripts/pre-commit.js"
-    }
-  },
-  "prettier": {
-    "printWidth": 80,
-    "semi": true,
-    "singleQuote": true,
-    "trailingComma": "es5"
-  },
-  "keywords": [
-    "mesh-connect",
-    "react-native-sdk"
-  ],
-  "publishConfig": {
-    "access": "public"
-  },
-  "engines": {
-    "node": ">=16"
-  },
-  "packageManager": "yarn@1.22.17",
-  "peerDependencies": {
-    "react": ">=16",
-    "react-native": ">=0.60",
-    "react-native-webview": "*"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.29.7",
-    "@babel/plugin-transform-private-methods": "^7.27.1",
-    "@babel/preset-env": "^7.29.3",
-    "@babel/runtime": "^7.29.2",
-    "@react-native/eslint-config": "^0.72.2",
-    "@react-native/metro-config": "^0.72.11",
-    "@testing-library/react-native": "^12.2.2",
-    "@tsconfig/react-native": "^3.0.9",
-    "@types/jest": "^30.0.0",
-    "@types/node": "^20",
-    "@types/react": "^18.0.24",
-    "@types/react-test-renderer": "^18.0.0",
-    "babel-jest": "^29.7.0",
-    "eslint": "8.57.1",
-    "eslint-plugin-import": "^2.28.1",
-    "husky": "^8.0.3",
-    "jest": "^29.7.0",
-    "metro-react-native-babel-preset": "^0.77.0",
-    "prettier": "^2.4.1",
-    "react": "18.2.0",
-    "react-native": "^0.75",
-    "react-test-renderer": "^18.2.0",
-    "ts-jest": "^29.4.9",
-    "typescript": "^5.1.6"
+    "android": "react-native run-android",
+    "ios": "react-native run-ios",
+    "lint": "eslint .",
+    "start": "react-native start",
+    "test": "jest",
+    "reinstall": "rm -rf ./node_modules && yarn && yarn start"
   },
   "dependencies": {
-    "query-string": "7",
-    "react-native-webview": "^13.16.1"
+    "@meshconnect/react-native-link-sdk": "../../dist",
+    "react": "18.3.1",
+    "react-native": "0.75.5",
+    "react-native-webview": "^13.10.5"
   },
-  "resolutions": {
-    "js-yaml": "^4.3.0",
-    "fast-xml-parser": ">=5.9.3",
-    "picomatch": "^4.0.4"
+  "devDependencies": {
+    "@babel/core": "^7.29.4",
+    "@babel/preset-env": "^7.29.4",
+    "@babel/runtime": "^7.29.4",
+    "@react-native/babel-preset": "0.75.5",
+    "@react-native/eslint-config": "0.75.5",
+    "@react-native/metro-config": "0.75.5",
+    "@react-native/typescript-config": "0.75.5",
+    "@types/react": "^18.2.6",
+    "@types/react-test-renderer": "^18.0.0",
+    "babel-jest": "^29.6.3",
+    "eslint": "^8.19.0",
+    "jest": "^29.6.3",
+    "prettier": "2.8.8",
+    "react-test-renderer": "18.3.1",
+    "typescript": "5.0.4"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

@@ -131,6 +131,48 @@ describe('LinkConnect Component', () => {
     });
   });
 
+  it('onOpenWindow opens the popup target URL externally (OAuth handoff)', async () => {
+    const { getByTestId } = render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} />);
+    await waitFor(() => {
+      getByTestId('webview').props.onOpenWindow({
+        nativeEvent: {
+          targetUrl: 'https://login.coinbase.com/oauth2/auth?client_id=mesh',
+        },
+      });
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'https://login.coinbase.com/oauth2/auth?client_id=mesh'
+      );
+    });
+  });
+
+  it('onOpenWindow ignores a non-http target (e.g. about:blank)', async () => {
+    const { getByTestId } = render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} />);
+    (Linking.openURL as jest.Mock).mockClear();
+    await waitFor(() => {
+      getByTestId('webview').props.onOpenWindow({
+        nativeEvent: { targetUrl: 'about:blank' },
+      });
+      expect(Linking.openURL).not.toHaveBeenCalled();
+    });
+  });
+
+  it('onOpenWindow ignores dangerous / non-https schemes', async () => {
+    const { getByTestId } = render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} />);
+    (Linking.openURL as jest.Mock).mockClear();
+    await waitFor(() => {
+      const webview = getByTestId('webview');
+      [
+        'javascript:alert(1)',
+        'data:text/html,<script>alert(1)</script>',
+        'http://insecure.example.com',
+        'meshapp://deeplink',
+      ].forEach((targetUrl) => {
+        webview.props.onOpenWindow({ nativeEvent: { targetUrl } });
+      });
+      expect(Linking.openURL).not.toHaveBeenCalled();
+    });
+  });
+
   it('emits webViewLoadFailed event on WebView onError', async () => {
     const mockOnEvent = jest.fn();
     const { getByTestId } = render(
