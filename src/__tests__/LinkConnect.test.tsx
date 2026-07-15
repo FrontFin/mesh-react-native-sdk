@@ -173,6 +173,19 @@ describe('LinkConnect Component', () => {
     });
   });
 
+  it('onOpenWindow swallows a failed external open (no unhandled rejection)', async () => {
+    (Linking.openURL as jest.Mock).mockRejectedValueOnce(new Error('no handler'));
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const { getByTestId } = render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} />);
+    await waitFor(() => {
+      getByTestId('webview').props.onOpenWindow({
+        nativeEvent: { targetUrl: 'https://login.coinbase.com/oauth2/auth' },
+      });
+    });
+    await waitFor(() => expect(warn).toHaveBeenCalled());
+    warn.mockRestore();
+  });
+
   it('emits webViewLoadFailed event on WebView onError', async () => {
     const mockOnEvent = jest.fn();
     const { getByTestId } = render(
