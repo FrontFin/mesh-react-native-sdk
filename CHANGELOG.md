@@ -5,10 +5,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## 2.4.5
 
-### Fixed
-
-- `onEvent` events now always include a `payload` object (funnel events like `transferInitiated` previously exposed fields only at the top level).
-
 ### Added
 
 - `AccountToken` now includes `tokenId`.
