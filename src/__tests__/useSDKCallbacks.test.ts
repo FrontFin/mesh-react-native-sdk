@@ -213,6 +213,60 @@ describe('useSDKCallbacks', () => {
   });
 });
 
+describe('useSDKCallbacks – onEvent payload normalization', () => {
+  const linkToken = 'c29tZVZhbGlkTGlua1Rva2Vu';
+
+  const fireEvent = (onEvent: jest.Mock, data: object) => {
+    const { result } = renderHook(() => useSDKCallbacks({ linkToken, onEvent }));
+    act(() => {
+      result.current.handleMessage({
+        nativeEvent: { data: JSON.stringify(data) },
+      } as WebViewMessageEvent);
+    });
+    return onEvent.mock.calls[0]?.[0];
+  };
+
+  test('wraps a flat funnel event so event.payload is populated', () => {
+    const onEvent = jest.fn();
+    const received = fireEvent(onEvent, {
+      type: 'transferInitiated',
+      brokerType: 'coinbase',
+      brokerName: 'Coinbase',
+      integrationType: 'coinbase',
+      integrationName: 'Coinbase',
+      status: 'pending',
+    });
+
+    // payload.* now resolves (was undefined before the fix)
+    expect(received.payload.integrationType).toBe('coinbase');
+    expect(received.payload.brokerType).toBe('coinbase');
+    expect(received.payload.status).toBe('pending');
+    // top-level fields preserved (non-breaking for flat readers)
+    expect(received.integrationType).toBe('coinbase');
+    expect(received.type).toBe('transferInitiated');
+  });
+
+  test('passes an already-nested event through without double-wrapping', () => {
+    const onEvent = jest.fn();
+    const received = fireEvent(onEvent, {
+      type: 'transferInitiated',
+      payload: { integrationType: 'coinbase', status: 'pending' },
+    });
+
+    expect(received.payload.integrationType).toBe('coinbase');
+    // not double-nested
+    expect(received.payload.payload).toBeUndefined();
+  });
+
+  test('leaves an event with no fields beyond type untouched', () => {
+    const onEvent = jest.fn();
+    const received = fireEvent(onEvent, { type: 'credentialsEntered' });
+
+    expect(received).toEqual({ type: 'credentialsEntered' });
+    expect(received.payload).toBeUndefined();
+  });
+});
+
 describe('useSDKCallbacks – theme behaviour', () => {
   afterEach(() => {
     jest.restoreAllMocks();

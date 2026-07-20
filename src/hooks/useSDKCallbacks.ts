@@ -14,11 +14,34 @@ import {
   AccessTokenPayload,
   DelayedAuthPayload,
   LinkConfiguration,
+  LinkEventType,
   LinkPayload,
   TransferFinishedPayload,
   isLinkEventTypeKey,
   mappedLinkEvents,
 } from '../';
+
+/**
+ * Some Link UI builds deliver granular `onEvent` events to the RN WebView
+ * "flat" (`{ type, ...fields }`) with no `payload` wrapper, while the SDK
+ * types and other builds use `{ type, payload }`. Guarantee a `payload` is
+ * present when it is missing, without dropping the flat top-level fields, so
+ * consumers reading either shape keep working. Events that already carry a
+ * `payload`, or that have no fields beyond `type`, are returned untouched.
+ */
+const withNormalizedPayload = (
+  event: Record<string, unknown>
+): LinkEventType => {
+  if (!event || event.payload !== undefined) {
+    return event as unknown as LinkEventType;
+  }
+  const payload = { ...event };
+  delete payload.type;
+  if (Object.keys(payload).length === 0) {
+    return event as unknown as LinkEventType;
+  }
+  return { ...event, payload } as unknown as LinkEventType;
+};
 
 const useSDKCallbacks = (props: LinkConfiguration) => {
   const [linkUrl, setLinkUrl] = useState<string | null>(null);
@@ -183,7 +206,7 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
           isOAuthInProgress.current = true;
         }
         if (isLinkEventTypeKey(type)) {
-          props?.onEvent?.(nativeEventData);
+          props?.onEvent?.(withNormalizedPayload(nativeEventData));
         }
         break;
       }
