@@ -252,7 +252,8 @@ export interface AccountToken {
   refreshToken?: string;
   /**
    * Reconnection token for the account. Delivered at runtime but was
-   * previously missing from the type. Consumers store it to reactivate a user.
+   * previously missing from the type. Consumers store it to reactivate the
+   * connected account.
    */
   tokenId?: string;
 }
