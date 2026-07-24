@@ -8,6 +8,7 @@ import {
   isValidUrl,
   addURLParam,
   extractThemeFromToken,
+  resolveLanguage,
 } from '../utils';
 import { sdkSpecs } from '../utils/sdkConfig';
 import {
@@ -42,8 +43,9 @@ const useSDKCallbacks = (props: LinkConfiguration) => {
           decodedUrl = addURLParam(decodedUrl, 'th', settingsTheme);
         }
 
-        // Add the `language` to the URL as a `lng` query parameter
-        const settingsLanguage = props.settings?.language;
+        // Add the `language` to the URL as a `lng` query parameter.
+        // `'system'` resolves to the device locale (see resolveLanguage).
+        const settingsLanguage = resolveLanguage(props.settings?.language);
         if (settingsLanguage) {
           decodedUrl = addURLParam(decodedUrl, 'lng', settingsLanguage);
         }

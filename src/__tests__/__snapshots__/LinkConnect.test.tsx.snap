@@ -51,7 +51,7 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
         domStorageEnabled={true}
         injectedJavaScript="
     window.meshSdkPlatform='reactNative';
-    window.meshSdkVersion='2.4.5';
+    window.meshSdkVersion='2.4.6';
   "
         javaScriptCanOpenWindowsAutomatically={true}
         javaScriptEnabled={true}
