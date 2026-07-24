@@ -22,6 +22,14 @@ jest.mock('react-native/Libraries/Utilities/useColorScheme', () => {
   };
 });
 
+jest.mock('../utils/language', () => ({
+  getSystemLanguage: jest.fn(),
+}));
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const mockedGetSystemLanguage = require('../utils/language')
+  .getSystemLanguage as jest.Mock;
+
 describe('useSDKCallbacks', () => {
   const mockProps = {
     linkToken: 'c29tZVZhbGlkTGlua1Rva2Vu',
@@ -289,5 +297,56 @@ describe('useSDKCallbacks – theme behaviour', () => {
     // No theme in token and no settings.theme → darkTheme defaults to false
     expect(result.current.darkTheme).toBe(false);
     expect(result.current.linkUrl).not.toContain('th=');
+  });
+});
+
+describe('useSDKCallbacks: language behaviour', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('appends the given language tag as lng', () => {
+    const { result } = renderHook(() =>
+      useSDKCallbacks({ linkToken: TOKEN_BASE_ONLY, settings: { language: 'en' } })
+    );
+
+    expect(result.current.linkUrl).toContain('lng=en');
+  });
+
+  test('resolves "system" to the device language', () => {
+    mockedGetSystemLanguage.mockReturnValue('fr-FR');
+
+    const { result } = renderHook(() =>
+      useSDKCallbacks({
+        linkToken: TOKEN_BASE_ONLY,
+        settings: { language: 'system' },
+      })
+    );
+
+    expect(mockedGetSystemLanguage).toHaveBeenCalled();
+    expect(result.current.linkUrl).toContain('lng=fr-FR');
+    // The literal `system` must never reach the URL (the hosted UI needs a real tag)
+    expect(result.current.linkUrl).not.toContain('lng=system');
+  });
+
+  test('falls back to en when "system" cannot be resolved', () => {
+    mockedGetSystemLanguage.mockReturnValue(undefined);
+
+    const { result } = renderHook(() =>
+      useSDKCallbacks({
+        linkToken: TOKEN_BASE_ONLY,
+        settings: { language: 'system' },
+      })
+    );
+
+    expect(result.current.linkUrl).toContain('lng=en');
+  });
+
+  test('does not append lng when no language is set', () => {
+    const { result } = renderHook(() =>
+      useSDKCallbacks({ linkToken: TOKEN_BASE_ONLY })
+    );
+
+    expect(result.current.linkUrl).not.toContain('lng=');
   });
 });

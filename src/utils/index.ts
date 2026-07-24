@@ -5,3 +5,4 @@ export * from './isUrl';
 export * from './urlHelpers';
 export * from './styleHelpers';
 export * from './theme';
+export * from './language';

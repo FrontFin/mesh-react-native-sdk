@@ -330,6 +330,10 @@ export type LinkTheme = 'light' | 'dark' | 'system';
 
 export interface LinkSettings {
   accessTokens?: IntegrationAccessToken[];
+  /**
+   * Language for the Link UI as a BCP-47 tag (e.g. `'en'`, `'en-US'`).
+   * Use `'system'` to follow the device's current language.
+   */
   language?: string;
   displayFiatCurrency?: string;
   /**
