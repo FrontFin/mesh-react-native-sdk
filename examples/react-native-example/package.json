@@ -1,6 +1,6 @@
 {
   "name": "meshconnect-react-native-example",
-  "version": "2.5.0",
+  "version": "2.4.6",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
