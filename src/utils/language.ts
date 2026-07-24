@@ -49,3 +49,18 @@ export function getSystemLanguage(): string | undefined {
 
   return undefined;
 }
+
+/**
+ * Resolves a `settings.language` value into the concrete tag to send as `lng`.
+ * `'system'` expands to the device locale (falling back to `'en'` when it
+ * cannot be determined); any other value is passed through unchanged, and
+ * `undefined` stays `undefined` so no `lng` param is added.
+ */
+export function resolveLanguage(
+  language: string | undefined
+): string | undefined {
+  if (language === 'system') {
+    return getSystemLanguage() || 'en';
+  }
+  return language;
+}

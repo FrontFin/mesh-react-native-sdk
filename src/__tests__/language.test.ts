@@ -1,5 +1,5 @@
 import { NativeModules, Platform } from 'react-native';
-import { getSystemLanguage } from '../utils/language';
+import { getSystemLanguage, resolveLanguage } from '../utils/language';
 
 describe('getSystemLanguage', () => {
   const originalOS = Platform.OS;
@@ -65,5 +65,43 @@ describe('getSystemLanguage', () => {
     });
 
     expect(getSystemLanguage()).toBeUndefined();
+  });
+});
+
+describe('resolveLanguage', () => {
+  const originalOS = Platform.OS;
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    (Platform as { OS: string }).OS = originalOS;
+    delete (NativeModules as Record<string, unknown>).SettingsManager;
+    delete (NativeModules as Record<string, unknown>).I18nManager;
+  });
+
+  test('passes a concrete tag through unchanged', () => {
+    expect(resolveLanguage('en-US')).toBe('en-US');
+  });
+
+  test('returns undefined when no language is set', () => {
+    expect(resolveLanguage(undefined)).toBeUndefined();
+  });
+
+  test('expands "system" to the device locale', () => {
+    (Platform as { OS: string }).OS = 'android';
+    (NativeModules as Record<string, unknown>).I18nManager = {
+      localeIdentifier: 'fr_FR',
+    };
+
+    expect(resolveLanguage('system')).toBe('fr-FR');
+  });
+
+  test('falls back to "en" when "system" cannot be resolved', () => {
+    (Platform as { OS: string }).OS = 'android';
+    (NativeModules as Record<string, unknown>).I18nManager = {};
+    jest.spyOn(Intl, 'DateTimeFormat').mockImplementation(() => {
+      throw new Error('Intl unavailable');
+    });
+
+    expect(resolveLanguage('system')).toBe('en');
   });
 });

@@ -23,12 +23,13 @@ jest.mock('react-native/Libraries/Utilities/useColorScheme', () => {
 });
 
 jest.mock('../utils/language', () => ({
-  getSystemLanguage: jest.fn(),
+  ...jest.requireActual('../utils/language'),
+  resolveLanguage: jest.fn(),
 }));
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const mockedGetSystemLanguage = require('../utils/language')
-  .getSystemLanguage as jest.Mock;
+const mockedResolveLanguage = require('../utils/language')
+  .resolveLanguage as jest.Mock;
 
 describe('useSDKCallbacks', () => {
   const mockProps = {
@@ -305,16 +306,19 @@ describe('useSDKCallbacks: language behaviour', () => {
     jest.clearAllMocks();
   });
 
-  test('appends the given language tag as lng', () => {
+  test('appends the resolved language tag as lng', () => {
+    mockedResolveLanguage.mockReturnValue('en');
+
     const { result } = renderHook(() =>
       useSDKCallbacks({ linkToken: TOKEN_BASE_ONLY, settings: { language: 'en' } })
     );
 
+    expect(mockedResolveLanguage).toHaveBeenCalledWith('en');
     expect(result.current.linkUrl).toContain('lng=en');
   });
 
-  test('resolves "system" to the device language', () => {
-    mockedGetSystemLanguage.mockReturnValue('fr-FR');
+  test('passes the resolved system locale as lng, never the literal "system"', () => {
+    mockedResolveLanguage.mockReturnValue('fr-FR');
 
     const { result } = renderHook(() =>
       useSDKCallbacks({
@@ -323,26 +327,14 @@ describe('useSDKCallbacks: language behaviour', () => {
       })
     );
 
-    expect(mockedGetSystemLanguage).toHaveBeenCalled();
+    expect(mockedResolveLanguage).toHaveBeenCalledWith('system');
     expect(result.current.linkUrl).toContain('lng=fr-FR');
-    // The literal `system` must never reach the URL (the hosted UI needs a real tag)
     expect(result.current.linkUrl).not.toContain('lng=system');
   });
 
-  test('falls back to en when "system" cannot be resolved', () => {
-    mockedGetSystemLanguage.mockReturnValue(undefined);
+  test('does not append lng when the language resolves to undefined', () => {
+    mockedResolveLanguage.mockReturnValue(undefined);
 
-    const { result } = renderHook(() =>
-      useSDKCallbacks({
-        linkToken: TOKEN_BASE_ONLY,
-        settings: { language: 'system' },
-      })
-    );
-
-    expect(result.current.linkUrl).toContain('lng=en');
-  });
-
-  test('does not append lng when no language is set', () => {
     const { result } = renderHook(() =>
       useSDKCallbacks({ linkToken: TOKEN_BASE_ONLY })
     );
