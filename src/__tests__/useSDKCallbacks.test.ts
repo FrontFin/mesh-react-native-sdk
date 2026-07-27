@@ -22,6 +22,15 @@ jest.mock('react-native/Libraries/Utilities/useColorScheme', () => {
   };
 });
 
+jest.mock('../utils/language', () => ({
+  ...jest.requireActual('../utils/language'),
+  resolveLanguage: jest.fn(),
+}));
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const mockedResolveLanguage = require('../utils/language')
+  .resolveLanguage as jest.Mock;
+
 describe('useSDKCallbacks', () => {
   const mockProps = {
     linkToken: 'c29tZVZhbGlkTGlua1Rva2Vu',
@@ -289,5 +298,47 @@ describe('useSDKCallbacks – theme behaviour', () => {
     // No theme in token and no settings.theme → darkTheme defaults to false
     expect(result.current.darkTheme).toBe(false);
     expect(result.current.linkUrl).not.toContain('th=');
+  });
+});
+
+describe('useSDKCallbacks: language behaviour', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('appends the resolved language tag as lng', () => {
+    mockedResolveLanguage.mockReturnValue('en');
+
+    const { result } = renderHook(() =>
+      useSDKCallbacks({ linkToken: TOKEN_BASE_ONLY, settings: { language: 'en' } })
+    );
+
+    expect(mockedResolveLanguage).toHaveBeenCalledWith('en');
+    expect(result.current.linkUrl).toContain('lng=en');
+  });
+
+  test('passes the resolved system locale as lng, never the literal "system"', () => {
+    mockedResolveLanguage.mockReturnValue('fr-FR');
+
+    const { result } = renderHook(() =>
+      useSDKCallbacks({
+        linkToken: TOKEN_BASE_ONLY,
+        settings: { language: 'system' },
+      })
+    );
+
+    expect(mockedResolveLanguage).toHaveBeenCalledWith('system');
+    expect(result.current.linkUrl).toContain('lng=fr-FR');
+    expect(result.current.linkUrl).not.toContain('lng=system');
+  });
+
+  test('does not append lng when the language resolves to undefined', () => {
+    mockedResolveLanguage.mockReturnValue(undefined);
+
+    const { result } = renderHook(() =>
+      useSDKCallbacks({ linkToken: TOKEN_BASE_ONLY })
+    );
+
+    expect(result.current.linkUrl).not.toContain('lng=');
   });
 });

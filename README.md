@@ -124,7 +124,7 @@ export default App;
 
 The `LinkSettings` option allows to configure the Link behaviour:
 
-- `language` - Link UI language.
+- `language` - Link UI language as a BCP-47 tag (e.g. 'en', 'en-US'). Accepts 'system' to follow the device language.
 - `displayFiatCurrency` - a preferred display fiat currency
 - `theme` - Link UI colour theme. Accepts: 'light', 'dark', 'system'.
 - `accessTokens` - an array of `IntegrationAccessToken` objects that is used as an origin for crypto transfer flow.
