@@ -47,7 +47,12 @@ describe('isAppLaunchScheme', () => {
     }
   );
 
-  it('ignores surrounding whitespace', () => {
-    expect(isAppLaunchScheme('  dfw://wc  ')).toBe(true);
-  });
+  // The caller launches the URL exactly as given, so accepting a padded URL here
+  // would hand the whitespace straight to openURL, which fails on it.
+  it.each(['  dfw://wc', 'dfw://wc  ', ' dfw://wc ', 'dfw://wc?x=a b', 'dfw://wc\n'])(
+    'rejects the URL %s, which carries raw whitespace',
+    (url) => {
+      expect(isAppLaunchScheme(url)).toBe(false);
+    }
+  );
 });

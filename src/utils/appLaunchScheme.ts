@@ -14,6 +14,7 @@ const BLOCKED_SCHEMES = new Set([
 ]);
 
 const SCHEME_PATTERN = /^([a-z][a-z0-9+.-]*):/i;
+const WHITESPACE_PATTERN = /\s/;
 
 /**
  * True when `url` should be launched as an app deep link — a wallet's custom
@@ -30,12 +31,19 @@ const SCHEME_PATTERN = /^([a-z][a-z0-9+.-]*):/i;
  *
  * `http(s)` is excluded: those load in the WebView, or are routed by
  * `isExternallyOpenedOrigin` when they belong to an origin that must leave it.
+ *
+ * Matched strictly, with no normalising: the caller launches the URL exactly as
+ * given, so anything accepted here must be launchable as-is. A URL carrying raw
+ * whitespace is rejected rather than accepted and then handed to `openURL`,
+ * which fails on it — a valid URL percent-encodes whitespace, and a WebView
+ * navigation target is already normalised, so this only rejects input that was
+ * malformed to begin with.
  */
 export const isAppLaunchScheme = (url: string | undefined | null): boolean => {
-  if (!url) {
+  if (!url || WHITESPACE_PATTERN.test(url)) {
     return false;
   }
-  const match = SCHEME_PATTERN.exec(url.trim());
+  const match = SCHEME_PATTERN.exec(url);
   if (!match) {
     return false;
   }
