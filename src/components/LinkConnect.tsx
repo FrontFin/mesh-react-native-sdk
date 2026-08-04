@@ -9,12 +9,31 @@ import { SDKViewContainer } from './SDKViewContainer';
 import type { LinkConfiguration } from '../';
 import { useSDKCallbacks } from '../hooks/useSDKCallbacks';
 import { sdkSpecs } from '../utils/sdkConfig';
-import { isExternallyOpenedOrigin } from '../utils';
+import { isAppLaunchScheme, isExternallyOpenedOrigin } from '../utils';
 import {
   DARK_THEME_COLOR_BOTTOM,
   LIGHT_THEME_COLOR_BOTTOM,
   WHITELISTED_ORIGINS,
 } from '../constant';
+
+/**
+ * Hand a URL to the OS — the external browser for https, the wallet app for a
+ * custom scheme.
+ *
+ * `openURL` is deliberate: it issues a view intent via `startActivity`, so unlike
+ * `canOpenURL` it is not subject to Android 11+ package-visibility filtering and
+ * resolves whenever the target app is installed. A rejection is unlikely for
+ * these URLs, but is caught so a failed open cannot surface as an unhandled
+ * promise rejection. Warn in dev only, to avoid noise in integrators'
+ * production builds.
+ */
+const openExternally = (url: string): void => {
+  void Linking.openURL(url).catch((err) => {
+    if (__DEV__) {
+      console.warn('Failed to open external URL', url, err);
+    }
+  });
+};
 
 const LoadingComponentWebview = ({ darkTheme }: { darkTheme: boolean }) => {
   return (
@@ -117,44 +136,40 @@ export const LinkConnect = (props: LinkConfiguration) => {
           injectedJavaScript={injectedScript}
           {...whiteListProps}
           onNavigationStateChange={handleNavState}
-          setSupportMultipleWindows={false}
+          // Android popup routing. PRG-3107 set this false so Binance app auth
+          // reached a handler the SDK controls; at the time onOpenWindow did not
+          // exist, so onShouldStartLoadWithRequest was the only one. It is back to
+          // the library default because false has a side effect: an Android
+          // `target="_blank"` click becomes a same-frame navigation, and
+          // react-native-webview's own wrapper reaches that before our handler,
+          // gating every non-whitelisted URL behind `Linking.canOpenURL` — which
+          // is package-visibility filtered on Android 11+ and answers false for
+          // any scheme the integrator's manifest does not name in `<queries>`.
+          // Wallet deep links were dropped with only a console warning (ONC-447).
+          // With multiple windows enabled those clicks arrive at onOpenWindow,
+          // which opens both https handoffs and wallet schemes — so PRG-3107's
+          // Binance behaviour holds, via the sibling handler.
+          setSupportMultipleWindows={true}
           // iOS blocks a gestureless window.open (e.g. link-v2's Coinbase
           // deposit handoff fires it after an async fetch, outside the tap).
           // Without this, WebKit never calls the popup delegate, so
           // onOpenWindow below never fires and the deposit dead-ends.
           javaScriptCanOpenWindowsAutomatically={true}
           onShouldStartLoadWithRequest={(req) => {
-            if (isExternallyOpenedOrigin(req.url)) {
-              // These origins open in the browser or a native app (e.g. the
-              // Binance app via the bnc:// deep link), so a rejection is
-              // unlikely; catch anyway so a failed open can't surface as an
-              // unhandled promise rejection. Warn in dev only, to avoid noise
-              // in integrators' production builds.
-              void Linking.openURL(req.url).catch((err) => {
-                if (__DEV__) {
-                  console.warn('Failed to open external URL', req.url, err);
-                }
-              });
+            if (isExternallyOpenedOrigin(req.url) || isAppLaunchScheme(req.url)) {
+              openExternally(req.url);
               return false;
             }
             return req.url.startsWith('http');
           }}
           onOpenWindow={({ nativeEvent }) => {
-            // link-v2 hands off OAuth/onramp via window.open('_blank') on a
-            // catalog tap. On iOS the WebView surfaces that here instead of
-            // navigating, so without forwarding it the popup is dropped and the
-            // flow dead-ends. Open it in the external browser, same
-            // as the in-page "Re-open" fallback and the Android
-            // onShouldStartLoadWithRequest path. Require https so a blank,
-            // opaque, or non-https (javascript:/data:/custom-scheme) target is
-            // ignored.
+            // Every `target="_blank"` / window.open target lands here: link-v2's
+            // OAuth and on-ramp handoffs (https) and its wallet deep links
+            // (custom scheme). Both must leave the WebView; anything that could
+            // execute or read local state is rejected by isAppLaunchScheme.
             const { targetUrl } = nativeEvent;
-            if (targetUrl?.startsWith('https://')) {
-              void Linking.openURL(targetUrl).catch((err) => {
-                if (__DEV__) {
-                  console.warn('Failed to open external URL', targetUrl, err);
-                }
-              });
+            if (targetUrl?.startsWith('https://') || isAppLaunchScheme(targetUrl)) {
+              openExternally(targetUrl);
             }
           }}
           domStorageEnabled={true}

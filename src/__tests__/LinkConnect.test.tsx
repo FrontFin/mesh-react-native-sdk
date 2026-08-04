@@ -156,7 +156,10 @@ describe('LinkConnect Component', () => {
     });
   });
 
-  it('onOpenWindow ignores dangerous / non-https schemes', async () => {
+  // PRG-3183 allowed https only here, which also excluded custom schemes — at the
+  // time nothing needed one. Wallet deep links do (ONC-447), so the rule is now
+  // https plus app schemes, minus anything that can execute or read local state.
+  it('onOpenWindow ignores dangerous / insecure schemes', async () => {
     const { getByTestId } = render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} />);
     (Linking.openURL as jest.Mock).mockClear();
     await waitFor(() => {
@@ -164,12 +167,75 @@ describe('LinkConnect Component', () => {
       [
         'javascript:alert(1)',
         'data:text/html,<script>alert(1)</script>',
+        'file:///etc/passwd',
+        'content://com.example.provider/secrets',
+        'intent://scan/#Intent;scheme=zxing;end',
+        'blob:https://example.com/uuid',
         'http://insecure.example.com',
-        'meshapp://deeplink',
+        undefined,
+        '',
       ].forEach((targetUrl) => {
         webview.props.onOpenWindow({ nativeEvent: { targetUrl } });
       });
       expect(Linking.openURL).not.toHaveBeenCalled();
+    });
+  });
+
+  // ONC-447: the Android popup path for a wallet deep link. Dropping these is
+  // what left "Open <wallet>" doing nothing in react-native hosts.
+  it.each([
+    'dfw://wc?uri=wc%3Atopic%402',
+    'metamask://wc?uri=wc%3Atopic%402',
+    'robinhood://wc?uri=wc%3Atopic%402',
+  ])('onOpenWindow launches the wallet deep link %s', async (targetUrl) => {
+    const { getByTestId } = render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} />);
+    (Linking.openURL as jest.Mock).mockClear();
+    await waitFor(() => {
+      getByTestId('webview').props.onOpenWindow({ nativeEvent: { targetUrl } });
+      expect(Linking.openURL).toHaveBeenCalledWith(targetUrl);
+    });
+  });
+
+  // Same-frame twin of the above: reachable when the scheme is whitelisted, which
+  // previously fell through to `startsWith('http')` and was dropped silently.
+  it('onShouldStartLoadWithRequest launches a wallet deep link and returns false', async () => {
+    const { getByTestId } = render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} />);
+    (Linking.openURL as jest.Mock).mockClear();
+    await waitFor(() => {
+      const result = getByTestId('webview').props.onShouldStartLoadWithRequest({
+        url: 'dfw://wc?uri=wc%3Atopic%402',
+      });
+      expect(Linking.openURL).toHaveBeenCalledWith('dfw://wc?uri=wc%3Atopic%402');
+      expect(result).toBe(false);
+    });
+  });
+
+  // PRG-3107 required Binance auth to reach a handler the SDK controls. With
+  // multiple windows back at the library default, Android popups arrive here
+  // instead of in onShouldStartLoadWithRequest — this pins that it still opens.
+  it('onOpenWindow opens Binance app auth externally (PRG-3107 via the popup path)', async () => {
+    const { getByTestId } = render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} />);
+    (Linking.openURL as jest.Mock).mockClear();
+    await waitFor(() => {
+      getByTestId('webview').props.onOpenWindow({
+        nativeEvent: {
+          targetUrl: 'https://app.binance.com/en/oauth/authorize?client_id=mesh',
+        },
+      });
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'https://app.binance.com/en/oauth/authorize?client_id=mesh'
+      );
+    });
+  });
+
+  it('keeps Android popups routed to a handler the SDK controls', async () => {
+    const { getByTestId } = render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} />);
+    await waitFor(() => {
+      const webview = getByTestId('webview');
+      // false would make Android target="_blank" a same-frame navigation, which
+      // react-native-webview gates behind Linking.canOpenURL before our handler.
+      expect(webview.props.setSupportMultipleWindows).toBe(true);
+      expect(typeof webview.props.onOpenWindow).toBe('function');
     });
   });
 
