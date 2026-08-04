@@ -3,6 +3,17 @@
 All notable changes to the Mesh Connect React Native SDK are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2.4.7
+
+### Fixed
+
+- Wallet deep links now open on Android again. `setSupportMultipleWindows={false}` (added in 2.4.3) turned a `target="_blank"` click into a same-frame navigation, which react-native-webview gates behind `Linking.canOpenURL` — package-visibility filtered on Android 11+, so a wallet's custom scheme was dropped with only a console warning unless the integrator declared it in their manifest `<queries>`. Popups are routed to `onOpenWindow` again, where the SDK launches them itself.
+
+### Changed
+
+- `onOpenWindow` now opens app schemes (e.g. `dfw://`, `metamask://`) in addition to `https`. Schemes that can execute or reach local state — `javascript:`, `data:`, `file:`, `content:`, `intent:`, `android-app:`, `about:`, `blob:` — are still ignored, as is plain `http:`.
+- A custom scheme reaching `onShouldStartLoadWithRequest` is now launched instead of silently blocked, so a scheme listed in `WHITELISTED_ORIGINS` (e.g. `robinhood://`) is no longer a dead end.
+
 ## 2.4.6
 
 ### Added
