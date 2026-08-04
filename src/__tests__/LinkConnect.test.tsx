@@ -210,6 +210,26 @@ describe('LinkConnect Component', () => {
     });
   });
 
+  // Behaviour change, stated deliberately: with popups enabled on Android, a
+  // whitelisted-origin `_blank` target leaves the WebView instead of loading
+  // in-frame. iOS has done this since PRG-3183; Android now matches. link-v2's
+  // OAuth opens with `noopener,noreferrer` and completes by polling, so there is
+  // no opener callback to preserve. Iframes are unaffected — onOpenWindow only
+  // fires for window.open / target="_blank".
+  it.each([
+    'https://applink.robinhood.com/oauth/authorize?client_id=mesh',
+    'https://www.okx.com/oauth/authorize?client_id=mesh',
+    'https://exchange.gemini.com/oauth/authorize?client_id=mesh',
+    'https://web.meshconnect.com/some/page',
+  ])('onOpenWindow opens the whitelisted https origin %s externally', async (targetUrl) => {
+    const { getByTestId } = render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} />);
+    (Linking.openURL as jest.Mock).mockClear();
+    await waitFor(() => {
+      getByTestId('webview').props.onOpenWindow({ nativeEvent: { targetUrl } });
+      expect(Linking.openURL).toHaveBeenCalledWith(targetUrl);
+    });
+  });
+
   // PRG-3107 required Binance auth to reach a handler the SDK controls. With
   // multiple windows back at the library default, Android popups arrive here
   // instead of in onShouldStartLoadWithRequest — this pins that it still opens.
