@@ -1,4 +1,5 @@
 import { AppState, Linking, View } from 'react-native';
+import type { AppStateStatus } from 'react-native';
 import { WebView } from 'react-native-webview';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -83,13 +84,29 @@ export const LinkConnect = (props: LinkConfiguration) => {
   // once a reload can actually run (ref mounted), so a not-yet-mounted WebView
   // on the first foreground tick doesn't drop the recovery.
   useEffect(() => {
-    const sub = AppState.addEventListener('change', state => {
+    const handler = (state: AppStateStatus) => {
       if (state === 'active' && rendererGone.current && webViewRef.current) {
         rendererGone.current = false;
         webViewRef.current.reload();
       }
-    });
-    return () => sub.remove();
+    };
+    const sub = AppState.addEventListener('change', handler);
+    // RN >=0.65 returns a subscription with remove(); older RN (the peer dep
+    // allows >=0.60) returns void and needs the static removeEventListener.
+    return () => {
+      if (typeof sub?.remove === 'function') {
+        sub.remove();
+      } else {
+        (
+          AppState as unknown as {
+            removeEventListener?: (
+              type: 'change',
+              h: (state: AppStateStatus) => void
+            ) => void;
+          }
+        ).removeEventListener?.('change', handler);
+      }
+    };
   }, []);
 
   // A dead render process can't complete an OAuth (the old isOAuthInProgress
