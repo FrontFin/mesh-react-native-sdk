@@ -1,6 +1,6 @@
 /* eslint-disable */
 import React from 'react';
-import { Linking } from 'react-native';
+import { AppState, Linking } from 'react-native';
 import { render, waitFor } from '@testing-library/react-native';
 import { LinkConnect } from '../components/LinkConnect';
 
@@ -350,15 +350,18 @@ describe('LinkConnect Component', () => {
     });
   });
 
-  it('does not reload on onContentProcessDidTerminate when OAuth is in progress', async () => {
+  it('reloads on onContentProcessDidTerminate even during OAuth (dead renderer recovers)', async () => {
     const { getByTestId } = render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} />);
     await waitFor(() => {
       const webview = getByTestId('webview');
       webview.props.onMessage({
         nativeEvent: { data: JSON.stringify({ type: 'integrationOAuthStarted' }) },
       });
+      // A dead render process can't finish an OAuth, so it must recover
+      // regardless of isOAuthInProgress; the old behavior left a blank/stuck
+      // WebView.
       webview.props.onContentProcessDidTerminate();
-      expect(mockReload).not.toHaveBeenCalled();
+      expect(mockReload).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -370,7 +373,7 @@ describe('LinkConnect Component', () => {
     });
   });
 
-  it('does not reload on onRenderProcessGone when OAuth is in progress', async () => {
+  it('reloads on onRenderProcessGone even during OAuth (dead renderer recovers)', async () => {
     const { getByTestId } = render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} />);
     await waitFor(() => {
       const webview = getByTestId('webview');
@@ -378,7 +381,29 @@ describe('LinkConnect Component', () => {
         nativeEvent: { data: JSON.stringify({ type: 'integrationOAuthStarted' }) },
       });
       webview.props.onRenderProcessGone();
-      expect(mockReload).not.toHaveBeenCalled();
+      expect(mockReload).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it('recovers a dead WebView on foreground return (AppState active)', async () => {
+    let appStateCb: ((s: string) => void) | undefined;
+    jest
+      .spyOn(AppState, 'addEventListener')
+      .mockImplementation((event: any, cb: any) => {
+        if (event === 'change') appStateCb = cb;
+        return { remove: jest.fn() } as any;
+      });
+    const { getByTestId } = render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} />);
+    await waitFor(() => {
+      // Renderer dies -> immediate reload + a "rendererGone" flag is set.
+      getByTestId('webview').props.onRenderProcessGone();
+      expect(mockReload).toHaveBeenCalledTimes(1);
+    });
+    // Coming back to the foreground recovers the dead WebView.
+    appStateCb?.('active');
+    expect(mockReload).toHaveBeenCalledTimes(2);
+    // Flag is cleared, so a later foreground does nothing.
+    appStateCb?.('active');
+    expect(mockReload).toHaveBeenCalledTimes(2);
   });
 });
