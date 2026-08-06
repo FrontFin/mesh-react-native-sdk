@@ -79,16 +79,35 @@ export const LinkConnect = (props: LinkConfiguration) => {
   // Recover a dead WebView on foreground return. If the render process was
   // killed while backgrounded (memory pressure during an external OAuth trip),
   // reload once when the user comes back so the flow isn't stuck on a blank
-  // WebView with the in-progress session silently lost.
+  // WebView with the in-progress session silently lost. Only clear the flag
+  // once a reload can actually run (ref mounted), so a not-yet-mounted WebView
+  // on the first foreground tick doesn't drop the recovery.
   useEffect(() => {
     const sub = AppState.addEventListener('change', state => {
-      if (state === 'active' && rendererGone.current) {
+      if (state === 'active' && rendererGone.current && webViewRef.current) {
         rendererGone.current = false;
-        webViewRef.current?.reload();
+        webViewRef.current.reload();
       }
     });
     return () => sub.remove();
   }, []);
+
+  // A dead render process can't complete an OAuth (the old isOAuthInProgress
+  // guard just stranded the flow on a blank WebView), so recover regardless.
+  // Foregrounded: reload now. Backgrounded: a reload issued now may not take,
+  // so flag it and let the AppState 'active' listener recover on return. We do
+  // not flag after a foreground reload, so an unrelated later foreground does
+  // not fire a spurious reload that would restart the session.
+  const recoverFromRendererDeath = () => {
+    if (AppState.currentState === 'active') {
+      if (!hasAutoReloaded.current) {
+        hasAutoReloaded.current = true;
+        webViewRef.current?.reload();
+      }
+    } else {
+      rendererGone.current = true;
+    }
+  };
 
   const injectedScript = useMemo(() => {
     let sdkTypeScript = `
@@ -222,24 +241,8 @@ export const LinkConnect = (props: LinkConfiguration) => {
               webViewRef.current?.reload();
             }
           }}
-          onContentProcessDidTerminate={() => {
-            // Renderer process died. Reload REGARDLESS of isOAuthInProgress: a
-            // dead renderer can't complete an OAuth, so the old guard just left
-            // a blank/stuck WebView. Mark it so AppState can also recover if
-            // we're backgrounded right now.
-            rendererGone.current = true;
-            if (!hasAutoReloaded.current) {
-              hasAutoReloaded.current = true;
-              webViewRef.current?.reload();
-            }
-          }}
-          onRenderProcessGone={() => {
-            rendererGone.current = true;
-            if (!hasAutoReloaded.current) {
-              hasAutoReloaded.current = true;
-              webViewRef.current?.reload();
-            }
-          }}
+          onContentProcessDidTerminate={recoverFromRendererDeath}
+          onRenderProcessGone={recoverFromRendererDeath}
         />
       )}
     </SDKWrapperComponent>

@@ -35,6 +35,8 @@ describe('LinkConnect Component', () => {
   beforeEach(() => {
     mockReload.mockClear();
     jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
+    // Default to foreground; the backgrounded-recovery test overrides this.
+    (AppState as any).currentState = 'active';
   });
 
   afterEach(() => {
@@ -385,7 +387,7 @@ describe('LinkConnect Component', () => {
     });
   });
 
-  it('recovers a dead WebView on foreground return (AppState active)', async () => {
+  it('recovers a dead WebView on foreground return after a backgrounded renderer death', async () => {
     let appStateCb: ((s: string) => void) | undefined;
     jest
       .spyOn(AppState, 'addEventListener')
@@ -394,16 +396,18 @@ describe('LinkConnect Component', () => {
         return { remove: jest.fn() } as any;
       });
     const { getByTestId } = render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} />);
-    await waitFor(() => {
-      // Renderer dies -> immediate reload + a "rendererGone" flag is set.
-      getByTestId('webview').props.onRenderProcessGone();
-      expect(mockReload).toHaveBeenCalledTimes(1);
-    });
+    await waitFor(() => getByTestId('webview'));
+    // Renderer dies while backgrounded: no immediate reload (it would not
+    // take), just the rendererGone flag.
+    (AppState as any).currentState = 'background';
+    getByTestId('webview').props.onRenderProcessGone();
+    expect(mockReload).toHaveBeenCalledTimes(0);
     // Coming back to the foreground recovers the dead WebView.
+    (AppState as any).currentState = 'active';
     appStateCb?.('active');
-    expect(mockReload).toHaveBeenCalledTimes(2);
+    expect(mockReload).toHaveBeenCalledTimes(1);
     // Flag is cleared, so a later foreground does nothing.
     appStateCb?.('active');
-    expect(mockReload).toHaveBeenCalledTimes(2);
+    expect(mockReload).toHaveBeenCalledTimes(1);
   });
 });
