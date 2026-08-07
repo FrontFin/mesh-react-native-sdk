@@ -410,4 +410,22 @@ describe('LinkConnect Component', () => {
     appStateCb?.('active');
     expect(mockReload).toHaveBeenCalledTimes(1);
   });
+
+  it('does not reload again on a later foreground when the renderer died while active', async () => {
+    let appStateCb: ((s: string) => void) | undefined;
+    jest
+      .spyOn(AppState, 'addEventListener')
+      .mockImplementation((event: any, cb: any) => {
+        if (event === 'change') appStateCb = cb;
+        return { remove: jest.fn() } as any;
+      });
+    const { getByTestId } = render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} />);
+    await waitFor(() => getByTestId('webview'));
+    // Died while foreground: immediate reload, and the flag must NOT be left set.
+    getByTestId('webview').props.onRenderProcessGone();
+    expect(mockReload).toHaveBeenCalledTimes(1);
+    // A later, unrelated foreground must not fire a spurious reload.
+    appStateCb?.('active');
+    expect(mockReload).toHaveBeenCalledTimes(1);
+  });
 });
