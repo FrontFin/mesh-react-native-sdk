@@ -1,4 +1,5 @@
-import { Linking, View } from 'react-native';
+import { AppState, Linking, View } from 'react-native';
+import type { AppStateStatus } from 'react-native';
 import { WebView } from 'react-native-webview';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -66,11 +67,64 @@ export const LinkConnect = (props: LinkConfiguration) => {
   } = useSDKCallbacks(props);
   const webViewRef = useRef<WebView>(null);
   const hasAutoReloaded = useRef(false);
+  // Set when the WebView render process dies (e.g. Android reclaims memory
+  // while the app is backgrounded during an external OAuth hand-off). Used to
+  // recover the dead WebView when the app returns to the foreground.
+  const rendererGone = useRef(false);
   const goBack = () => webViewRef?.current?.goBack();
 
   useEffect(() => {
     hasAutoReloaded.current = false;
   }, [linkUrl]);
+
+  // Recover a dead WebView on foreground return. If the render process was
+  // killed while backgrounded (memory pressure during an external OAuth trip),
+  // reload once when the user comes back so the flow isn't stuck on a blank
+  // WebView with the in-progress session silently lost. Only clear the flag
+  // once a reload can actually run (ref mounted), so a not-yet-mounted WebView
+  // on the first foreground tick doesn't drop the recovery.
+  useEffect(() => {
+    const handler = (state: AppStateStatus) => {
+      if (state === 'active' && rendererGone.current && webViewRef.current) {
+        rendererGone.current = false;
+        webViewRef.current.reload();
+      }
+    };
+    const sub = AppState.addEventListener('change', handler);
+    // RN >=0.65 returns a subscription with remove(); older RN (the peer dep
+    // allows >=0.60) returns void and needs the static removeEventListener.
+    return () => {
+      if (typeof sub?.remove === 'function') {
+        sub.remove();
+      } else {
+        (
+          AppState as unknown as {
+            removeEventListener?: (
+              type: 'change',
+              h: (state: AppStateStatus) => void
+            ) => void;
+          }
+        ).removeEventListener?.('change', handler);
+      }
+    };
+  }, []);
+
+  // A dead render process can't complete an OAuth (the old isOAuthInProgress
+  // guard just stranded the flow on a blank WebView), so recover regardless.
+  // Foregrounded: reload now. Backgrounded: a reload issued now may not take,
+  // so flag it and let the AppState 'active' listener recover on return. We do
+  // not flag after a foreground reload, so an unrelated later foreground does
+  // not fire a spurious reload that would restart the session.
+  const recoverFromRendererDeath = () => {
+    if (AppState.currentState === 'active') {
+      if (!hasAutoReloaded.current) {
+        hasAutoReloaded.current = true;
+        webViewRef.current?.reload();
+      }
+    } else {
+      rendererGone.current = true;
+    }
+  };
 
   const injectedScript = useMemo(() => {
     let sdkTypeScript = `
@@ -204,18 +258,8 @@ export const LinkConnect = (props: LinkConfiguration) => {
               webViewRef.current?.reload();
             }
           }}
-          onContentProcessDidTerminate={() => {
-            if (!isOAuthInProgress.current && !hasAutoReloaded.current) {
-              hasAutoReloaded.current = true;
-              webViewRef.current?.reload();
-            }
-          }}
-          onRenderProcessGone={() => {
-            if (!isOAuthInProgress.current && !hasAutoReloaded.current) {
-              hasAutoReloaded.current = true;
-              webViewRef.current?.reload();
-            }
-          }}
+          onContentProcessDidTerminate={recoverFromRendererDeath}
+          onRenderProcessGone={recoverFromRendererDeath}
         />
       )}
     </SDKWrapperComponent>

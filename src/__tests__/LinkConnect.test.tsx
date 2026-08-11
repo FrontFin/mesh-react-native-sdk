@@ -1,6 +1,6 @@
 /* eslint-disable */
 import React from 'react';
-import { Linking } from 'react-native';
+import { AppState, Linking } from 'react-native';
 import { render, waitFor } from '@testing-library/react-native';
 import { LinkConnect } from '../components/LinkConnect';
 
@@ -35,6 +35,8 @@ describe('LinkConnect Component', () => {
   beforeEach(() => {
     mockReload.mockClear();
     jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
+    // Default to foreground; the backgrounded-recovery test overrides this.
+    (AppState as any).currentState = 'active';
   });
 
   afterEach(() => {
@@ -350,15 +352,18 @@ describe('LinkConnect Component', () => {
     });
   });
 
-  it('does not reload on onContentProcessDidTerminate when OAuth is in progress', async () => {
+  it('reloads on onContentProcessDidTerminate even during OAuth (dead renderer recovers)', async () => {
     const { getByTestId } = render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} />);
     await waitFor(() => {
       const webview = getByTestId('webview');
       webview.props.onMessage({
         nativeEvent: { data: JSON.stringify({ type: 'integrationOAuthStarted' }) },
       });
+      // A dead render process can't finish an OAuth, so it must recover
+      // regardless of isOAuthInProgress; the old behavior left a blank/stuck
+      // WebView.
       webview.props.onContentProcessDidTerminate();
-      expect(mockReload).not.toHaveBeenCalled();
+      expect(mockReload).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -370,7 +375,7 @@ describe('LinkConnect Component', () => {
     });
   });
 
-  it('does not reload on onRenderProcessGone when OAuth is in progress', async () => {
+  it('reloads on onRenderProcessGone even during OAuth (dead renderer recovers)', async () => {
     const { getByTestId } = render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} />);
     await waitFor(() => {
       const webview = getByTestId('webview');
@@ -378,7 +383,49 @@ describe('LinkConnect Component', () => {
         nativeEvent: { data: JSON.stringify({ type: 'integrationOAuthStarted' }) },
       });
       webview.props.onRenderProcessGone();
-      expect(mockReload).not.toHaveBeenCalled();
+      expect(mockReload).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it('recovers a dead WebView on foreground return after a backgrounded renderer death', async () => {
+    let appStateCb: ((s: string) => void) | undefined;
+    jest
+      .spyOn(AppState, 'addEventListener')
+      .mockImplementation((event: any, cb: any) => {
+        if (event === 'change') appStateCb = cb;
+        return { remove: jest.fn() } as any;
+      });
+    const { getByTestId } = render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} />);
+    await waitFor(() => getByTestId('webview'));
+    // Renderer dies while backgrounded: no immediate reload (it would not
+    // take), just the rendererGone flag.
+    (AppState as any).currentState = 'background';
+    getByTestId('webview').props.onRenderProcessGone();
+    expect(mockReload).toHaveBeenCalledTimes(0);
+    // Coming back to the foreground recovers the dead WebView.
+    (AppState as any).currentState = 'active';
+    appStateCb?.('active');
+    expect(mockReload).toHaveBeenCalledTimes(1);
+    // Flag is cleared, so a later foreground does nothing.
+    appStateCb?.('active');
+    expect(mockReload).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not reload again on a later foreground when the renderer died while active', async () => {
+    let appStateCb: ((s: string) => void) | undefined;
+    jest
+      .spyOn(AppState, 'addEventListener')
+      .mockImplementation((event: any, cb: any) => {
+        if (event === 'change') appStateCb = cb;
+        return { remove: jest.fn() } as any;
+      });
+    const { getByTestId } = render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} />);
+    await waitFor(() => getByTestId('webview'));
+    // Died while foreground: immediate reload, and the flag must NOT be left set.
+    getByTestId('webview').props.onRenderProcessGone();
+    expect(mockReload).toHaveBeenCalledTimes(1);
+    // A later, unrelated foreground must not fire a spurious reload.
+    appStateCb?.('active');
+    expect(mockReload).toHaveBeenCalledTimes(1);
   });
 });
