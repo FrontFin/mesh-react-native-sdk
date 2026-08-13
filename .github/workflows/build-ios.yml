@@ -15,7 +15,7 @@ env:
   PACKAGE_INSTALLATION_ENV: 'github'
   NODE_VERSION: '18'
   NODE_OPTIONS: '--max_old_space_size=4096'
-  RUBY_VERSION: '3.0'
+  RUBY_VERSION: '3.3'
   WORKING_DIRECTORY: examples/react-native-example
 
 jobs:
