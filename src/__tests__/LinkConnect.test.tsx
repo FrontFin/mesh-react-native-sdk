@@ -451,7 +451,10 @@ describe('LinkConnect Component', () => {
     // Link reports it has loaded -> the SDK hands it the injected accounts, the
     // same way the web SDK posts frontAccessTokens.
     getByTestId('webview').props.onMessage({
-      nativeEvent: { data: JSON.stringify({ type: 'loaded' }) },
+      nativeEvent: {
+        data: JSON.stringify({ type: 'loaded' }),
+        url: 'https://web.getfront.com/broker-connect/catalog1',
+      },
     });
     expect(mockInjectJavaScript).toHaveBeenCalledTimes(1);
     const injected = mockInjectJavaScript.mock.calls[0][0] as string;
@@ -465,7 +468,10 @@ describe('LinkConnect Component', () => {
     const { getByTestId } = render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} />);
     await waitFor(() => getByTestId('webview'));
     getByTestId('webview').props.onMessage({
-      nativeEvent: { data: JSON.stringify({ type: 'loaded' }) },
+      nativeEvent: {
+        data: JSON.stringify({ type: 'loaded' }),
+        url: 'https://web.getfront.com/broker-connect/catalog1',
+      },
     });
     expect(mockInjectJavaScript).not.toHaveBeenCalled();
   });
@@ -486,6 +492,30 @@ describe('LinkConnect Component', () => {
     await waitFor(() => getByTestId('webview'));
     getByTestId('webview').props.onMessage({
       nativeEvent: { data: JSON.stringify({ type: 'integrationConnected' }) },
+    });
+    expect(mockInjectJavaScript).not.toHaveBeenCalled();
+  });
+
+  it('does not post frontAccessTokens when loaded comes from a different origin', async () => {
+    const accessTokens = [
+      {
+        accountId: 'acc-1',
+        accountName: 'Test Account',
+        accessToken: 'tok-abc',
+        brokerType: 'binanceInternationalDirect',
+        brokerName: 'Binance',
+      },
+    ];
+    const { getByTestId } = render(
+      <LinkConnect linkToken={SAMPLE_LINK_TOKEN} settings={{ accessTokens }} />
+    );
+    await waitFor(() => getByTestId('webview'));
+    // A loaded event from a page on a different origin must not receive tokens.
+    getByTestId('webview').props.onMessage({
+      nativeEvent: {
+        data: JSON.stringify({ type: 'loaded' }),
+        url: 'https://evil.example.com/phish',
+      },
     });
     expect(mockInjectJavaScript).not.toHaveBeenCalled();
   });

@@ -133,6 +133,8 @@ export const LinkConnect = (props: LinkConfiguration) => {
   `;
 
     if (props.settings) {
+      // Kept for backward-compat with older Link builds that read this global.
+      // Current Link ingests tokens via the frontAccessTokens post below.
       sdkTypeScript += `
         window.accessTokens='${JSON.stringify(
           props.settings.accessTokens || []
@@ -144,15 +146,25 @@ export const LinkConnect = (props: LinkConfiguration) => {
   }, [props.settings]);
 
   // Hand the Link web app any previously-connected accounts once it reports it
-  // has loaded, mirroring the web SDK. link-v2 ingests return-user tokens only
-  // via this `frontAccessTokens` message; it no longer reads the
-  // `window.accessTokens` global above, so without this post React Native return
-  // users never skip login. In a WebView `document.referrer` is empty, so Link's
-  // bridge targetOrigin is '*' and accepts a same-window post. Double-encoded so
-  // token values cannot break out of the injected script.
-  const postFrontAccessTokens = () => {
+  // has loaded, mirroring the web SDK. Current Link ingests return-user tokens
+  // only via this `frontAccessTokens` message (the `window.accessTokens` global
+  // above is backward-compat only), so without this post React Native return
+  // users never skip login. Only inject into the page we actually loaded from
+  // the link token (same origin) and fail closed otherwise, so a page on a
+  // different origin can never trigger a token hand-off. In a WebView
+  // `document.referrer` is empty, so Link's bridge targetOrigin is '*' and
+  // accepts the same-window post. Double-encoded so token values cannot break
+  // out of the injected script.
+  const postFrontAccessTokens = (senderUrl?: string) => {
     const tokens = props.settings?.accessTokens;
-    if (!tokens || tokens.length === 0) {
+    if (!tokens || tokens.length === 0 || !linkUrl || !senderUrl) {
+      return;
+    }
+    try {
+      if (new URL(senderUrl).origin !== new URL(linkUrl).origin) {
+        return;
+      }
+    } catch {
       return;
     }
     const message = JSON.stringify({
@@ -164,18 +176,17 @@ export const LinkConnect = (props: LinkConfiguration) => {
     );
   };
 
-  // When Link signals it has loaded, post the injected accessTokens before
-  // delegating to the normal SDK message handler. Parse once and bail on a
-  // non-JSON payload — handleMessage would only re-throw on the same input.
+  // When Link signals it has loaded, hand it the injected accessTokens, then
+  // delegate to the normal SDK handler. The parse here only drives the `loaded`
+  // check; `handleMessage` still processes every event as before, so delegation
+  // behaviour is unchanged.
   const handleWebViewMessage = (event: WebViewMessageEvent) => {
-    let data: { type?: string } | undefined;
     try {
-      data = JSON.parse(event.nativeEvent.data);
+      if (JSON.parse(event.nativeEvent.data)?.type === 'loaded') {
+        postFrontAccessTokens(event.nativeEvent.url);
+      }
     } catch {
-      return;
-    }
-    if (data?.type === 'loaded') {
-      postFrontAccessTokens();
+      // Only our `loaded` detection; the SDK handler below owns the payload.
     }
     handleMessage(event);
   };
