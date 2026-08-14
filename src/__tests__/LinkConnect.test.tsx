@@ -14,13 +14,17 @@ jest.mock('react-native/Libraries/Utilities/useColorScheme', () => {
 
 // var avoids TDZ — the closure inside forwardRef reads this after module init
 var mockReload = jest.fn();
+var mockInjectJavaScript = jest.fn();
 
 jest.mock('react-native-webview', () => {
   const React = require('react');
   const { View } = require('react-native');
   return {
     WebView: React.forwardRef((props: any, ref: any) => {
-      React.useImperativeHandle(ref, () => ({ reload: mockReload }));
+      React.useImperativeHandle(ref, () => ({
+        reload: mockReload,
+        injectJavaScript: mockInjectJavaScript,
+      }));
       return React.createElement(View, props);
     }),
   };
@@ -34,6 +38,7 @@ const SAMPLE_LINK_TOKEN =
 describe('LinkConnect Component', () => {
   beforeEach(() => {
     mockReload.mockClear();
+    mockInjectJavaScript.mockClear();
     jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
     // Default to foreground; the backgrounded-recovery test overrides this.
     (AppState as any).currentState = 'active';
@@ -427,5 +432,61 @@ describe('LinkConnect Component', () => {
     // A later, unrelated foreground must not fire a spurious reload.
     appStateCb?.('active');
     expect(mockReload).toHaveBeenCalledTimes(1);
+  });
+
+  it('posts frontAccessTokens to the web app on the loaded event when accessTokens are provided', async () => {
+    const accessTokens = [
+      {
+        accountId: 'acc-1',
+        accountName: 'Test Account',
+        accessToken: 'tok-abc',
+        brokerType: 'binanceInternationalDirect',
+        brokerName: 'Binance',
+      },
+    ];
+    const { getByTestId } = render(
+      <LinkConnect linkToken={SAMPLE_LINK_TOKEN} settings={{ accessTokens }} />
+    );
+    await waitFor(() => getByTestId('webview'));
+    // Link reports it has loaded -> the SDK hands it the injected accounts, the
+    // same way the web SDK posts frontAccessTokens.
+    getByTestId('webview').props.onMessage({
+      nativeEvent: { data: JSON.stringify({ type: 'loaded' }) },
+    });
+    expect(mockInjectJavaScript).toHaveBeenCalledTimes(1);
+    const injected = mockInjectJavaScript.mock.calls[0][0] as string;
+    expect(injected).toContain('window.postMessage');
+    expect(injected).toContain('frontAccessTokens');
+    expect(injected).toContain('tok-abc');
+    expect(injected).toContain('binanceInternationalDirect');
+  });
+
+  it('does not post frontAccessTokens on loaded when no accessTokens are provided', async () => {
+    const { getByTestId } = render(<LinkConnect linkToken={SAMPLE_LINK_TOKEN} />);
+    await waitFor(() => getByTestId('webview'));
+    getByTestId('webview').props.onMessage({
+      nativeEvent: { data: JSON.stringify({ type: 'loaded' }) },
+    });
+    expect(mockInjectJavaScript).not.toHaveBeenCalled();
+  });
+
+  it('does not post frontAccessTokens for non-loaded messages', async () => {
+    const accessTokens = [
+      {
+        accountId: 'acc-1',
+        accountName: 'Test Account',
+        accessToken: 'tok-abc',
+        brokerType: 'binanceInternationalDirect',
+        brokerName: 'Binance',
+      },
+    ];
+    const { getByTestId } = render(
+      <LinkConnect linkToken={SAMPLE_LINK_TOKEN} settings={{ accessTokens }} />
+    );
+    await waitFor(() => getByTestId('webview'));
+    getByTestId('webview').props.onMessage({
+      nativeEvent: { data: JSON.stringify({ type: 'integrationConnected' }) },
+    });
+    expect(mockInjectJavaScript).not.toHaveBeenCalled();
   });
 });

@@ -3,6 +3,12 @@
 All notable changes to the Mesh Connect React Native SDK are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2.4.9
+
+### Fixed
+
+- React Native: return-user (Managed Token) skip-login now works. Previously connected accounts passed via `settings.accessTokens` are handed to the Link web app once it loads, so returning users skip re-authentication where the broker supports it (most visibly Binance Direct), matching the web SDK.
+
 ## 2.4.8
 
 ### Fixed

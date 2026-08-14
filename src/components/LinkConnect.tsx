@@ -1,6 +1,6 @@
 import { AppState, Linking, View } from 'react-native';
 import type { AppStateStatus } from 'react-native';
-import { WebView } from 'react-native-webview';
+import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { NavBar } from './NavBar';
@@ -143,6 +143,40 @@ export const LinkConnect = (props: LinkConfiguration) => {
     return sdkTypeScript;
   }, [props.settings]);
 
+  // Hand the Link web app any previously-connected accounts once it reports it
+  // has loaded, mirroring the web SDK. link-v2 ingests return-user tokens only
+  // via this `frontAccessTokens` message; it no longer reads the
+  // `window.accessTokens` global above, so without this post React Native return
+  // users never skip login. In a WebView `document.referrer` is empty, so Link's
+  // bridge targetOrigin is '*' and accepts a same-window post. Double-encoded so
+  // token values cannot break out of the injected script.
+  const postFrontAccessTokens = () => {
+    const tokens = props.settings?.accessTokens;
+    if (!tokens || tokens.length === 0) {
+      return;
+    }
+    const message = JSON.stringify({
+      type: 'frontAccessTokens',
+      payload: tokens,
+    });
+    webViewRef.current?.injectJavaScript(
+      `window.postMessage(JSON.parse(${JSON.stringify(message)}), '*'); true;`
+    );
+  };
+
+  // When Link signals it has loaded, post the injected accessTokens before
+  // delegating to the normal SDK message handler.
+  const handleWebViewMessage = (event: WebViewMessageEvent) => {
+    try {
+      if (JSON.parse(event.nativeEvent.data)?.type === 'loaded') {
+        postFrontAccessTokens();
+      }
+    } catch {
+      // Non-JSON or unexpected payload: fall through to the SDK handler.
+    }
+    handleMessage(event);
+  };
+
   const SDKWrapperComponent = props.renderViewContainer
     ? SDKViewContainer
     : SDKContainer;
@@ -181,7 +215,7 @@ export const LinkConnect = (props: LinkConfiguration) => {
           ref={webViewRef}
           source={{ uri: linkUrl }}
           cacheMode={'LOAD_DEFAULT'}
-          onMessage={handleMessage}
+          onMessage={handleWebViewMessage}
           onLoadEnd={() => {
             setInitialLoading(false);
           }}
