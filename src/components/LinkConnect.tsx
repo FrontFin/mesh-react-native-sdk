@@ -135,7 +135,7 @@ export const LinkConnect = (props: LinkConfiguration) => {
     if (props.settings) {
       sdkTypeScript += `
         window.accessTokens='${JSON.stringify(
-          props.settings.accessTokens || {}
+          props.settings.accessTokens || []
         )}';
       `;
     }
@@ -165,14 +165,17 @@ export const LinkConnect = (props: LinkConfiguration) => {
   };
 
   // When Link signals it has loaded, post the injected accessTokens before
-  // delegating to the normal SDK message handler.
+  // delegating to the normal SDK message handler. Parse once and bail on a
+  // non-JSON payload — handleMessage would only re-throw on the same input.
   const handleWebViewMessage = (event: WebViewMessageEvent) => {
+    let data: { type?: string } | undefined;
     try {
-      if (JSON.parse(event.nativeEvent.data)?.type === 'loaded') {
-        postFrontAccessTokens();
-      }
+      data = JSON.parse(event.nativeEvent.data);
     } catch {
-      // Non-JSON or unexpected payload: fall through to the SDK handler.
+      return;
+    }
+    if (data?.type === 'loaded') {
+      postFrontAccessTokens();
     }
     handleMessage(event);
   };
