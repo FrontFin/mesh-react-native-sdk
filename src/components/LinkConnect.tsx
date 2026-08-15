@@ -135,10 +135,15 @@ export const LinkConnect = (props: LinkConfiguration) => {
     if (props.settings) {
       // Kept for backward-compat with older Link builds that read this global.
       // Current Link ingests tokens via the frontAccessTokens post below.
+      // Double-encoded so a token field containing a quote cannot terminate the
+      // string literal and break the whole injected script.
+      const injectedAccessTokens = Array.isArray(props.settings.accessTokens)
+        ? props.settings.accessTokens
+        : [];
       sdkTypeScript += `
-        window.accessTokens='${JSON.stringify(
-          props.settings.accessTokens || []
-        )}';
+        window.accessTokens=${JSON.stringify(
+          JSON.stringify(injectedAccessTokens)
+        )};
       `;
     }
 
@@ -156,12 +161,15 @@ export const LinkConnect = (props: LinkConfiguration) => {
   // accepts the same-window post. Double-encoded so token values cannot break
   // out of the injected script.
   const postFrontAccessTokens = (senderUrl?: string) => {
-    const tokens = props.settings?.accessTokens;
-    if (!tokens || tokens.length === 0 || !linkUrl || !senderUrl) {
+    const raw = props.settings?.accessTokens;
+    const tokens = Array.isArray(raw) ? raw : [];
+    if (tokens.length === 0 || !linkUrl || !senderUrl) {
       return;
     }
+    let linkOrigin: string;
     try {
-      if (new URL(senderUrl).origin !== new URL(linkUrl).origin) {
+      linkOrigin = new URL(linkUrl).origin;
+      if (new URL(senderUrl).origin !== linkOrigin) {
         return;
       }
     } catch {
@@ -172,7 +180,9 @@ export const LinkConnect = (props: LinkConfiguration) => {
       payload: tokens,
     });
     webViewRef.current?.injectJavaScript(
-      `window.postMessage(JSON.parse(${JSON.stringify(message)}), '*'); true;`
+      `window.postMessage(JSON.parse(${JSON.stringify(
+        message
+      )}), ${JSON.stringify(linkOrigin)}); true;`
     );
   };
 

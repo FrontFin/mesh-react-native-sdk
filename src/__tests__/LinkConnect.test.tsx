@@ -491,7 +491,10 @@ describe('LinkConnect Component', () => {
     );
     await waitFor(() => getByTestId('webview'));
     getByTestId('webview').props.onMessage({
-      nativeEvent: { data: JSON.stringify({ type: 'integrationConnected' }) },
+      nativeEvent: {
+        data: JSON.stringify({ type: 'integrationConnected' }),
+        url: 'https://web.getfront.com/broker-connect/catalog1',
+      },
     });
     expect(mockInjectJavaScript).not.toHaveBeenCalled();
   });
