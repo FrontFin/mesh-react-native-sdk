@@ -36,6 +36,16 @@ const openExternally = (url: string): void => {
   });
 };
 
+/**
+ * Scheme + host (+ optional port) of a URL, lowercased, or null if it doesn't
+ * parse. Hand-rolled because React Native's `URL` polyfill does not implement
+ * `.origin` (it throws), so `new URL(x).origin` cannot be used here.
+ */
+const getOrigin = (url: string): string | null => {
+  const match = /^([a-z][a-z0-9+.-]*:\/\/[^/?#]+)/i.exec(url);
+  return match ? match[1].toLowerCase() : null;
+};
+
 const LoadingComponentWebview = ({ darkTheme }: { darkTheme: boolean }) => {
   return (
     <View
@@ -154,25 +164,18 @@ export const LinkConnect = (props: LinkConfiguration) => {
   // has loaded, mirroring the web SDK. Current Link ingests return-user tokens
   // only via this `frontAccessTokens` message (the `window.accessTokens` global
   // above is backward-compat only), so without this post React Native return
-  // users never skip login. Only inject into the page we actually loaded from
-  // the link token (same origin) and fail closed otherwise, so a page on a
-  // different origin can never trigger a token hand-off. In a WebView
-  // `document.referrer` is empty, so Link's bridge targetOrigin is '*' and
-  // accepts the same-window post. Double-encoded so token values cannot break
-  // out of the injected script.
+  // users never skip login. Post only to the origin we loaded from the link
+  // token, and only when the sender is that same origin, so a page on a
+  // different origin can neither trigger nor receive a token hand-off. Double-
+  // encoded so token values cannot break out of the injected script.
   const postFrontAccessTokens = (senderUrl?: string) => {
     const raw = props.settings?.accessTokens;
     const tokens = Array.isArray(raw) ? raw : [];
     if (tokens.length === 0 || !linkUrl || !senderUrl) {
       return;
     }
-    let linkOrigin: string;
-    try {
-      linkOrigin = new URL(linkUrl).origin;
-      if (new URL(senderUrl).origin !== linkOrigin) {
-        return;
-      }
-    } catch {
+    const linkOrigin = getOrigin(linkUrl);
+    if (!linkOrigin || getOrigin(senderUrl) !== linkOrigin) {
       return;
     }
     const message = JSON.stringify({
