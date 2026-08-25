@@ -5,6 +5,10 @@ export const LIGHT_THEME_COLOR_BOTTOM = '#FBFBFB';
 
 export const WHITELISTED_ORIGINS = [
   '*.meshconnect.com',
+  // MFS / Link v3. A link token is base64 of a URL, so a migrated client is
+  // handed a link.meshpay.com URL by the same v1 endpoint and the WebView must
+  // be allowed to load it.
+  '*.meshpay.com',
   '*.getfront.com',
   '*.walletconnect.com',
   '*.walletconnect.org',

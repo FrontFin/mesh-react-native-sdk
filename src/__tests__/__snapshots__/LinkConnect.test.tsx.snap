@@ -67,6 +67,7 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
         originWhitelist={
           [
             "*.meshconnect.com",
+            "*.meshpay.com",
             "*.getfront.com",
             "*.walletconnect.com",
             "*.walletconnect.org",
