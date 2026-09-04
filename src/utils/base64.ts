@@ -39,3 +39,45 @@ export const decode64 = (input: string) => {
 
   return output;
 };
+
+/**
+ * Counterpart to [decode64]. Hand-rolled for the same reason: Hermes does not
+ * reliably provide `btoa`.
+ *
+ * ASCII only, which is all the callers need (a Link URL is an ASCII host plus a
+ * base64url token). Throws rather than silently mangling anything wider.
+ */
+export const encode64 = (input: string) => {
+  let output = '';
+  let ind = 0;
+
+  do {
+    const chr1 = input.charCodeAt(ind++);
+    const chr2 = input.charCodeAt(ind++);
+    const chr3 = input.charCodeAt(ind++);
+
+    if (chr1 > 127 || chr2 > 127 || chr3 > 127) {
+      throw new Error('encode64 supports ASCII input only');
+    }
+
+    const enc1 = chr1 >> 2;
+    const enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+    let enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+    let enc4 = chr3 & 63;
+
+    if (isNaN(chr2)) {
+      enc3 = enc4 = 64;
+    } else if (isNaN(chr3)) {
+      enc4 = 64;
+    }
+
+    output =
+      output +
+      keyStr.charAt(enc1) +
+      keyStr.charAt(enc2) +
+      keyStr.charAt(enc3) +
+      keyStr.charAt(enc4);
+  } while (ind < input.length);
+
+  return output;
+};

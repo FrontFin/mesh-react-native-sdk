@@ -343,6 +343,12 @@ export interface LinkSettings {
   theme?: LinkTheme;
 }
 
+/** Mesh environment an MFS session token belongs to. Names match the web SDK's
+ *  `LinkEnvironment`. Its `local` value is deliberately absent: it points at
+ *  `localhost`, which on a device is the device itself, and plain http is not
+ *  allowlisted. Tunnel a local Link through LocalCan instead. */
+export type MeshLinkEnvironment = 'prod' | 'sbx' | 'dev';
+
 export interface LinkConfiguration {
   linkToken: string;
   settings?: LinkSettings;
