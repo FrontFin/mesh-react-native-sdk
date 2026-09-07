@@ -3,6 +3,12 @@ const keyStr = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/
 type numberOrString = number | string;
 
 export const decode64 = (input: string) => {
+  // The loop below is a do...while, so without this it runs once on empty
+  // input and emits three NUL bytes instead of nothing.
+  if (!input) {
+    return '';
+  }
+
   let output = '';
   let chr1, chr2, chr3: numberOrString = '';
   let enc1, enc2, enc3, enc4: numberOrString = '';
@@ -48,6 +54,12 @@ export const decode64 = (input: string) => {
  * base64url token). Throws rather than silently mangling anything wider.
  */
 export const encode64 = (input: string) => {
+  // Same do...while caveat as decode64: empty input would otherwise encode
+  // three NaN char codes and return 'AA=='.
+  if (!input) {
+    return '';
+  }
+
   let output = '';
   let ind = 0;
 
