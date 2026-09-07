@@ -51,7 +51,7 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
         domStorageEnabled={true}
         injectedJavaScript="
     window.meshSdkPlatform='reactNative';
-    window.meshSdkVersion='2.4.8';
+    window.meshSdkVersion='2.4.9';
   "
         javaScriptCanOpenWindowsAutomatically={true}
         javaScriptEnabled={true}
@@ -67,6 +67,7 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
         originWhitelist={
           [
             "*.meshconnect.com",
+            "*.meshpay.com",
             "*.getfront.com",
             "*.walletconnect.com",
             "*.walletconnect.org",

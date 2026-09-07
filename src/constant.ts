@@ -1,3 +1,5 @@
+import type { MeshLinkEnvironment } from './types';
+
 export const DARK_THEME_COLOR_TOP = '#1E1E24';
 export const LIGHT_THEME_COLOR_TOP = '#F3F4F5';
 export const DARK_THEME_COLOR_BOTTOM = '#0E0D0D';
@@ -5,6 +7,10 @@ export const LIGHT_THEME_COLOR_BOTTOM = '#FBFBFB';
 
 export const WHITELISTED_ORIGINS = [
   '*.meshconnect.com',
+  // MFS / Link v3. A link token is base64 of a URL, so a migrated client is
+  // handed a link.meshpay.com URL by the same v1 endpoint and the WebView must
+  // be allowed to load it.
+  '*.meshpay.com',
   '*.getfront.com',
   '*.walletconnect.com',
   '*.walletconnect.org',
@@ -44,3 +50,14 @@ export const EXTERNALLY_OPENED_ORIGINS = [
   'https://app.binance.com', // Binance auth hands off to the Binance mobile app; must open externally, not in the WebView
   'bnc://app.binance.com', // Binance app deep link (Android QR-scan handoff uses the bnc:// scheme)
 ];
+
+/** Link host per environment, used only by `sessionLinkToken`. A link token
+ *  already carries its own host, so the legacy path never consults this.
+ *
+ *  Compiled into the SDK, so a host change needs a new release and integrators
+ *  updating. If that becomes a problem, resolve these from remote config. */
+export const LINK_URLS: Record<MeshLinkEnvironment, string> = {
+  prod: 'https://link.meshpay.com',
+  sbx: 'https://link.sbx.meshpay.com',
+  dev: 'https://link.dev.meshpay.com',
+};
