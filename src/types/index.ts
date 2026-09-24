@@ -618,6 +618,12 @@ export interface MeshBackupConfig {
   preselectedSymbol?: string;
   /** Required when any destination omits `address`. */
   jit?: MeshBackupJitConfig;
+  /**
+   * Your correlation id, echoed to your JIT Initiate/Status endpoints so you can
+   * tie the resolved deposit address to a transaction in your system.
+   * Session-level; sent empty when omitted.
+   */
+  transactionId?: string;
 }
 
 /**
