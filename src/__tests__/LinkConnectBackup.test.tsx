@@ -92,6 +92,8 @@ describe('LinkConnectBackup', () => {
       expect(webview.props.injectedJavaScript).toContain('meshSdkPlatform');
       expect(webview.props.injectedJavaScript).toContain('meshSdkVersion');
       expect(webview.props.originWhitelist).toEqual(['*']);
+      // Popups forced same-frame so they can't bypass the origin check.
+      expect(webview.props.setSupportMultipleWindows).toBe(false);
       const allow = webview.props.onShouldStartLoadWithRequest;
       expect(allow({ url: 'https://staging.example/widget/network' })).toBe(true);
       expect(allow({ url: 'about:blank' })).toBe(true);
@@ -317,6 +319,22 @@ describe('LinkConnectBackup', () => {
         DARK_THEME_COLOR_BOTTOM
       );
     });
+  });
+
+  it('fails closed on a non-http(s) widgetOrigin: exits and mounts no WebView', async () => {
+    const onExit = jest.fn();
+    const {queryByTestId} = render(
+      <LinkConnectBackup
+        backupConfig={CONFIG}
+        widgetOrigin="data:text/html,hi"
+        onExit={onExit}
+      />,
+    );
+    await waitFor(() => expect(onExit).toHaveBeenCalled());
+    expect(onExit).toHaveBeenCalledWith(
+      expect.stringContaining('Invalid widgetOrigin'),
+    );
+    expect(queryByTestId('webview')).toBeNull();
   });
 
   it('shows a native close button wired to onExit, hidden when opted out', async () => {

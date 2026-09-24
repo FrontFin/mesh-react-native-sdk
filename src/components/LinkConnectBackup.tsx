@@ -1,7 +1,6 @@
-import { AppState, Image, TouchableOpacity, View } from 'react-native';
-import type { AppStateStatus } from 'react-native';
+import { Image, TouchableOpacity, View } from 'react-native';
 import { WebView } from 'react-native-webview';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { NavBar } from './NavBar';
 import { SDKContainer } from './SDKContainer';
@@ -9,6 +8,7 @@ import { SDKViewContainer } from './SDKViewContainer';
 
 import type { LinkConnectBackupConfiguration } from '../';
 import { useBackupCallbacks } from '../hooks/useBackupCallbacks';
+import { useWebViewRecovery } from '../hooks/useWebViewRecovery';
 import { sdkSpecs } from '../utils/sdkConfig';
 import { extractOrigin, toInjectableJson } from '../utils';
 import {
@@ -44,11 +44,11 @@ const LoadingComponentWebview = ({ darkTheme }: { darkTheme: boolean }) => {
  * the primary (money) path is never altered by backup changes.
  */
 export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
-  const webViewRef = useRef<WebView>(null);
-  const hasAutoReloaded = useRef(false);
-  // Set when the WebView render process dies (e.g. Android reclaims memory
-  // while the app is backgrounded). Used to recover on return to foreground.
-  const rendererGone = useRef(false);
+  // Render-process-death recovery, shared with LinkConnect. The backup URL only
+  // changes when widgetOrigin does, so it's the reset key (and it's available
+  // before useBackupCallbacks, which needs deliverConfig → webViewRef).
+  const { webViewRef, hasAutoReloaded, recoverFromRendererDeath } =
+    useWebViewRecovery(props.widgetOrigin);
 
   // Deliver the deposit config into the widget once it signals `loaded`,
   // mirroring the web SDK's post-on-loaded handshake. The widget's bridge
@@ -79,55 +79,6 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
 
   const goBack = () => webViewRef?.current?.goBack();
 
-  useEffect(() => {
-    hasAutoReloaded.current = false;
-  }, [linkUrl]);
-
-  // Recover a dead WebView on foreground return. If the render process was
-  // killed while backgrounded, reload once when the user comes back so the flow
-  // isn't stuck on a blank WebView. Only clear the flag once a reload can
-  // actually run (ref mounted).
-  useEffect(() => {
-    const handler = (state: AppStateStatus) => {
-      if (state === 'active' && rendererGone.current && webViewRef.current) {
-        rendererGone.current = false;
-        webViewRef.current.reload();
-      }
-    };
-    const sub = AppState.addEventListener('change', handler);
-    // RN >=0.65 returns a subscription with remove(); older RN (the peer dep
-    // allows >=0.60) returns void and needs the static removeEventListener.
-    return () => {
-      if (typeof sub?.remove === 'function') {
-        sub.remove();
-      } else {
-        (
-          AppState as unknown as {
-            removeEventListener?: (
-              type: 'change',
-              h: (state: AppStateStatus) => void
-            ) => void;
-          }
-        ).removeEventListener?.('change', handler);
-      }
-    };
-  }, []);
-
-  // Foregrounded: reload now. Backgrounded: a reload issued now may not take,
-  // so flag it and let the AppState 'active' listener recover on return. We do
-  // not flag after a foreground reload, so an unrelated later foreground does
-  // not fire a spurious reload.
-  const recoverFromRendererDeath = () => {
-    if (AppState.currentState === 'active') {
-      if (!hasAutoReloaded.current) {
-        hasAutoReloaded.current = true;
-        webViewRef.current?.reload();
-      }
-    } else {
-      rendererGone.current = true;
-    }
-  };
-
   const injectedScript = useMemo(
     () => `
     window.meshSdkPlatform='${sdkSpecs.platform}';
@@ -155,6 +106,27 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
   // Linking.openURL. `disableDomainWhiteList` instead relaxes the handler itself.
   const { disableDomainWhiteList = false } = props;
   const widgetOrigin = extractOrigin(linkUrl);
+
+  // Fail closed on a non-HTTP(S) widgetOrigin. extractOrigin passes a
+  // non-`scheme://host` value through unchanged, so without this guard a
+  // `data:`/custom-scheme origin could satisfy the exact-equality handler below,
+  // load arbitrary content, and then receive the injected config (including a
+  // JIT bearer token). HTTPS is expected in production; http is allowed for
+  // local widget development.
+  const isValidWidgetOrigin = /^https?:\/\/[^/?#]+$/i.test(widgetOrigin);
+
+  useEffect(() => {
+    if (!isValidWidgetOrigin) {
+      props.onExit?.(
+        'Invalid widgetOrigin: the backup widget origin must be an absolute http(s) URL'
+      );
+    }
+  }, [isValidWidgetOrigin]);
+
+  if (!isValidWidgetOrigin) {
+    // Never mount the WebView, or deliver config, to a non-http(s) origin.
+    return null;
+  }
 
   return (
     <SDKWrapperComponent isDarkTheme={isDark}>
@@ -210,6 +182,11 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
         javaScriptEnabled={true}
         injectedJavaScript={injectedScript}
         originWhitelist={['*']}
+        // Deposit-only: no OAuth/wallet hand-offs, so force same-frame
+        // navigation. Otherwise a target="_blank"/window.open would take the
+        // multiple-windows popup path and bypass onShouldStartLoadWithRequest
+        // (and the origin containment below) entirely.
+        setSupportMultipleWindows={false}
         // Only the widget's own origin may load (see whitelist note above);
         // `about:blank` is allowed because the WebView uses it internally. Any
         // other URL — a different origin or a custom scheme — is blocked and is
