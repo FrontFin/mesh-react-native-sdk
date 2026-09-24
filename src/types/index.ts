@@ -644,8 +644,6 @@ export interface LinkConnectBackupConfiguration {
   settings?: Pick<LinkSettings, 'theme' | 'language'>;
   /** Render a plain `View` container instead of `SafeAreaView`. */
   renderViewContainer?: boolean;
-  /** Disable the WebView origin allow-list check. */
-  disableDomainWhiteList?: boolean;
   /**
    * Hide the native close (✕) button. By default `LinkConnectBackup` overlays a
    * native close control (the backup widget's deposit-only funnel has no exit

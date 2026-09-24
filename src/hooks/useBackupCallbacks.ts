@@ -37,7 +37,10 @@ const useBackupCallbacks = (
   const [showNativeNavbar, setShowNativeNavbar] = useState(false);
   const [darkTheme, setDarkTheme] = useState<boolean>();
 
-  const widgetOrigin = props.widgetOrigin || DEFAULT_BACKUP_WIDGET_ORIGIN;
+  // Nullish (not `||`) so only an omitted widgetOrigin picks the default: an
+  // explicit empty string flows through and fails the origin validation
+  // (fail-closed) instead of silently loading the default origin.
+  const widgetOrigin = props.widgetOrigin ?? DEFAULT_BACKUP_WIDGET_ORIGIN;
   const settingsTheme = props.settings?.theme;
   const language = resolveLanguage(props.settings?.language);
 
