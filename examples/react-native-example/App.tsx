@@ -1,12 +1,12 @@
 import React, {useState} from 'react';
 import {
+  ActivityIndicator,
   Alert,
-  Dimensions,
   SafeAreaView,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -21,87 +21,116 @@ import {
   TransferFinishedSuccessPayload,
 } from '@meshconnect/react-native-link-sdk';
 import Reports from './components/reports';
+import {cdc} from './cdc/theme';
+import {MeshOutageError, mintBackupToken, mintLinkToken} from './cdc/backend';
+import {
+  BACKUP_MODE,
+  buildBackupConfig,
+  DEMO_BACKUP_WIDGET_ORIGIN,
+} from './cdc/demoConfig';
 
-const layout_width = Dimensions.get('window').width;
+// --- CDC-lookalike backup demo (OR-453) -------------------------------------
+// A Crypto.com-styled deposit screen wired to a mock client backend. It shows
+// the two halves of the SDK backup story on one screen:
+//
+//   • Deposit (toggle OFF) -> the app mints a Mesh link token from its backend
+//     and opens the normal LinkConnect flow.
+//   • Deposit (toggle ON)  -> the backend fails the link-token call (503), the
+//     app detects the outage and falls back to LinkConnectBackup, which loads
+//     the standalone backup widget and completes a deposit with the primary
+//     API dead.
+//
+// The same fallback fires automatically if the primary genuinely errors — the
+// toggle just makes it reproducible on demand for a live demo.
 
-// --- Backup / outage demo -------------------------------------------------
-// The deposit-only backup flow runs when the primary Mesh API is unavailable.
-// It needs no link token: it loads the standalone backup widget from its origin
-// and takes a client-assembled MeshBackupConfig. This origin is the live demo
-// widget (OR-449); in production it would be the shipped backup origin.
-const DEMO_BACKUP_WIDGET_ORIGIN = 'https://demo-widget.cascadecode.com';
-
-// networkIds match the live demo pairs manifest
-// (https://demo-widget.cascadecode.com/backup/pairs/all.json). Static addresses
-// are used so no JIT backend is required; to demo JIT instead, drop `address`
-// and add a `jit: { initiateUrl, statusUrl, token }` block.
-// NOTE: these are demo addresses for showing the QR/copy screen only — do not
-// send real funds to them.
-const DEMO_BACKUP_CONFIG: MeshBackupConfig = {
-  clientId: '26C2621E-2C09-4CCC-DCF7-08DE90525AA1', // CDC (Crypto.com)
-  userId: 'rn-example-user',
-  destinations: [
-    {
-      networkId: 'e3c7fdd8-b1fc-4e51-85ae-bb276e075611', // USDC · Ethereum
-      symbol: 'USDC',
-      address: '0x503828976D22510aad0201ac7EC88293211D23Da',
-    },
-    {
-      networkId: 'c5dc5d2e-68c1-4261-9a30-90b598738bf5', // USDC · Tron
-      symbol: 'USDC',
-      address: 'TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9',
-    },
-  ],
-  preselectedSymbol: 'USDC',
-};
+type Screen = 'home' | 'connect' | 'backup';
 
 export default function App() {
+  const [screen, setScreen] = useState<Screen>('home');
+  const [outageOn, setOutageOn] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [linkToken, setLinkToken] = useState('');
+  const [backupConfig, setBackupConfig] = useState<MeshBackupConfig | null>(
+    null,
+  );
+  const [status, setStatus] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<
     AccessTokenPayload | TransferFinishedSuccessPayload | null
   >(null);
-  const [view, setView] = useState(false);
-  const [backupView, setBackupView] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [linkToken, setLinkToken] = useState<string>('');
-  const connectButtonTitle = 'Connect account';
 
   function showIntegrationConnectedAlert(payload: AccessTokenPayload) {
     Alert.alert(
       `${payload.brokerName} connected!`,
       `accountId: ${payload.accountTokens[0].account.accountId}`,
-      [
-        {
-          text: 'Ok',
-          onPress: () => {
-            setData(payload);
-          },
-        },
-      ],
+      [{text: 'Ok', onPress: () => setData(payload)}],
     );
   }
 
   function showTransferFinishedAlert(payload: TransferFinishedSuccessPayload) {
     Alert.alert(
       'Transfer Finished',
-      `Symbol: ${payload?.symbol}
-      Amount: ${payload?.amount}`,
-      [
-        {
-          text: 'Ok',
-          onPress: () => {
-            setData(payload);
-          },
-        },
-      ],
+      `Symbol: ${payload?.symbol}\n      Amount: ${payload?.amount}`,
+      [{text: 'Ok', onPress: () => setData(payload)}],
     );
   }
 
-  if (backupView) {
+  // Open the deposit-only backup widget. In JIT mode we first mint a short-lived
+  // bearer for the widget's client-direct address calls; the static-address
+  // variant needs none.
+  async function startBackup() {
+    setStatus('Primary API unavailable — switching to backup deposit…');
+    try {
+      const token = BACKUP_MODE === 'jit' ? await mintBackupToken() : undefined;
+      setBackupConfig(buildBackupConfig(token));
+      setScreen('backup');
+    } catch (e) {
+      setError(`Could not start backup flow: ${(e as Error).message}`);
+      setStatus(null);
+    }
+  }
+
+  async function handleDeposit() {
+    setError(null);
+    setStatus(null);
+    setBusy(true);
+    try {
+      const result = await mintLinkToken(outageOn);
+      if (!result.configured || !result.linkToken) {
+        setStatus(
+          result.message ??
+            'Normal deposit needs a Mesh link token — see the mock backend README. The backup flow still works.',
+        );
+        return;
+      }
+      setLinkToken(result.linkToken);
+      setScreen('connect');
+    } catch (e) {
+      // A Mesh outage (simulated via the toggle, or a real 5xx/network failure)
+      // is the cue to fall back to the backup deposit flow.
+      if (e instanceof MeshOutageError) {
+        await startBackup();
+      } else {
+        setError((e as Error).message);
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function returnHome() {
+    setScreen('home');
+    setLinkToken('');
+    setStatus(null);
+    setError(null);
+  }
+
+  if (screen === 'backup' && backupConfig) {
     return (
       <LinkConnectBackup
         widgetOrigin={DEMO_BACKUP_WIDGET_ORIGIN}
-        backupConfig={DEMO_BACKUP_CONFIG}
-        settings={{language: 'en', theme: 'system'}}
+        backupConfig={backupConfig}
+        settings={{language: 'en', theme: 'dark'}}
         onTransferFinished={(payload: TransferFinishedPayload) => {
           if (payload.status === 'success') {
             showTransferFinishedAlert(payload);
@@ -114,21 +143,17 @@ export default function App() {
         }}
         onExit={(err?: string) => {
           console.log('Backup onExit called:', err);
-          setBackupView(false);
+          returnHome();
         }}
       />
     );
   }
 
-  if (view && linkToken?.length) {
+  if (screen === 'connect' && linkToken.length) {
     return (
       <LinkConnect
         linkToken={linkToken}
-        settings={{
-          language: 'en',
-          displayFiatCurrency: 'USD',
-          theme: 'system',
-        }}
+        settings={{language: 'en', displayFiatCurrency: 'USD', theme: 'dark'}}
         onIntegrationConnected={(payload: LinkPayload) => {
           if (payload.accessToken) {
             showIntegrationConnectedAlert(payload.accessToken);
@@ -146,129 +171,219 @@ export default function App() {
         }}
         onExit={(err?: string) => {
           console.log('onExit called:', err);
-          setView(false);
-          setLinkToken('');
+          returnHome();
         }}
       />
     );
   }
 
-  if (!view) {
-    return (
-      <SafeAreaView
-        style={styles.container}
-        testID={'example-app-link-container'}>
-        <ScrollView>
-          <View style={styles.headerDivider} />
-          <View
-            testID={'example-app-link-token-container'}
-            style={styles.inputContainer}>
-            <TextInput
-              testID={'example-app-link-token-input'}
-              value={linkToken}
-              onChangeText={e => setLinkToken(e)}
-              onSubmitEditing={() => setView(true)}
-              style={styles.exampleLinkTokenInput}
-              placeholder="Enter link token"
-              placeholderTextColor={'#363636'}
-            />
-          </View>
-
-          <TouchableOpacity
-            onPress={() => setView(true)}
-            style={styles.conBtn}
-            testID={'example-app-connect-btn'}>
-            <Text style={styles.connectButtonText}>{connectButtonTitle}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => setBackupView(true)}
-            style={styles.backupBtn}
-            testID={'example-app-backup-btn'}>
-            <Text style={styles.connectButtonText}>
-              Simulate outage — Backup deposit
-            </Text>
-          </TouchableOpacity>
-
-          {data && (
-            <View
-              style={styles.reportsContainer}
-              testID={'example-app-reports-container'}>
-              <Reports data={data} />
+  return (
+    <SafeAreaView
+      style={styles.container}
+      testID={'example-app-link-container'}>
+      <ScrollView contentContainerStyle={styles.scroll}>
+        {/* Header — CDC-lookalike wordmark + demo badge */}
+        <View style={styles.header}>
+          <View style={styles.brand}>
+            <View style={styles.monogram}>
+              <Text style={styles.monogramText}>C</Text>
             </View>
-          )}
+            <Text style={styles.brandText}>crypto demo</Text>
+          </View>
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>MESH BACKUP DEMO</Text>
+          </View>
+        </View>
 
-          {error && (
-            <Text testID={'example-app-error'} style={styles.textError}>
-              Error: {error}
+        {/* Fake portfolio card, for a realistic client-app look */}
+        <View style={styles.balanceCard}>
+          <Text style={styles.balanceLabel}>Portfolio balance</Text>
+          <Text style={styles.balanceValue}>$12,480.55</Text>
+          <Text style={styles.balanceSub}>USDC · demo account</Text>
+        </View>
+
+        <TouchableOpacity
+          onPress={handleDeposit}
+          disabled={busy}
+          style={[styles.depositBtn, busy && styles.depositBtnDisabled]}
+          testID={'example-app-connect-btn'}>
+          {busy ? (
+            <ActivityIndicator color={cdc.primaryText} />
+          ) : (
+            <Text style={styles.depositBtnText}>Deposit crypto</Text>
+          )}
+        </TouchableOpacity>
+
+        {/* Outage toggle — the demo control */}
+        <View style={styles.toggleRow} testID={'example-app-outage-toggle'}>
+          <View style={styles.toggleLabelWrap}>
+            <Text style={styles.toggleLabel}>Simulate Mesh outage</Text>
+            <Text style={styles.toggleHint}>
+              {outageOn
+                ? 'Deposit will fail on the primary API and fall back to the backup flow.'
+                : 'Deposit uses the normal Mesh flow.'}
             </Text>
-          )}
-        </ScrollView>
-      </SafeAreaView>
-    );
-  }
+          </View>
+          <Switch
+            value={outageOn}
+            onValueChange={setOutageOn}
+            trackColor={{false: cdc.border, true: cdc.warning}}
+            thumbColor={cdc.text}
+            testID={'example-app-outage-switch'}
+          />
+        </View>
 
-  return null;
+        {status && (
+          <Text testID={'example-app-status'} style={styles.statusText}>
+            {status}
+          </Text>
+        )}
+
+        {error && (
+          <Text testID={'example-app-error'} style={styles.errorText}>
+            Error: {error}
+          </Text>
+        )}
+
+        {data && (
+          <View
+            style={styles.reportsContainer}
+            testID={'example-app-reports-container'}>
+            <Reports data={data} />
+          </View>
+        )}
+      </ScrollView>
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
     flex: 1,
+    backgroundColor: cdc.bg,
   },
-  headerDivider: {
-    height: 80,
-    width: layout_width,
+  scroll: {
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 48,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 28,
+  },
+  brand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  monogram: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: cdc.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 24,
+    marginRight: 10,
   },
-  inputContainer: {
-    width: layout_width * 0.9,
-    alignSelf: 'center',
+  monogramText: {
+    color: cdc.primaryText,
+    fontSize: 20,
+    fontWeight: '800',
+  },
+  brandText: {
+    color: cdc.text,
+    fontSize: 20,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  badge: {
+    borderColor: cdc.border,
     borderWidth: 1,
-    borderColor: '#363636',
-    height: 45,
-    borderRadius: 30,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  badgeText: {
+    color: cdc.textMuted,
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  balanceCard: {
+    backgroundColor: cdc.surface,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: cdc.border,
+    padding: 20,
+    marginBottom: 24,
+  },
+  balanceLabel: {
+    color: cdc.textMuted,
+    fontSize: 13,
+  },
+  balanceValue: {
+    color: cdc.text,
+    fontSize: 34,
+    fontWeight: '800',
+    marginTop: 6,
+  },
+  balanceSub: {
+    color: cdc.textMuted,
+    fontSize: 13,
     marginTop: 4,
   },
-  conBtn: {
-    backgroundColor: 'black',
-    height: 50,
-    width: layout_width * 0.9,
-    alignSelf: 'center',
-    borderRadius: 50,
-    justifyContent: 'center',
+  depositBtn: {
+    backgroundColor: cdc.primary,
+    height: 54,
+    borderRadius: 14,
     alignItems: 'center',
-    marginTop: 30,
-  },
-  exampleLinkTokenInput: {
-    width: '95%',
-    height: 40,
-    left: 10,
-    color: '#363636',
-  },
-  backupBtn: {
-    backgroundColor: '#6b21a8',
-    height: 50,
-    width: layout_width * 0.9,
-    alignSelf: 'center',
-    borderRadius: 50,
     justifyContent: 'center',
+  },
+  depositBtnDisabled: {
+    opacity: 0.6,
+  },
+  depositBtnText: {
+    color: cdc.primaryText,
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  toggleRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 16,
+    justifyContent: 'space-between',
+    backgroundColor: cdc.surface,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: cdc.border,
+    padding: 16,
+    marginTop: 20,
   },
-  connectButtonText: {
-    textAlign: 'center',
-    fontSize: 18,
-    color: 'white',
+  toggleLabelWrap: {
+    flex: 1,
+    paddingRight: 12,
   },
-  textError: {
-    color: 'red',
+  toggleLabel: {
+    color: cdc.text,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  toggleHint: {
+    color: cdc.textMuted,
+    fontSize: 12,
+    marginTop: 4,
+  },
+  statusText: {
+    color: cdc.warning,
+    fontSize: 14,
+    marginTop: 20,
+    lineHeight: 20,
+  },
+  errorText: {
+    color: cdc.danger,
+    fontSize: 14,
+    marginTop: 20,
   },
   reportsContainer: {
-    marginTop: 30,
+    marginTop: 28,
   },
 });
