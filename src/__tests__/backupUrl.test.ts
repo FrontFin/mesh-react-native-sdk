@@ -21,13 +21,13 @@ describe('buildBackupWidgetUrl', () => {
       theme: 'dark',
       language: 'en-US',
     });
-    expect(url).toContain('th=dark');
+    expect(url).toContain('theme=dark');
     expect(url).toContain('lng=en-US');
   });
 
   test('omits theme and language when absent', () => {
     const url = buildBackupWidgetUrl('https://widget.example', base);
-    expect(url).not.toContain('th=');
+    expect(url).not.toContain('theme=');
     expect(url).not.toContain('lng=');
   });
 

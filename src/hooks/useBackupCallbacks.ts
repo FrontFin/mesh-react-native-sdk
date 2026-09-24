@@ -10,10 +10,25 @@ import {
   DelayedAuthPayload,
   LinkConnectBackupConfiguration,
   LinkPayload,
+  LinkTheme,
   TransferFinishedPayload,
   isLinkEventTypeKey,
   mappedLinkEvents,
 } from '../';
+
+/**
+ * Resolve the host theme to the `'dark' | 'light'` the backup widget expects on
+ * its `?theme=` param. An explicit `'dark'`/`'light'` from the host wins;
+ * `'system'` or an unset theme falls back to the device appearance (read once,
+ * at build time — a WebView's own prefers-color-scheme would follow the device,
+ * not the host app, which is exactly what this passes through).
+ */
+const resolveWidgetTheme = (theme: LinkTheme | undefined): 'dark' | 'light' => {
+  if (theme === 'dark' || theme === 'light') {
+    return theme;
+  }
+  return Appearance.getColorScheme() === 'dark' ? 'dark' : 'light';
+};
 
 interface BackupCallbackOptions {
   /**
@@ -49,9 +64,12 @@ const useBackupCallbacks = (
       buildBackupWidgetUrl(widgetOrigin, {
         platform: sdkSpecs.platform,
         sdkVersion: sdkSpecs.version,
-        // `'system'` is resolved natively (below) into the loading background;
-        // don't put the literal `'system'` on the URL as a theme hint.
-        theme: settingsTheme === 'system' ? undefined : settingsTheme,
+        // Always a resolved 'dark'/'light' — the widget matches the host theme
+        // via ?theme= rather than the device's prefers-color-scheme. Resolved
+        // inside the memo so it's read once per URL, not re-read on every render
+        // (no Appearance listener — a mid-session device toggle must not reload
+        // the WebView and reset the funnel).
+        theme: resolveWidgetTheme(settingsTheme),
         language,
       }),
     [widgetOrigin, settingsTheme, language]
