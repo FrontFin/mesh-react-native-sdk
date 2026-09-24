@@ -13,8 +13,10 @@ import {
 import {
   AccessTokenPayload,
   LinkConnect,
+  LinkConnectBackup,
   LinkEventType,
   LinkPayload,
+  MeshBackupConfig,
   TransferFinishedPayload,
   TransferFinishedSuccessPayload,
 } from '@meshconnect/react-native-link-sdk';
@@ -22,11 +24,35 @@ import Reports from './components/reports';
 
 const layout_width = Dimensions.get('window').width;
 
+// --- Backup / outage demo -------------------------------------------------
+// The deposit-only backup flow runs when the primary Mesh API is unavailable.
+// It needs no link token: it loads the standalone backup widget from its origin
+// and takes a client-assembled MeshBackupConfig. This origin is the live demo
+// widget (OR-449); in production it would be the shipped backup origin.
+const DEMO_BACKUP_WIDGET_ORIGIN = 'https://demo-widget.cascadecode.com';
+
+// TODO: replace networkId (a Mesh network GUID from the pairs manifest) and the
+// deposit address with real values before demoing. Uses a static address so no
+// JIT backend is required; to demo JIT, drop `address` and add a `jit` block.
+const DEMO_BACKUP_CONFIG: MeshBackupConfig = {
+  clientId: '26C2621E-2C09-4CCC-DCF7-08DE90525AA1', // CDC (Crypto.com)
+  userId: 'rn-example-user',
+  destinations: [
+    {
+      networkId: '<mesh-network-guid>',
+      symbol: 'USDC',
+      address: '0x0000000000000000000000000000000000000000',
+    },
+  ],
+  preselectedSymbol: 'USDC',
+};
+
 export default function App() {
   const [data, setData] = useState<
     AccessTokenPayload | TransferFinishedSuccessPayload | null
   >(null);
   const [view, setView] = useState(false);
+  const [backupView, setBackupView] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [linkToken, setLinkToken] = useState<string>('');
   const connectButtonTitle = 'Connect account';
@@ -59,6 +85,30 @@ export default function App() {
           },
         },
       ],
+    );
+  }
+
+  if (backupView) {
+    return (
+      <LinkConnectBackup
+        widgetOrigin={DEMO_BACKUP_WIDGET_ORIGIN}
+        backupConfig={DEMO_BACKUP_CONFIG}
+        settings={{language: 'en', theme: 'system'}}
+        onTransferFinished={(payload: TransferFinishedPayload) => {
+          if (payload.status === 'success') {
+            showTransferFinishedAlert(payload);
+          } else {
+            setError(payload.errorMessage);
+          }
+        }}
+        onEvent={(event: LinkEventType) => {
+          console.log('Backup event received:', event);
+        }}
+        onExit={(err?: string) => {
+          console.log('Backup onExit called:', err);
+          setBackupView(false);
+        }}
+      />
     );
   }
 
@@ -123,6 +173,15 @@ export default function App() {
             <Text style={styles.connectButtonText}>{connectButtonTitle}</Text>
           </TouchableOpacity>
 
+          <TouchableOpacity
+            onPress={() => setBackupView(true)}
+            style={styles.backupBtn}
+            testID={'example-app-backup-btn'}>
+            <Text style={styles.connectButtonText}>
+              Simulate outage — Backup deposit
+            </Text>
+          </TouchableOpacity>
+
           {data && (
             <View
               style={styles.reportsContainer}
@@ -182,6 +241,16 @@ const styles = StyleSheet.create({
     height: 40,
     left: 10,
     color: '#363636',
+  },
+  backupBtn: {
+    backgroundColor: '#6b21a8',
+    height: 50,
+    width: layout_width * 0.9,
+    alignSelf: 'center',
+    borderRadius: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 16,
   },
   connectButtonText: {
     textAlign: 'center',
