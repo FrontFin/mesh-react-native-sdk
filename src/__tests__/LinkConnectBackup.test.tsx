@@ -38,6 +38,9 @@ const CONFIG: MeshBackupConfig = {
   userId: 'end-user-123',
   destinations: [{ networkId: 'net-guid', symbol: 'USDC' }],
   preselectedSymbol: 'USDC',
+  // Optional correlation id — the delivery test asserts the whole config
+  // (including this) reaches the widget unchanged.
+  transactionId: 'txn-abc-123',
 };
 
 const loaded = (webview: any) =>
