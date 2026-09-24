@@ -112,24 +112,6 @@ describe('LinkConnectBackup', () => {
     });
   });
 
-  it('relaxes containment only when the host opts out via disableDomainWhiteList', async () => {
-    const { getByTestId } = render(
-      <LinkConnectBackup
-        backupConfig={CONFIG}
-        widgetOrigin="https://staging.example"
-        disableDomainWhiteList
-      />
-    );
-    await waitFor(() => {
-      const webview = getByTestId('webview');
-      // Whitelist stays ['*'] so the handler always runs (never Linking.openURL).
-      expect(webview.props.originWhitelist).toEqual(['*']);
-      const allow = webview.props.onShouldStartLoadWithRequest;
-      expect(allow({ url: 'https://anywhere.example' })).toBe(true);
-      expect(allow({ url: 'metamask://wc' })).toBe(true);
-    });
-  });
-
   it('delivers the deposit config over the bridge on the widget loaded event', async () => {
     const onEvent = jest.fn();
     const { getByTestId } = render(
@@ -328,6 +310,7 @@ describe('LinkConnectBackup', () => {
     ['data:text/html,hi'], // non-http scheme
     ['javascript:alert(1)'], // executable scheme
     ['https://widget.example@attacker.example'], // userinfo → real host is attacker.example
+    [''], // explicit empty string must fail closed, not fall back to the default
   ])(
     'fails closed on an unsafe widgetOrigin (%s): exits and mounts no WebView',
     async (widgetOrigin) => {

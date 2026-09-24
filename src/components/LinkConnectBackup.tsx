@@ -104,12 +104,12 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
   // no OAuth/wallet hand-offs — nothing should ever leave it. react-native-webview
   // runs its origin allow-list BEFORE onShouldStartLoadWithRequest and hands any
   // non-matching URL (including custom schemes) straight to Linking.openURL, so
-  // the allow-list alone cannot keep navigation contained. We therefore always
-  // set the allow-list to `['*']` so every URL reaches the handler, and enforce
-  // containment there — otherwise `disableDomainWhiteList` would restore RN's
-  // default http(s) allow-list and let a custom scheme bypass the handler into
-  // Linking.openURL. `disableDomainWhiteList` instead relaxes the handler itself.
-  const { disableDomainWhiteList = false } = props;
+  // the allow-list alone cannot keep navigation contained. We therefore set the
+  // allow-list to `['*']` so every URL reaches the handler and enforce exact-
+  // origin containment there. There is deliberately NO opt-out: on the widget's
+  // `loaded` message this flow injects the config (incl. a possible JIT bearer
+  // token) into whatever page is loaded, so it must never load a non-widget
+  // origin.
   const widgetOrigin = extractOrigin(linkUrl);
 
   // Fail closed unless widgetOrigin is a bare http(s) origin — scheme + host +
@@ -200,12 +200,10 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
         // Only the widget's own origin may load (see whitelist note above);
         // `about:blank` is allowed because the WebView uses it internally. Any
         // other URL — a different origin or a custom scheme — is blocked and is
-        // NOT handed off externally, unless the host opts out via
-        // disableDomainWhiteList. Origins are compared exactly: a prefix check
-        // would admit https://widget.example.attacker.com and the
+        // NOT handed off externally. Origins are compared exactly: a prefix
+        // check would admit https://widget.example.attacker.com and the
         // https://widget.example@attacker.example userinfo trick.
         onShouldStartLoadWithRequest={(req) =>
-          disableDomainWhiteList ||
           req.url === 'about:blank' ||
           extractOrigin(req.url) === widgetOrigin
         }
