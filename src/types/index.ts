@@ -640,6 +640,14 @@ export interface LinkConnectBackupConfiguration {
   renderViewContainer?: boolean;
   /** Disable the WebView origin allow-list check. */
   disableDomainWhiteList?: boolean;
+  /**
+   * Hide the native close (✕) button. By default `LinkConnectBackup` overlays a
+   * native close control (the backup widget's deposit-only funnel has no exit
+   * affordance on its root screen), wired to `onExit` so the host can always
+   * dismiss the flow. Set `true` to suppress it, e.g. when the host provides its
+   * own chrome.
+   */
+  hideCloseButton?: boolean;
   onIntegrationConnected?: (payload: LinkPayload) => void;
   onTransferFinished?: (payload: TransferFinishedPayload) => void;
   onEvent?: (event: LinkEventType) => void;

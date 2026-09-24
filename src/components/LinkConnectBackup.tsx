@@ -1,4 +1,4 @@
-import { AppState, View } from 'react-native';
+import { AppState, Image, TouchableOpacity, View } from 'react-native';
 import type { AppStateStatus } from 'react-native';
 import { WebView } from 'react-native-webview';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -56,13 +56,21 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
   // silently drops any message without a `type`, so the bare config must be
   // wrapped. Serialised through toInjectableJson so config values cannot break
   // out of the injected script.
+  //
+  // We dispatch a synthetic MessageEvent rather than `window.postMessage(...)`:
+  // inside a WKWebView, a self-`postMessage` from injected JS does not reliably
+  // reach the page's own `message` listeners (unlike the cross-window
+  // iframe.contentWindow.postMessage the web SDK uses). Dispatching the event
+  // directly is delivered synchronously, and `origin` is set to the widget's
+  // own origin so its handshake origin-pinning accepts it.
   const deliverConfig = () => {
     const literal = toInjectableJson({
       type: BACKUP_CONFIG_MESSAGE_TYPE,
       payload: props.backupConfig,
     });
     webViewRef.current?.injectJavaScript(
-      `window.postMessage(JSON.parse(${literal}), '*'); true;`
+      `window.dispatchEvent(new MessageEvent('message', ` +
+        `{ data: JSON.parse(${literal}), origin: window.location.origin })); true;`
     );
   };
 
@@ -158,6 +166,31 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
         />
       )}
       {initialLoading && <LoadingComponentWebview darkTheme={isDark} />}
+      {!props.hideCloseButton && (
+        <TouchableOpacity
+          testID={'backup-close-button'}
+          accessibilityRole={'button'}
+          accessibilityLabel={'Close'}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          onPress={() => props.onExit?.()}
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            zIndex: 20,
+            padding: 10,
+          }}
+        >
+          <Image
+            source={
+              isDark
+                ? require('../assets/cross-1-small-dark.png')
+                : require('../assets/cross-1-small-light.png')
+            }
+            style={{ width: 20, height: 20 }}
+          />
+        </TouchableOpacity>
+      )}
       <WebView
         bounces={false}
         style={{
