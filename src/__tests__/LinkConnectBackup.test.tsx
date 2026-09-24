@@ -231,18 +231,22 @@ describe('LinkConnectBackup', () => {
     });
   });
 
-  it('toggles the native navbar on showNativeNavbar', async () => {
+  it('renders no native NavBar — the ✕ close is the single exit control', async () => {
     const { getByTestId, queryByTestId } = render(
       <LinkConnectBackup backupConfig={CONFIG} />
     );
     await waitFor(() => getByTestId('webview'));
-    expect(queryByTestId('native-navbar')).toBeNull();
+    // Even if the widget sends showNativeNavbar, no NavBar appears: the
+    // deposit-only flow has one native close control (the ✕ button), so there
+    // are never duplicate close controls.
     act(() => {
       getByTestId('webview').props.onMessage({
         nativeEvent: { data: JSON.stringify({ type: 'showNativeNavbar', payload: true }) },
       });
     });
-    await waitFor(() => expect(queryByTestId('native-navbar')).not.toBeNull());
+    await waitFor(() => getByTestId('webview'));
+    expect(queryByTestId('native-navbar')).toBeNull();
+    expect(getByTestId('backup-close-button')).toBeTruthy();
   });
 
   it.each([

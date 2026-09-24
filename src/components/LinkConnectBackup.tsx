@@ -2,7 +2,6 @@ import { Image, TouchableOpacity, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 import React, { useEffect, useMemo, useState } from 'react';
 
-import { NavBar } from './NavBar';
 import { SDKContainer } from './SDKContainer';
 import { SDKViewContainer } from './SDKViewContainer';
 
@@ -79,10 +78,9 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
     );
   };
 
-  const { linkUrl, showNativeNavbar, darkTheme, handleMessage, showCloseAlert } =
-    useBackupCallbacks(props, { onWidgetLoaded: deliverConfig });
-
-  const goBack = () => webViewRef?.current?.goBack();
+  const { linkUrl, darkTheme, handleMessage } = useBackupCallbacks(props, {
+    onWidgetLoaded: deliverConfig,
+  });
 
   const injectedScript = useMemo(
     () => `
@@ -140,13 +138,9 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
 
   return (
     <SDKWrapperComponent isDarkTheme={isDark}>
-      {showNativeNavbar && (
-        <NavBar
-          goBack={goBack}
-          showCloseAlert={showCloseAlert}
-          isDarkTheme={isDark}
-        />
-      )}
+      {/* Deposit-only: the widget owns its own in-funnel navigation, so there is
+          no native NavBar. The always-present close (✕) below is the single
+          exit affordance back to the host. */}
       {initialLoading && <LoadingComponentWebview darkTheme={isDark} />}
       {!props.hideCloseButton && (
         <TouchableOpacity
