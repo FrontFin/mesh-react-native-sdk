@@ -1,0 +1,316 @@
+/* eslint-disable */
+import React from 'react';
+import { Alert, Appearance, AppState } from 'react-native';
+import { act, render, waitFor } from '@testing-library/react-native';
+import { LinkConnectBackup } from '../components/LinkConnectBackup';
+import {
+  DARK_THEME_COLOR_BOTTOM,
+  DEFAULT_BACKUP_WIDGET_ORIGIN,
+} from '../constant';
+import type { MeshBackupConfig } from '../types';
+
+const mockedUseColorScheme = jest.fn();
+jest.mock('react-native/Libraries/Utilities/useColorScheme', () => ({
+  default: mockedUseColorScheme,
+}));
+
+// var avoids TDZ — the closure inside forwardRef reads these after module init
+var mockReload = jest.fn();
+var mockInject = jest.fn();
+
+jest.mock('react-native-webview', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return {
+    WebView: React.forwardRef((props: any, ref: any) => {
+      React.useImperativeHandle(ref, () => ({
+        reload: mockReload,
+        injectJavaScript: mockInject,
+        goBack: jest.fn(),
+      }));
+      return React.createElement(View, props);
+    }),
+  };
+});
+
+const CONFIG: MeshBackupConfig = {
+  clientId: '26C2621E-2C09-4CCC-DCF7-08DE90525AA1',
+  userId: 'end-user-123',
+  destinations: [{ networkId: 'net-guid', symbol: 'USDC' }],
+  preselectedSymbol: 'USDC',
+};
+
+const loaded = (webview: any) =>
+  webview.props.onMessage({
+    nativeEvent: { data: JSON.stringify({ type: 'loaded' }) },
+  });
+
+describe('LinkConnectBackup', () => {
+  beforeEach(() => {
+    mockReload.mockClear();
+    mockInject.mockClear();
+    (AppState as any).currentState = 'active';
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('loads the default backup widget origin with SDK hints, not a link token', async () => {
+    const { getByTestId } = render(<LinkConnectBackup backupConfig={CONFIG} />);
+    await waitFor(() => {
+      const uri = getByTestId('webview').props.source.uri;
+      expect(uri.startsWith(DEFAULT_BACKUP_WIDGET_ORIGIN)).toBe(true);
+      expect(uri).toContain('platform=reactNative');
+      // No deposit config leaks onto the URL.
+      expect(uri).not.toContain('USDC');
+      expect(uri).not.toContain('end-user-123');
+    });
+  });
+
+  it('honours a custom widgetOrigin, including one that carries a path', async () => {
+    const { getByTestId } = render(
+      <LinkConnectBackup backupConfig={CONFIG} widgetOrigin="https://staging.example/widget/" />
+    );
+    await waitFor(() => {
+      // The path is preserved on the load URL (trailing slash normalised).
+      expect(
+        getByTestId('webview').props.source.uri.startsWith('https://staging.example/widget?')
+      ).toBe(true);
+    });
+  });
+
+  it('contains navigation to the widget origin and blocks everything else without external hand-off', async () => {
+    // Every origin reaches the handler (whitelist ['*']); containment is
+    // enforced there, so a blocked URL is not opened via Linking either. Uses a
+    // path-bearing origin to pin the M2 regression (origin, not path, gates).
+    const { getByTestId } = render(
+      <LinkConnectBackup backupConfig={CONFIG} widgetOrigin="https://staging.example/widget" />
+    );
+    await waitFor(() => {
+      const webview = getByTestId('webview');
+      expect(webview.props.injectedJavaScript).toContain('meshSdkPlatform');
+      expect(webview.props.injectedJavaScript).toContain('meshSdkVersion');
+      expect(webview.props.originWhitelist).toEqual(['*']);
+      const allow = webview.props.onShouldStartLoadWithRequest;
+      expect(allow({ url: 'https://staging.example/widget/network' })).toBe(true);
+      expect(allow({ url: 'about:blank' })).toBe(true);
+      expect(allow({ url: 'https://evil.example' })).toBe(false);
+      expect(allow({ url: 'metamask://wc' })).toBe(false);
+    });
+  });
+
+  it('delivers the deposit config over the bridge on the widget loaded event', async () => {
+    const onEvent = jest.fn();
+    const { getByTestId } = render(
+      <LinkConnectBackup backupConfig={CONFIG} onEvent={onEvent} />
+    );
+    await waitFor(() => {
+      loaded(getByTestId('webview'));
+      expect(mockInject).toHaveBeenCalledTimes(1);
+      const script: string = mockInject.mock.calls[0][0];
+      expect(script).toContain("window.postMessage(JSON.parse(");
+      // The embedded literal must reconstruct the exact config.
+      const literal = script.slice(
+        script.indexOf('JSON.parse(') + 'JSON.parse('.length,
+        script.lastIndexOf('),')
+      );
+      expect(JSON.parse(JSON.parse(literal))).toEqual(CONFIG);
+      expect(onEvent).toHaveBeenCalledWith({ type: 'pageLoaded' });
+    });
+  });
+
+  it('routes transferFinished to onTransferFinished and onEvent', async () => {
+    const onTransferFinished = jest.fn();
+    const onEvent = jest.fn();
+    const payload = {
+      status: 'success',
+      txId: 't1',
+      fromAddress: 'a',
+      toAddress: 'b',
+      symbol: 'USDC',
+      amount: 5,
+      networkId: 'net-guid',
+    };
+    const { getByTestId } = render(
+      <LinkConnectBackup
+        backupConfig={CONFIG}
+        onTransferFinished={onTransferFinished}
+        onEvent={onEvent}
+      />
+    );
+    await waitFor(() => {
+      getByTestId('webview').props.onMessage({
+        nativeEvent: { data: JSON.stringify({ type: 'transferFinished', payload }) },
+      });
+      expect(onTransferFinished).toHaveBeenCalledWith(payload);
+      expect(onEvent).toHaveBeenCalledWith({ type: 'transferCompleted', payload });
+    });
+  });
+
+  it.each(['close', 'done', 'exit'])('routes %s to onExit', async (type) => {
+    const onExit = jest.fn();
+    const { getByTestId } = render(
+      <LinkConnectBackup backupConfig={CONFIG} onExit={onExit} />
+    );
+    await waitFor(() => {
+      getByTestId('webview').props.onMessage({
+        nativeEvent: { data: JSON.stringify({ type, payload: 'done-reason' }) },
+      });
+      expect(onExit).toHaveBeenCalledWith('done-reason');
+    });
+  });
+
+  it('emits webViewLoadFailed and auto-reloads on onError', async () => {
+    const onEvent = jest.fn();
+    const { getByTestId } = render(
+      <LinkConnectBackup backupConfig={CONFIG} onEvent={onEvent} />
+    );
+    await waitFor(() => {
+      getByTestId('webview').props.onError({
+        nativeEvent: { url: 'https://staging.example', code: -1009, description: 'offline' },
+      });
+      expect(onEvent).toHaveBeenCalledWith({
+        type: 'webViewLoadFailed',
+        payload: { url: 'https://staging.example', errorCode: -1009, errorDescription: 'offline' },
+      });
+      expect(mockReload).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('auto-reloads on onHttpError 5xx but not 4xx', async () => {
+    const { getByTestId, rerender } = render(<LinkConnectBackup backupConfig={CONFIG} />);
+    await waitFor(() => {
+      getByTestId('webview').props.onHttpError({
+        nativeEvent: { url: 'https://staging.example', statusCode: 404 },
+      });
+      expect(mockReload).not.toHaveBeenCalled();
+    });
+    // New instance so the once-only reload guard is fresh.
+    rerender(<LinkConnectBackup backupConfig={CONFIG} widgetOrigin="https://other.example" />);
+    await waitFor(() => {
+      getByTestId('webview').props.onHttpError({
+        nativeEvent: { url: 'https://other.example', statusCode: 503 },
+      });
+      expect(mockReload).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('shows the exit confirmation alert on showClose', async () => {
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    const { getByTestId } = render(<LinkConnectBackup backupConfig={CONFIG} />);
+    await waitFor(() => {
+      getByTestId('webview').props.onMessage({
+        nativeEvent: { data: JSON.stringify({ type: 'showClose' }) },
+      });
+      expect(alert).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('toggles the native navbar on showNativeNavbar', async () => {
+    const { getByTestId, queryByTestId } = render(
+      <LinkConnectBackup backupConfig={CONFIG} />
+    );
+    await waitFor(() => getByTestId('webview'));
+    expect(queryByTestId('native-navbar')).toBeNull();
+    act(() => {
+      getByTestId('webview').props.onMessage({
+        nativeEvent: { data: JSON.stringify({ type: 'showNativeNavbar', payload: true }) },
+      });
+    });
+    await waitFor(() => expect(queryByTestId('native-navbar')).not.toBeNull());
+  });
+
+  it.each([
+    ['brokerageAccountAccessToken', 'accessToken'],
+    ['delayedAuthentication', 'delayedAuth'],
+  ])('routes %s to onIntegrationConnected (host contract parity)', async (type, key) => {
+    const onIntegrationConnected = jest.fn();
+    const payload = { brokerType: 'test', brokerName: 'Test' };
+    const { getByTestId } = render(
+      <LinkConnectBackup
+        backupConfig={CONFIG}
+        onIntegrationConnected={onIntegrationConnected}
+      />
+    );
+    await waitFor(() => {
+      getByTestId('webview').props.onMessage({
+        nativeEvent: { data: JSON.stringify({ type, payload }) },
+      });
+      expect(onIntegrationConnected).toHaveBeenCalledWith({ [key]: payload });
+    });
+  });
+
+  it('forwards a known deposit event and ignores an unknown type', async () => {
+    const onEvent = jest.fn();
+    const { getByTestId } = render(
+      <LinkConnectBackup backupConfig={CONFIG} onEvent={onEvent} />
+    );
+    await waitFor(() => {
+      const webview = getByTestId('webview');
+      const known = { type: 'transferAssetSelected', payload: { symbol: 'USDC' } };
+      webview.props.onMessage({ nativeEvent: { data: JSON.stringify(known) } });
+      expect(onEvent).toHaveBeenCalledWith(known);
+
+      onEvent.mockClear();
+      webview.props.onMessage({
+        nativeEvent: { data: JSON.stringify({ type: 'notARealEvent' }) },
+      });
+      expect(onEvent).not.toHaveBeenCalled();
+    });
+  });
+
+  it('resolves system theme natively without putting th=system on the URL', async () => {
+    jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
+    const { getByTestId } = render(
+      <LinkConnectBackup backupConfig={CONFIG} settings={{ theme: 'system' }} />
+    );
+    await waitFor(() => {
+      const webview = getByTestId('webview');
+      expect(webview.props.source.uri).not.toContain('th=');
+      // System resolved to the device scheme for the native background.
+      expect(webview.props.style.backgroundColor).toBe(DARK_THEME_COLOR_BOTTOM);
+    });
+  });
+
+  it('applies an explicit dark theme to the WebView background', async () => {
+    jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('light');
+    const { getByTestId } = render(
+      <LinkConnectBackup backupConfig={CONFIG} settings={{ theme: 'dark' }} />
+    );
+    await waitFor(() => {
+      expect(getByTestId('webview').props.style.backgroundColor).toBe(
+        DARK_THEME_COLOR_BOTTOM
+      );
+    });
+  });
+
+  it('recovers a dead renderer while foregrounded (renderer-death recovery)', async () => {
+    const { getByTestId } = render(<LinkConnectBackup backupConfig={CONFIG} />);
+    await waitFor(() => {
+      getByTestId('webview').props.onRenderProcessGone();
+      expect(mockReload).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('defers recovery to foreground return when the renderer dies backgrounded', async () => {
+    let appStateCb: ((s: string) => void) | undefined;
+    jest.spyOn(AppState, 'addEventListener').mockImplementation((event: any, cb: any) => {
+      if (event === 'change') appStateCb = cb;
+      return { remove: jest.fn() } as any;
+    });
+    const { getByTestId } = render(<LinkConnectBackup backupConfig={CONFIG} />);
+    await waitFor(() => getByTestId('webview'));
+
+    (AppState as any).currentState = 'background';
+    getByTestId('webview').props.onContentProcessDidTerminate();
+    expect(mockReload).toHaveBeenCalledTimes(0);
+
+    (AppState as any).currentState = 'active';
+    appStateCb?.('active');
+    expect(mockReload).toHaveBeenCalledTimes(1);
+    // Flag cleared: a later foreground does nothing.
+    appStateCb?.('active');
+    expect(mockReload).toHaveBeenCalledTimes(1);
+  });
+});
