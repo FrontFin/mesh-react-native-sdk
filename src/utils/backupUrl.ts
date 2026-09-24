@@ -1,13 +1,19 @@
 import { addURLParam } from './urlHelpers';
-import { LinkTheme } from '../types';
 
 export interface BackupWidgetUrlParams {
   /** SDK platform identifier (e.g. `'reactNative'`). */
   platform: string;
   /** SDK version, for widget-side diagnostics. */
   sdkVersion: string;
-  /** Resolved colour theme, if the host set one. */
-  theme?: LinkTheme;
+  /**
+   * Resolved colour theme. Appended as `?theme=dark|light` — the value the
+   * widget reads to set its mode before first paint (in a WebView
+   * prefers-color-scheme follows the device, not the host app, so the host
+   * theme must be passed explicitly). Only the two lowercase literals are
+   * meaningful; the widget ignores anything else and falls back to
+   * prefers-color-scheme.
+   */
+  theme?: 'dark' | 'light';
   /** Resolved BCP-47 language tag, if the host set one. */
   language?: string;
 }
@@ -29,7 +35,7 @@ export function buildBackupWidgetUrl(
   url = addURLParam(url, 'platform', params.platform);
   url = addURLParam(url, 'sdkVersion', params.sdkVersion);
   if (params.theme) {
-    url = addURLParam(url, 'th', params.theme);
+    url = addURLParam(url, 'theme', params.theme);
   }
   if (params.language) {
     url = addURLParam(url, 'lng', params.language);

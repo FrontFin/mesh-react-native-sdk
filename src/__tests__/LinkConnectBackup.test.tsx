@@ -293,16 +293,37 @@ describe('LinkConnectBackup', () => {
     });
   });
 
-  it('resolves system theme natively without putting th=system on the URL', async () => {
+  it('resolves system theme to the device scheme on ?theme= (never theme=system)', async () => {
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
     const { getByTestId } = render(
       <LinkConnectBackup backupConfig={CONFIG} settings={{ theme: 'system' }} />
     );
     await waitFor(() => {
       const webview = getByTestId('webview');
-      expect(webview.props.source.uri).not.toContain('th=');
-      // System resolved to the device scheme for the native background.
+      // System resolves to the device scheme — passed to the widget as theme=dark.
+      expect(webview.props.source.uri).toContain('theme=dark');
+      expect(webview.props.source.uri).not.toContain('theme=system');
       expect(webview.props.style.backgroundColor).toBe(DARK_THEME_COLOR_BOTTOM);
+    });
+  });
+
+  it.each([
+    ['dark', 'theme=dark'],
+    ['light', 'theme=light'],
+  ])('passes an explicit %s theme through to ?%s', async (theme, expected) => {
+    const { getByTestId } = render(
+      <LinkConnectBackup backupConfig={CONFIG} settings={{ theme: theme as 'dark' | 'light' }} />
+    );
+    await waitFor(() => {
+      expect(getByTestId('webview').props.source.uri).toContain(expected);
+    });
+  });
+
+  it('derives theme from device appearance when the host sets no theme', async () => {
+    jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('light');
+    const { getByTestId } = render(<LinkConnectBackup backupConfig={CONFIG} />);
+    await waitFor(() => {
+      expect(getByTestId('webview').props.source.uri).toContain('theme=light');
     });
   });
 
