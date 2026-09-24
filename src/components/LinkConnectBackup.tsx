@@ -12,6 +12,7 @@ import { useBackupCallbacks } from '../hooks/useBackupCallbacks';
 import { sdkSpecs } from '../utils/sdkConfig';
 import { extractOrigin, toInjectableJson } from '../utils';
 import {
+  BACKUP_CONFIG_MESSAGE_TYPE,
   DARK_THEME_COLOR_BOTTOM,
   LIGHT_THEME_COLOR_BOTTOM,
 } from '../constant';
@@ -50,10 +51,16 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
   const rendererGone = useRef(false);
 
   // Deliver the deposit config into the widget once it signals `loaded`,
-  // mirroring the web SDK's post-on-loaded handshake. Serialised through
-  // toInjectableJson so config values cannot break out of the injected script.
+  // mirroring the web SDK's post-on-loaded handshake. The widget's bridge
+  // requires a typed envelope ({ type: 'meshBackupConfig', payload }) and
+  // silently drops any message without a `type`, so the bare config must be
+  // wrapped. Serialised through toInjectableJson so config values cannot break
+  // out of the injected script.
   const deliverConfig = () => {
-    const literal = toInjectableJson(props.backupConfig);
+    const literal = toInjectableJson({
+      type: BACKUP_CONFIG_MESSAGE_TYPE,
+      payload: props.backupConfig,
+    });
     webViewRef.current?.injectJavaScript(
       `window.postMessage(JSON.parse(${literal}), '*'); true;`
     );
@@ -133,13 +140,13 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
   // no OAuth/wallet hand-offs — nothing should ever leave it. react-native-webview
   // runs its origin allow-list BEFORE onShouldStartLoadWithRequest and hands any
   // non-matching URL (including custom schemes) straight to Linking.openURL, so
-  // the allow-list alone cannot keep navigation contained. Instead we let every
-  // origin reach the handler (`['*']`) and enforce containment there: only the
-  // widget's own origin may load; everything else is blocked outright (returning
-  // false), never opened externally.
+  // the allow-list alone cannot keep navigation contained. We therefore always
+  // set the allow-list to `['*']` so every URL reaches the handler, and enforce
+  // containment there — otherwise `disableDomainWhiteList` would restore RN's
+  // default http(s) allow-list and let a custom scheme bypass the handler into
+  // Linking.openURL. `disableDomainWhiteList` instead relaxes the handler itself.
   const { disableDomainWhiteList = false } = props;
   const widgetOrigin = extractOrigin(linkUrl);
-  const whiteListProps = disableDomainWhiteList ? {} : { originWhitelist: ['*'] };
 
   return (
     <SDKWrapperComponent isDarkTheme={isDark}>
@@ -169,13 +176,18 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
         startInLoadingState={true}
         javaScriptEnabled={true}
         injectedJavaScript={injectedScript}
-        {...whiteListProps}
+        originWhitelist={['*']}
         // Only the widget's own origin may load (see whitelist note above);
         // `about:blank` is allowed because the WebView uses it internally. Any
         // other URL — a different origin or a custom scheme — is blocked and is
-        // NOT handed off externally.
+        // NOT handed off externally, unless the host opts out via
+        // disableDomainWhiteList. Origins are compared exactly: a prefix check
+        // would admit https://widget.example.attacker.com and the
+        // https://widget.example@attacker.example userinfo trick.
         onShouldStartLoadWithRequest={(req) =>
-          req.url === 'about:blank' || req.url.startsWith(widgetOrigin)
+          disableDomainWhiteList ||
+          req.url === 'about:blank' ||
+          extractOrigin(req.url) === widgetOrigin
         }
         domStorageEnabled={true}
         onError={({ nativeEvent }) => {

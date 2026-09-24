@@ -97,6 +97,31 @@ describe('LinkConnectBackup', () => {
       expect(allow({ url: 'about:blank' })).toBe(true);
       expect(allow({ url: 'https://evil.example' })).toBe(false);
       expect(allow({ url: 'metamask://wc' })).toBe(false);
+      // Exact-origin check, not a prefix — these bypass shapes must be blocked.
+      expect(
+        allow({ url: 'https://staging.example.attacker.com/steal' })
+      ).toBe(false);
+      expect(
+        allow({ url: 'https://staging.example@attacker.example/steal' })
+      ).toBe(false);
+    });
+  });
+
+  it('relaxes containment only when the host opts out via disableDomainWhiteList', async () => {
+    const { getByTestId } = render(
+      <LinkConnectBackup
+        backupConfig={CONFIG}
+        widgetOrigin="https://staging.example"
+        disableDomainWhiteList
+      />
+    );
+    await waitFor(() => {
+      const webview = getByTestId('webview');
+      // Whitelist stays ['*'] so the handler always runs (never Linking.openURL).
+      expect(webview.props.originWhitelist).toEqual(['*']);
+      const allow = webview.props.onShouldStartLoadWithRequest;
+      expect(allow({ url: 'https://anywhere.example' })).toBe(true);
+      expect(allow({ url: 'metamask://wc' })).toBe(true);
     });
   });
 
@@ -115,7 +140,12 @@ describe('LinkConnectBackup', () => {
         script.indexOf('JSON.parse(') + 'JSON.parse('.length,
         script.lastIndexOf('),')
       );
-      expect(JSON.parse(JSON.parse(literal))).toEqual(CONFIG);
+      // The widget's bridge requires the { type, payload } envelope — a bare
+      // config object is silently dropped.
+      expect(JSON.parse(JSON.parse(literal))).toEqual({
+        type: 'meshBackupConfig',
+        payload: CONFIG,
+      });
       expect(onEvent).toHaveBeenCalledWith({ type: 'pageLoaded' });
     });
   });
