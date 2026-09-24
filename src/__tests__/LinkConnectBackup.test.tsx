@@ -1,7 +1,7 @@
 /* eslint-disable */
 import React from 'react';
 import { Alert, Appearance, AppState } from 'react-native';
-import { act, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { LinkConnectBackup } from '../components/LinkConnectBackup';
 import {
   DARK_THEME_COLOR_BOTTOM,
@@ -134,7 +134,11 @@ describe('LinkConnectBackup', () => {
       loaded(getByTestId('webview'));
       expect(mockInject).toHaveBeenCalledTimes(1);
       const script: string = mockInject.mock.calls[0][0];
-      expect(script).toContain("window.postMessage(JSON.parse(");
+      // Delivered as a synthetic MessageEvent (a self-postMessage does not
+      // reliably reach the page's own listeners inside a WKWebView), with the
+      // widget's own origin so its handshake origin-pinning accepts it.
+      expect(script).toContain("dispatchEvent(new MessageEvent('message'");
+      expect(script).toContain('origin: window.location.origin');
       // The embedded literal must reconstruct the exact config.
       const literal = script.slice(
         script.indexOf('JSON.parse(') + 'JSON.parse('.length,
@@ -313,6 +317,23 @@ describe('LinkConnectBackup', () => {
         DARK_THEME_COLOR_BOTTOM
       );
     });
+  });
+
+  it('shows a native close button wired to onExit, hidden when opted out', async () => {
+    const onExit = jest.fn();
+    const {getByTestId, queryByTestId, rerender} = render(
+      <LinkConnectBackup backupConfig={CONFIG} onExit={onExit} />,
+    );
+    await waitFor(() => getByTestId('backup-close-button'));
+    fireEvent.press(getByTestId('backup-close-button'));
+    expect(onExit).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <LinkConnectBackup backupConfig={CONFIG} onExit={onExit} hideCloseButton />,
+    );
+    await waitFor(() =>
+      expect(queryByTestId('backup-close-button')).toBeNull(),
+    );
   });
 
   it('recovers a dead renderer while foregrounded (renderer-death recovery)', async () => {
