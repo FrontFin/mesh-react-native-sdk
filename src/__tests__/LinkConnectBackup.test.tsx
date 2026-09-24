@@ -100,6 +100,9 @@ describe('LinkConnectBackup', () => {
       const allow = webview.props.onShouldStartLoadWithRequest;
       expect(allow({ url: 'https://staging.example/widget/network' })).toBe(true);
       expect(allow({ url: 'about:blank' })).toBe(true);
+      // Same origin, equivalent forms (case, default port) are accepted.
+      expect(allow({ url: 'https://STAGING.example/x' })).toBe(true);
+      expect(allow({ url: 'https://staging.example:443/x' })).toBe(true);
       expect(allow({ url: 'https://evil.example' })).toBe(false);
       expect(allow({ url: 'metamask://wc' })).toBe(false);
       // Exact-origin check, not a prefix — these bypass shapes must be blocked.
