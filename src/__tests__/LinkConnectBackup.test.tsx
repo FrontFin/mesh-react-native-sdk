@@ -129,6 +129,11 @@ describe('LinkConnectBackup', () => {
       // widget's own origin so its handshake origin-pinning accepts it.
       expect(script).toContain("dispatchEvent(new MessageEvent('message'");
       expect(script).toContain('origin: window.location.origin');
+      // Origin-bound: the config is only dispatched when the current page is the
+      // widget origin — never about:blank or any other loaded document.
+      expect(script).toContain(
+        `if (window.location.origin === "${DEFAULT_BACKUP_WIDGET_ORIGIN}")`
+      );
       // The embedded literal must reconstruct the exact config.
       const literal = script.slice(
         script.indexOf('JSON.parse(') + 'JSON.parse('.length,
