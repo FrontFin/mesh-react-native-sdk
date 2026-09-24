@@ -44,6 +44,12 @@ describe('extractOrigin', () => {
     ['https://host.example:8443/p', 'https://host.example:8443'],
     ['https://host.example', 'https://host.example'],
     ['https://host.example/', 'https://host.example'],
+    // Normalisation: case-insensitive scheme+host, default ports dropped.
+    ['https://Host.Example/Path', 'https://host.example'],
+    ['HTTPS://HOST.EXAMPLE', 'https://host.example'],
+    ['https://host.example:443/p', 'https://host.example'],
+    ['http://host.example:80/p', 'http://host.example'],
+    ['http://host.example:443/p', 'http://host.example:443'], // 443 not default for http
     // Bypass shapes: the extracted value must NOT equal the bare widget origin,
     // so the component's exact-equality containment check rejects them.
     [

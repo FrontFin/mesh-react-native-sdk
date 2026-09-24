@@ -46,7 +46,17 @@ export function buildBackupWidgetUrl(
  */
 export function extractOrigin(url: string): string {
   const match = /^[a-z][a-z0-9+.-]*:\/\/[^/?#]+/i.exec(url);
-  return match ? match[0] : url;
+  if (!match) return url;
+  // Normalise so exact-equality origin checks accept equivalent forms: scheme +
+  // host are case-insensitive, and the default port is equivalent to no port.
+  // (There is no path/query here — the match stops at the first / ? #.)
+  let origin = match[0].toLowerCase();
+  if (origin.startsWith('https://')) {
+    origin = origin.replace(/:443$/, '');
+  } else if (origin.startsWith('http://')) {
+    origin = origin.replace(/:80$/, '');
+  }
+  return origin;
 }
 
 // U+2028 / U+2029 are valid in JSON but are line terminators in JavaScript, so
