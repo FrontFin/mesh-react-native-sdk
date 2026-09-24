@@ -44,8 +44,28 @@ describe('extractOrigin', () => {
     ['https://host.example:8443/p', 'https://host.example:8443'],
     ['https://host.example', 'https://host.example'],
     ['https://host.example/', 'https://host.example'],
+    // Bypass shapes: the extracted value must NOT equal the bare widget origin,
+    // so the component's exact-equality containment check rejects them.
+    [
+      'https://widget.example@attacker.example/steal',
+      'https://widget.example@attacker.example',
+    ],
+    [
+      'https://widget.example.attacker.com/steal',
+      'https://widget.example.attacker.com',
+    ],
   ])('reduces %s to its origin %s', (url, origin) => {
     expect(extractOrigin(url)).toBe(origin);
+  });
+
+  test('the bypass shapes do not equal the bare widget origin', () => {
+    const widgetOrigin = 'https://widget.example';
+    expect(extractOrigin('https://widget.example@attacker.example/x')).not.toBe(
+      widgetOrigin
+    );
+    expect(extractOrigin('https://widget.example.attacker.com/x')).not.toBe(
+      widgetOrigin
+    );
   });
 
   test('returns a non-absolute input unchanged', () => {
@@ -66,11 +86,14 @@ describe('toInjectableJson', () => {
   });
 
   test('escapes U+2028 / U+2029 so they cannot break the injected script', () => {
-    const literal = toInjectableJson({ note: 'a b c' });
+    // Built via char codes so this test source contains no raw line separators.
+    const ls = String.fromCharCode(0x2028);
+    const ps = String.fromCharCode(0x2029);
+    const literal = toInjectableJson({ note: `a${ls}b${ps}c` });
     expect(literal).toContain('\\u2028');
     expect(literal).toContain('\\u2029');
-    expect(literal).not.toContain(' ');
-    expect(literal).not.toContain(' ');
+    expect(literal).not.toContain(ls);
+    expect(literal).not.toContain(ps);
   });
 
   test('escapes quotes and backslashes in values', () => {

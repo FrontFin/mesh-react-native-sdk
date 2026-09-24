@@ -20,6 +20,14 @@ export const LIGHT_THEME_COLOR_BOTTOM = '#FBFBFB';
  */
 export const DEFAULT_BACKUP_WIDGET_ORIGIN = 'https://backup-widget.invalid';
 
+/**
+ * The `type` the backup widget's message bridge requires on the config it
+ * receives. The widget matches `event.data.type === 'meshBackupConfig'` and
+ * drops any message without it, so the config must be delivered as
+ * `{ type: BACKUP_CONFIG_MESSAGE_TYPE, payload: MeshBackupConfig }`.
+ */
+export const BACKUP_CONFIG_MESSAGE_TYPE = 'meshBackupConfig';
+
 export const WHITELISTED_ORIGINS = [
   '*.meshconnect.com',
   '*.getfront.com',
