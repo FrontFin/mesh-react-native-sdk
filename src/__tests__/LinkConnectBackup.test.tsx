@@ -351,6 +351,24 @@ describe('LinkConnectBackup', () => {
     expect(mockReload).toHaveBeenCalledTimes(2);
   });
 
+  it('ignores a non-object message (JSON null / primitive) without throwing', async () => {
+    const onEvent = jest.fn();
+    const onExit = jest.fn();
+    const {getByTestId} = render(
+      <LinkConnectBackup backupConfig={CONFIG} onEvent={onEvent} onExit={onExit} />,
+    );
+    await waitFor(() => {
+      const webview = getByTestId('webview');
+      expect(() => {
+        webview.props.onMessage({nativeEvent: {data: 'null'}});
+        webview.props.onMessage({nativeEvent: {data: '42'}});
+        webview.props.onMessage({nativeEvent: {data: '"a string"'}});
+      }).not.toThrow();
+      expect(onEvent).not.toHaveBeenCalled();
+      expect(onExit).not.toHaveBeenCalled();
+    });
+  });
+
   it('shows a native close button wired to onExit, hidden when opted out', async () => {
     const onExit = jest.fn();
     const {getByTestId, queryByTestId, rerender} = render(

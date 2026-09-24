@@ -83,6 +83,12 @@ const useBackupCallbacks = (
       // A malformed message from the widget must not throw inside onMessage.
       return;
     }
+    // JSON.parse also accepts primitives (e.g. `null`, a number), which would
+    // throw on destructuring — the widget's messages are untrusted, so ignore
+    // anything that isn't a non-null object.
+    if (typeof nativeEventData !== 'object' || nativeEventData === null) {
+      return;
+    }
     const { type, payload } = nativeEventData;
 
     const eventType = mappedLinkEvents[type] || type;
