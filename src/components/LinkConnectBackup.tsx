@@ -44,11 +44,16 @@ const LoadingComponentWebview = ({ darkTheme }: { darkTheme: boolean }) => {
  * the primary (money) path is never altered by backup changes.
  */
 export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
-  // Render-process-death recovery, shared with LinkConnect. The backup URL only
-  // changes when widgetOrigin does, so it's the reset key (and it's available
-  // before useBackupCallbacks, which needs deliverConfig → webViewRef).
+  // Render-process-death recovery, shared with LinkConnect. The reset key must
+  // change whenever the loaded URL does so a new session gets a fresh auto-reload
+  // guard; linkUrl derives from widgetOrigin + theme + language, so key on those
+  // (they come from props, before useBackupCallbacks, which needs
+  // deliverConfig → webViewRef — so we can't key on linkUrl itself).
+  const recoveryResetKey = `${props.widgetOrigin ?? ''}|${
+    props.settings?.theme ?? ''
+  }|${props.settings?.language ?? ''}`;
   const { webViewRef, hasAutoReloaded, recoverFromRendererDeath } =
-    useWebViewRecovery(props.widgetOrigin);
+    useWebViewRecovery(recoveryResetKey);
 
   // Deliver the deposit config into the widget once it signals `loaded`,
   // mirroring the web SDK's post-on-loaded handshake. The widget's bridge
@@ -107,13 +112,18 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
   const { disableDomainWhiteList = false } = props;
   const widgetOrigin = extractOrigin(linkUrl);
 
-  // Fail closed on a non-HTTP(S) widgetOrigin. extractOrigin passes a
-  // non-`scheme://host` value through unchanged, so without this guard a
-  // `data:`/custom-scheme origin could satisfy the exact-equality handler below,
-  // load arbitrary content, and then receive the injected config (including a
-  // JIT bearer token). HTTPS is expected in production; http is allowed for
+  // Fail closed unless widgetOrigin is a bare http(s) origin — scheme + host +
+  // optional port, and nothing else. extractOrigin passes a non-`scheme://host`
+  // value through unchanged, so without this guard a `data:`/custom-scheme
+  // origin could satisfy the exact-equality handler below and receive the
+  // injected config (incl. a JIT bearer token). The strict host character set
+  // also rejects userinfo: `https://widget.example@attacker.example` would
+  // otherwise load attacker.example (the real host after `@`) while passing an
+  // exact-string check. HTTPS is expected in production; http is allowed for
   // local widget development.
-  const isValidWidgetOrigin = /^https?:\/\/[^/?#]+$/i.test(widgetOrigin);
+  const isValidWidgetOrigin = /^https?:\/\/[a-z0-9._-]+(:\d+)?$/i.test(
+    widgetOrigin
+  );
 
   useEffect(() => {
     if (!isValidWidgetOrigin) {
