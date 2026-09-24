@@ -13,6 +13,7 @@ import { extractOrigin, toInjectableJson } from '../utils';
 import {
   BACKUP_CONFIG_MESSAGE_TYPE,
   DARK_THEME_COLOR_BOTTOM,
+  DEFAULT_BACKUP_WIDGET_ORIGIN,
   LIGHT_THEME_COLOR_BOTTOM,
 } from '../constant';
 
@@ -67,14 +68,27 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
   // iframe.contentWindow.postMessage the web SDK uses). Dispatching the event
   // directly is delivered synchronously, and `origin` is set to the widget's
   // own origin so its handshake origin-pinning accepts it.
+  //
+  // The injected script guards on `window.location.origin` so the config (incl.
+  // a possible JIT token) is delivered ONLY when the page really is the widget
+  // origin — never into `about:blank` (opaque origin) or any other document that
+  // happens to be current when the message fires. `injectJavaScript` targets
+  // whatever page is loaded, so this in-page check is the binding, not the
+  // navigation allow-list.
+  const expectedWidgetOrigin = extractOrigin(
+    props.widgetOrigin ?? DEFAULT_BACKUP_WIDGET_ORIGIN
+  );
   const deliverConfig = () => {
     const literal = toInjectableJson({
       type: BACKUP_CONFIG_MESSAGE_TYPE,
       payload: props.backupConfig,
     });
+    const originLiteral = JSON.stringify(expectedWidgetOrigin);
     webViewRef.current?.injectJavaScript(
-      `window.dispatchEvent(new MessageEvent('message', ` +
-        `{ data: JSON.parse(${literal}), origin: window.location.origin })); true;`
+      `if (window.location.origin === ${originLiteral}) {` +
+        `window.dispatchEvent(new MessageEvent('message', ` +
+        `{ data: JSON.parse(${literal}), origin: window.location.origin }));` +
+        `} true;`
     );
   };
 
