@@ -31,17 +31,25 @@ const layout_width = Dimensions.get('window').width;
 // widget (OR-449); in production it would be the shipped backup origin.
 const DEMO_BACKUP_WIDGET_ORIGIN = 'https://demo-widget.cascadecode.com';
 
-// TODO: replace networkId (a Mesh network GUID from the pairs manifest) and the
-// deposit address with real values before demoing. Uses a static address so no
-// JIT backend is required; to demo JIT, drop `address` and add a `jit` block.
+// networkIds match the live demo pairs manifest
+// (https://demo-widget.cascadecode.com/backup/pairs/all.json). Static addresses
+// are used so no JIT backend is required; to demo JIT instead, drop `address`
+// and add a `jit: { initiateUrl, statusUrl, token }` block.
+// NOTE: these are demo addresses for showing the QR/copy screen only — do not
+// send real funds to them.
 const DEMO_BACKUP_CONFIG: MeshBackupConfig = {
   clientId: '26C2621E-2C09-4CCC-DCF7-08DE90525AA1', // CDC (Crypto.com)
   userId: 'rn-example-user',
   destinations: [
     {
-      networkId: '<mesh-network-guid>',
+      networkId: 'e3c7fdd8-b1fc-4e51-85ae-bb276e075611', // USDC · Ethereum
       symbol: 'USDC',
-      address: '0x0000000000000000000000000000000000000000',
+      address: '0x503828976D22510aad0201ac7EC88293211D23Da',
+    },
+    {
+      networkId: 'c5dc5d2e-68c1-4261-9a30-90b598738bf5', // USDC · Tron
+      symbol: 'USDC',
+      address: 'TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9',
     },
   ],
   preselectedSymbol: 'USDC',
