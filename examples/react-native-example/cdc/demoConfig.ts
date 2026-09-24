@@ -34,20 +34,60 @@ export const BACKUP_MODE: 'jit' | 'static' = 'static';
 export const CDC_CLIENT_ID = '26C2621E-2C09-4CCC-DCF7-08DE90525AA1'; // CDC (Crypto.com)
 export const DEMO_USER_ID = 'rn-example-user';
 
-// Token/network pairs offered in the backup flow. networkIds match the live demo
-// pairs manifest (https://demo-widget.cascadecode.com/backup/pairs/all.json) and
-// the mock backend's demo-address map.
-const PAIRS = [
-  {
-    networkId: 'e3c7fdd8-b1fc-4e51-85ae-bb276e075611', // USDC · Ethereum
-    symbol: 'USDC',
-    address: '0x503828976D22510aad0201ac7EC88293211D23Da',
-  },
-  {
-    networkId: 'c5dc5d2e-68c1-4261-9a30-90b598738bf5', // USDC · Tron
-    symbol: 'USDC',
-    address: 'TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9',
-  },
+// Token/network pairs offered in the backup flow.
+//
+// symbols + networkIds come from the live CDC pairs manifest that the deployed
+// widget actually fetches at runtime — the per-client file
+// https://pairs.cascadecode.com/backup/pairs/<clientId>.json (125 pairs). Every
+// pair below is in that manifest, so the widget shows the real network name and
+// token logo. The widget derives the token list purely from these destinations.
+//
+// Addresses are format-valid per family (the widget validates the address
+// string, never cross-checking it against the network) and are demo-only —
+// do NOT send real funds to them.
+const NET = {
+  ethereum: 'e3c7fdd8-b1fc-4e51-85ae-bb276e075611',
+  arbitrum: 'a34f2431-0ddd-4de4-bc22-4a8143287aeb',
+  solana: '0291810a-5947-424d-9a59-e88bb33e999d',
+  tron: 'c5dc5d2e-68c1-4261-9a30-90b598738bf5',
+  bitcoin: '03dee5da-7398-428f-9ec2-ab41bcb271da',
+  xrpl: '0ea47ee7-9d36-460e-a2d5-64cfa8a1dddd',
+};
+const ADDR = {
+  evm: '0x503828976D22510aad0201ac7EC88293211D23Da',
+  solana: '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM',
+  tron: 'TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9',
+  bitcoin: 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq',
+  xrp: 'rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh',
+};
+
+type DemoPair = {
+  networkId: string;
+  symbol: string;
+  address: string;
+  addressTag?: string;
+};
+
+const PAIRS: DemoPair[] = [
+  // USDC — multi-network (Ethereum + Solana), so token-select → network-select.
+  {networkId: NET.ethereum, symbol: 'USDC', address: ADDR.evm},
+  {networkId: NET.solana, symbol: 'USDC', address: ADDR.solana},
+  // USDT — multi-network (Ethereum + Tron).
+  {networkId: NET.ethereum, symbol: 'USDT', address: ADDR.evm},
+  {networkId: NET.tron, symbol: 'USDT', address: ADDR.tron},
+  // Single-network EVM tokens on Ethereum.
+  {networkId: NET.ethereum, symbol: 'ETH', address: ADDR.evm},
+  {networkId: NET.ethereum, symbol: 'DAI', address: ADDR.evm},
+  {networkId: NET.ethereum, symbol: 'LINK', address: ADDR.evm},
+  {networkId: NET.ethereum, symbol: 'UNI', address: ADDR.evm},
+  {networkId: NET.ethereum, symbol: 'AAVE', address: ADDR.evm},
+  // Other networks.
+  {networkId: NET.arbitrum, symbol: 'ARB', address: ADDR.evm},
+  {networkId: NET.solana, symbol: 'SOL', address: ADDR.solana},
+  {networkId: NET.tron, symbol: 'TRX', address: ADDR.tron},
+  {networkId: NET.bitcoin, symbol: 'BTC', address: ADDR.bitcoin},
+  // XRP is a memo/tag chain — carry a destination tag to show that UI.
+  {networkId: NET.xrpl, symbol: 'XRP', address: ADDR.xrp, addressTag: '2463470'},
 ];
 
 /**
@@ -66,7 +106,7 @@ export function buildBackupConfig(backupToken?: string): MeshBackupConfig {
       clientId: CDC_CLIENT_ID,
       userId: DEMO_USER_ID,
       destinations: PAIRS.map(({networkId, symbol}) => ({networkId, symbol})),
-      preselectedSymbol: 'USDC',
+      // preselectedSymbol intentionally omitted so the token-select screen shows.
       jit: {
         initiateUrl: `${PUBLIC_BACKEND_URL}/backup/jit/initiate`,
         statusUrl: `${PUBLIC_BACKEND_URL}/backup/jit/status`,
@@ -79,6 +119,6 @@ export function buildBackupConfig(backupToken?: string): MeshBackupConfig {
     clientId: CDC_CLIENT_ID,
     userId: DEMO_USER_ID,
     destinations: PAIRS,
-    preselectedSymbol: 'USDC',
+    // preselectedSymbol intentionally omitted so the token-select screen shows.
   };
 }

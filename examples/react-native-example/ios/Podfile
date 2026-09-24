@@ -15,6 +15,9 @@ if linkage != nil
 end
 
 target 'MeshReactNativeExample' do
+  # Disambiguate: this ios/ dir contains a second, stale .xcodeproj
+  # (MeshConnectRNSDK), so CocoaPods can't auto-select the project.
+  project 'MeshReactNativeExample.xcodeproj'
   config = use_native_modules!
 
   use_react_native!(
