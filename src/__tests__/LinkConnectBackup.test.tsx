@@ -321,20 +321,48 @@ describe('LinkConnectBackup', () => {
     });
   });
 
-  it('fails closed on a non-http(s) widgetOrigin: exits and mounts no WebView', async () => {
-    const onExit = jest.fn();
-    const {queryByTestId} = render(
-      <LinkConnectBackup
-        backupConfig={CONFIG}
-        widgetOrigin="data:text/html,hi"
-        onExit={onExit}
-      />,
+  it.each([
+    ['data:text/html,hi'], // non-http scheme
+    ['javascript:alert(1)'], // executable scheme
+    ['https://widget.example@attacker.example'], // userinfo → real host is attacker.example
+  ])(
+    'fails closed on an unsafe widgetOrigin (%s): exits and mounts no WebView',
+    async (widgetOrigin) => {
+      const onExit = jest.fn();
+      const {queryByTestId} = render(
+        <LinkConnectBackup
+          backupConfig={CONFIG}
+          widgetOrigin={widgetOrigin}
+          onExit={onExit}
+        />,
+      );
+      await waitFor(() => expect(onExit).toHaveBeenCalled());
+      expect(onExit).toHaveBeenCalledWith(
+        expect.stringContaining('Invalid widgetOrigin'),
+      );
+      expect(queryByTestId('webview')).toBeNull();
+    },
+  );
+
+  it('re-enables the auto-reload retry after a settings change (recovery reset key)', async () => {
+    const {getByTestId, rerender} = render(
+      <LinkConnectBackup backupConfig={CONFIG} settings={{theme: 'light'}} />,
     );
-    await waitFor(() => expect(onExit).toHaveBeenCalled());
-    expect(onExit).toHaveBeenCalledWith(
-      expect.stringContaining('Invalid widgetOrigin'),
-    );
-    expect(queryByTestId('webview')).toBeNull();
+    await waitFor(() => {
+      getByTestId('webview').props.onError({
+        nativeEvent: {url: 'x', code: -1, description: ''},
+      });
+    });
+    expect(mockReload).toHaveBeenCalledTimes(1);
+    // Changing theme changes linkUrl, so the guard must reset and the new URL's
+    // first error retries again (keyed on theme, not just widgetOrigin).
+    rerender(<LinkConnectBackup backupConfig={CONFIG} settings={{theme: 'dark'}} />);
+    await waitFor(() => {
+      getByTestId('webview').props.onError({
+        nativeEvent: {url: 'x', code: -1, description: ''},
+      });
+    });
+    expect(mockReload).toHaveBeenCalledTimes(2);
   });
 
   it('shows a native close button wired to onExit, hidden when opted out', async () => {
