@@ -596,4 +596,41 @@ describe('LinkConnectBackup', () => {
       jest.useRealTimers();
     }
   }, 15000);
+
+  it('runs no cascade timers for an invalid widgetOrigin (no spurious fallback or exit)', () => {
+    jest.useFakeTimers();
+    const onEvent = jest.fn();
+    const onExit = jest.fn();
+    const { queryByTestId, unmount } = render(
+      <LinkConnectBackup
+        backupConfig={CONFIG}
+        widgetOrigin="data:text/html,hi"
+        onEvent={onEvent}
+        onExit={onExit}
+      />
+    );
+    try {
+      // Immediate fail-closed exit, and no WebView is mounted.
+      expect(queryByTestId('webview')).toBeNull();
+      expect(onExit).toHaveBeenCalledWith(
+        expect.stringContaining('Invalid widgetOrigin')
+      );
+      onExit.mockClear();
+      // The cascade is disabled, so advancing past both tier timeouts must not
+      // fire a spurious backupTierChanged or the generic Tier-2-unavailable exit.
+      act(() => {
+        jest.advanceTimersByTime(
+          TIER1_READY_TIMEOUT_MS + TIER2_READY_TIMEOUT_MS + 100
+        );
+      });
+      expect(onEvent).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'backupTierChanged' })
+      );
+      expect(onExit).not.toHaveBeenCalled();
+    } finally {
+      unmount();
+      jest.clearAllTimers();
+      jest.useRealTimers();
+    }
+  }, 15000);
 });

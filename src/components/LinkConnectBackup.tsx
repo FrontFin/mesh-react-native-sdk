@@ -61,13 +61,30 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
     props.widgetOrigin ?? DEFAULT_BACKUP_WIDGET_ORIGIN
   );
 
+  // Fail closed unless the widget origin is a bare http(s) origin — scheme +
+  // host + optional port, and nothing else. extractOrigin passes a
+  // non-`scheme://host` value through unchanged, so without this guard a
+  // `data:`/custom-scheme origin could satisfy the exact-equality nav handler
+  // below and receive the injected config. The strict host character set also
+  // rejects userinfo: `https://widget.example@attacker.example` would otherwise
+  // load attacker.example (the real host after `@`) while passing an exact-string
+  // check. HTTPS is expected in production; http is allowed for local widget
+  // development. (This validates the Tier-1 origin; Tier 2 loads bundled HTML.)
+  // Computed up front so it can gate the cascade timers too — an invalid origin
+  // mounts no WebView, so no tier timer must run.
+  const isValidWidgetOrigin = /^https?:\/\/[a-z0-9._-]+(:\d+)?$/i.test(
+    expectedWidgetOrigin
+  );
+
   const [initialLoading, setInitialLoading] = useState(true);
 
   // Tier-1 → Tier-2 cascade state machine (design §5H). The transition emits a
   // single analytics event so the real fire rate can be measured; if the bundled
   // Tier-2 assets somehow never become ready, fail closed (never a blank QR).
+  // Disabled for an invalid origin: that path mounts no WebView (returns null
+  // below), so the timers must not fire a spurious fallback/exit.
   const { tier, markReady, reportLoadError } = useBackupTier({
-    enabled: true,
+    enabled: isValidWidgetOrigin,
     onFallback: (reason: BackupTierFallbackReason) => {
       // A fresh remote-origin session begins in Tier 2's bundled surface — reset
       // the initial-loading overlay so it covers the swap.
@@ -167,21 +184,10 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
   // so it must never load a non-widget origin. In Tier 2 the surface is our own
   // bundled HTML (loaded via `source={{ html }}`) and makes no network calls, so
   // only `about:blank` (used internally by the WebView for the inline document)
-  // is admitted and every http(s) navigation is blocked.
-  const widgetOrigin = extractOrigin(linkUrl);
-
-  // Fail closed unless widgetOrigin is a bare http(s) origin — scheme + host +
-  // optional port, and nothing else. extractOrigin passes a non-`scheme://host`
-  // value through unchanged, so without this guard a `data:`/custom-scheme
-  // origin could satisfy the exact-equality handler below and receive the
-  // injected config. The strict host character set also rejects userinfo:
-  // `https://widget.example@attacker.example` would otherwise load
-  // attacker.example (the real host after `@`) while passing an exact-string
-  // check. HTTPS is expected in production; http is allowed for local widget
-  // development. (This validates the Tier-1 origin; Tier 2 does not load it.)
-  const isValidWidgetOrigin = /^https?:\/\/[a-z0-9._-]+(:\d+)?$/i.test(
-    widgetOrigin
-  );
+  // is admitted and every http(s) navigation is blocked. `linkUrl` carries the
+  // configured origin's path+query, but containment is checked against the
+  // origin only, which is `expectedWidgetOrigin` (validated above).
+  const widgetOrigin = expectedWidgetOrigin;
 
   useEffect(() => {
     if (!isValidWidgetOrigin) {
