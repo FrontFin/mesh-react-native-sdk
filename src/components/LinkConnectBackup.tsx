@@ -5,7 +5,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { SDKContainer } from './SDKContainer';
 import { SDKViewContainer } from './SDKViewContainer';
 
-import type { LinkConnectBackupConfiguration } from '../';
+import type {
+  LinkConnectBackupConfiguration,
+  MeshBackupJitStatusResult,
+} from '../types';
 import { useBackupCallbacks } from '../hooks/useBackupCallbacks';
 import { useWebViewRecovery } from '../hooks/useWebViewRecovery';
 import { useBackupTier } from '../hooks/useBackupTier';
@@ -15,10 +18,15 @@ import { extractOrigin, toInjectableJson } from '../utils';
 import { OFFLINE_WIDGET_HTML } from '../backup-bundle';
 import {
   BACKUP_CONFIG_MESSAGE_TYPE,
+  BACKUP_JIT_RESPONSE_MESSAGE_TYPE,
   DARK_THEME_COLOR_BOTTOM,
   DEFAULT_BACKUP_WIDGET_ORIGIN,
   LIGHT_THEME_COLOR_BOTTOM,
 } from '../constant';
+
+/** Best-effort message from an unknown thrown value, for JIT failure reporting. */
+const errorMessage = (e: unknown): string =>
+  e instanceof Error ? e.message : typeof e === 'string' ? e : 'JIT callback failed';
 
 const LoadingComponentWebview = ({ darkTheme }: { darkTheme: boolean }) => {
   return (
@@ -134,11 +142,10 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
   //   unconditionally. (The inline document's origin is opaque/local, so an
   //   origin guard would never match, and gating on an injected flag would add a
   //   hang risk if that injection were ever skipped.)
-  const deliverConfig = () => {
-    const literal = toInjectableJson({
-      type: BACKUP_CONFIG_MESSAGE_TYPE,
-      payload: props.backupConfig,
-    });
+  // Dispatch a typed bridge message ({ type, payload }) into the widget's own
+  // `message` listeners. Shared by config delivery and the JIT RPC responses.
+  const dispatchToWidget = (data: unknown) => {
+    const literal = toInjectableJson(data);
     const dispatch =
       `window.dispatchEvent(new MessageEvent('message', ` +
       `{ data: JSON.parse(${literal}), origin: window.location.origin }));`;
@@ -150,6 +157,69 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
     webViewRef.current?.injectJavaScript(script);
   };
 
+  const deliverConfig = () => {
+    dispatchToWidget({
+      type: BACKUP_CONFIG_MESSAGE_TYPE,
+      payload: props.backupConfig,
+    });
+  };
+
+  // Handle a `meshBackupJitRequest` from the widget: run the host's JIT callback
+  // for the requested (symbol, networkId) and post a `meshBackupJitResponse`
+  // back, correlated by callId (OR-452 / client spec §5–§6). The callbacks run
+  // here in the host app against the client's own backend — no token or endpoint
+  // ever enters the widget. The request payload is untrusted, so it is validated
+  // before any callback runs.
+  const handleJitRequest = (payload: unknown) => {
+    if (typeof payload !== 'object' || payload === null) {
+      return;
+    }
+    const { callId, method, symbol, networkId } = payload as Record<
+      string,
+      unknown
+    >;
+    if (
+      typeof callId !== 'string' ||
+      typeof symbol !== 'string' ||
+      typeof networkId !== 'string' ||
+      (method !== 'addressInit' && method !== 'statusPoll')
+    ) {
+      return;
+    }
+
+    const respond = (
+      ok: boolean,
+      result?: MeshBackupJitStatusResult,
+      error?: string
+    ) =>
+      dispatchToWidget({
+        type: BACKUP_JIT_RESPONSE_MESSAGE_TYPE,
+        payload: { callId, ok, ...(result ? { result } : {}), ...(error ? { error } : {}) },
+      });
+
+    if (method === 'addressInit') {
+      // Fire-and-forget kick-off: the return value is ignored; a throw/reject is
+      // a generation failure. A missing handler is a benign no-op (the poll will
+      // fail closed if there is genuinely no resolver).
+      Promise.resolve()
+        .then(() => props.onAddressInit?.(symbol, networkId))
+        .then(() => respond(true))
+        .catch((e: unknown) => respond(false, undefined, errorMessage(e)));
+      return;
+    }
+
+    // statusPoll
+    const onStatusPoll = props.onStatusPoll;
+    if (!onStatusPoll) {
+      respond(false, undefined, 'no onStatusPoll handler provided');
+      return;
+    }
+    Promise.resolve()
+      .then(() => onStatusPoll(symbol, networkId))
+      .then((result) => respond(true, result))
+      .catch((e: unknown) => respond(false, undefined, errorMessage(e)));
+  };
+
   const { linkUrl, darkTheme, handleMessage } = useBackupCallbacks(props, {
     onWidgetLoaded: () => {
       // The widget's `loaded` message IS the ready handshake — it cancels the
@@ -157,6 +227,7 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
       markReady();
       deliverConfig();
     },
+    onJitRequest: handleJitRequest,
   });
 
   const injectedScript = useMemo(

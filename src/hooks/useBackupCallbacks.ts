@@ -4,7 +4,10 @@ import { WebViewMessageEvent } from 'react-native-webview';
 
 import { buildBackupWidgetUrl, resolveLanguage } from '../utils';
 import { sdkSpecs } from '../utils/sdkConfig';
-import { DEFAULT_BACKUP_WIDGET_ORIGIN } from '../constant';
+import {
+  BACKUP_JIT_REQUEST_MESSAGE_TYPE,
+  DEFAULT_BACKUP_WIDGET_ORIGIN,
+} from '../constant';
 import {
   AccessTokenPayload,
   DelayedAuthPayload,
@@ -37,6 +40,13 @@ interface BackupCallbackOptions {
    * the web SDK, which posts the session on `loaded`.
    */
   onWidgetLoaded: () => void;
+  /**
+   * Invoked when the widget sends a `meshBackupJitRequest` — the caller runs the
+   * host's `onAddressInit`/`onStatusPoll` callback and posts a
+   * `meshBackupJitResponse` back over the bridge (OR-452 / client spec §5–§6).
+   * `payload` is the untrusted request payload; the caller validates it.
+   */
+  onJitRequest?: (payload: unknown) => void;
 }
 
 /**
@@ -47,7 +57,7 @@ interface BackupCallbackOptions {
  */
 const useBackupCallbacks = (
   props: LinkConnectBackupConfiguration,
-  { onWidgetLoaded }: BackupCallbackOptions
+  { onWidgetLoaded, onJitRequest }: BackupCallbackOptions
 ) => {
   const [showNativeNavbar, setShowNativeNavbar] = useState(false);
   const [darkTheme, setDarkTheme] = useState<boolean>();
@@ -133,6 +143,14 @@ const useBackupCallbacks = (
         // Push the deposit config into the widget, then surface the event.
         onWidgetLoaded();
         props?.onEvent?.({ type: eventType });
+        break;
+      }
+
+      case BACKUP_JIT_REQUEST_MESSAGE_TYPE: {
+        // The widget is asking the host to resolve an address-less destination
+        // via the JIT callbacks. Hand the raw request to the caller, which runs
+        // onAddressInit/onStatusPoll and posts the response back.
+        onJitRequest?.(payload);
         break;
       }
 

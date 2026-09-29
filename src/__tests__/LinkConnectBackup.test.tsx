@@ -40,9 +40,6 @@ const CONFIG: MeshBackupConfig = {
   userId: 'end-user-123',
   destinations: [{ networkId: 'net-guid', symbol: 'USDC' }],
   preselectedSymbol: 'USDC',
-  // Optional correlation id — the delivery test asserts the whole config
-  // (including this) reaches the widget unchanged.
-  transactionId: 'txn-abc-123',
 };
 
 const loaded = (webview: any) =>
@@ -152,6 +149,121 @@ describe('LinkConnectBackup', () => {
       });
       expect(onEvent).toHaveBeenCalledWith({ type: 'pageLoaded' });
     });
+  });
+
+  // ---- JIT via SDK callbacks (OR-452 / client spec §5–§6) -------------------
+
+  const jitRequest = (webview: any, method: string) =>
+    webview.props.onMessage({
+      nativeEvent: {
+        data: JSON.stringify({
+          type: 'meshBackupJitRequest',
+          payload: { callId: 'call-1', method, symbol: 'USDC', networkId: 'net-guid' },
+        }),
+      },
+    });
+
+  const lastInjectedMessage = () => {
+    const script: string = mockInject.mock.calls[mockInject.mock.calls.length - 1][0];
+    const literal = script.slice(
+      script.indexOf('JSON.parse(') + 'JSON.parse('.length,
+      script.lastIndexOf('),')
+    );
+    return JSON.parse(JSON.parse(literal));
+  };
+
+  it('runs onAddressInit for a JIT addressInit request and acks over the bridge', async () => {
+    const onAddressInit = jest.fn().mockResolvedValue(undefined);
+    const { getByTestId } = render(
+      <LinkConnectBackup backupConfig={CONFIG} onAddressInit={onAddressInit} />
+    );
+    await waitFor(() => getByTestId('webview'));
+    mockInject.mockClear();
+    await act(async () => {
+      jitRequest(getByTestId('webview'), 'addressInit');
+    });
+    expect(onAddressInit).toHaveBeenCalledWith('USDC', 'net-guid');
+    await waitFor(() => expect(mockInject).toHaveBeenCalled());
+    expect(lastInjectedMessage()).toEqual({
+      type: 'meshBackupJitResponse',
+      payload: { callId: 'call-1', ok: true },
+    });
+  });
+
+  it('resolves a JIT statusPoll via onStatusPoll and posts the result back', async () => {
+    const onStatusPoll = jest
+      .fn()
+      .mockResolvedValue({ status: 'ready', address: '0xabc', addressTag: 'memo-1' });
+    const { getByTestId } = render(
+      <LinkConnectBackup backupConfig={CONFIG} onStatusPoll={onStatusPoll} />
+    );
+    await waitFor(() => getByTestId('webview'));
+    mockInject.mockClear();
+    await act(async () => {
+      jitRequest(getByTestId('webview'), 'statusPoll');
+    });
+    expect(onStatusPoll).toHaveBeenCalledWith('USDC', 'net-guid');
+    await waitFor(() => expect(mockInject).toHaveBeenCalled());
+    expect(lastInjectedMessage()).toEqual({
+      type: 'meshBackupJitResponse',
+      payload: {
+        callId: 'call-1',
+        ok: true,
+        result: { status: 'ready', address: '0xabc', addressTag: 'memo-1' },
+      },
+    });
+  });
+
+  it('replies ok:false when a statusPoll arrives with no onStatusPoll handler', async () => {
+    const { getByTestId } = render(<LinkConnectBackup backupConfig={CONFIG} />);
+    await waitFor(() => getByTestId('webview'));
+    mockInject.mockClear();
+    await act(async () => {
+      jitRequest(getByTestId('webview'), 'statusPoll');
+    });
+    await waitFor(() => expect(mockInject).toHaveBeenCalled());
+    const msg = lastInjectedMessage();
+    expect(msg.payload.callId).toBe('call-1');
+    expect(msg.payload.ok).toBe(false);
+    expect(typeof msg.payload.error).toBe('string');
+  });
+
+  it('replies ok:false when onStatusPoll rejects (fail closed)', async () => {
+    const onStatusPoll = jest.fn().mockRejectedValue(new Error('backend down'));
+    const { getByTestId } = render(
+      <LinkConnectBackup backupConfig={CONFIG} onStatusPoll={onStatusPoll} />
+    );
+    await waitFor(() => getByTestId('webview'));
+    mockInject.mockClear();
+    await act(async () => {
+      jitRequest(getByTestId('webview'), 'statusPoll');
+    });
+    await waitFor(() => expect(mockInject).toHaveBeenCalled());
+    expect(lastInjectedMessage()).toEqual({
+      type: 'meshBackupJitResponse',
+      payload: { callId: 'call-1', ok: false, error: 'backend down' },
+    });
+  });
+
+  it('ignores a malformed JIT request (no callback run, nothing posted)', async () => {
+    const onStatusPoll = jest.fn();
+    const { getByTestId } = render(
+      <LinkConnectBackup backupConfig={CONFIG} onStatusPoll={onStatusPoll} />
+    );
+    await waitFor(() => getByTestId('webview'));
+    mockInject.mockClear();
+    await act(async () => {
+      getByTestId('webview').props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'meshBackupJitRequest',
+            payload: { callId: 'call-1', symbol: 'USDC' }, // no method / networkId
+          }),
+        },
+      });
+    });
+    expect(onStatusPoll).not.toHaveBeenCalled();
+    expect(mockInject).not.toHaveBeenCalled();
   });
 
   it('routes transferFinished to onTransferFinished and onEvent', async () => {

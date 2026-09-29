@@ -28,6 +28,17 @@ export const DEFAULT_BACKUP_WIDGET_ORIGIN = 'https://backup-widget.invalid';
  */
 export const BACKUP_CONFIG_MESSAGE_TYPE = 'meshBackupConfig';
 
+/**
+ * JIT-over-bridge RPC message types (OR-452 / CDC client spec §5–§6). The widget
+ * resolves an address-less destination by sending a `meshBackupJitRequest` to the
+ * host, which invokes the host's `onAddressInit`/`onStatusPoll` callback and
+ * replies with a `meshBackupJitResponse` correlated by `callId`. No token or
+ * client endpoint ever enters the widget — only `(symbol, networkId)` and the
+ * resolved address cross the bridge.
+ */
+export const BACKUP_JIT_REQUEST_MESSAGE_TYPE = 'meshBackupJitRequest';
+export const BACKUP_JIT_RESPONSE_MESSAGE_TYPE = 'meshBackupJitResponse';
+
 // ---------------------------------------------------------------------------
 // Tier-2 super-redundancy cascade (OR-474 / design §5H)
 //

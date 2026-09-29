@@ -14,7 +14,6 @@ import {
 import {
   AccessTokenPayload,
   LinkConnect,
-  LinkConnectBackup,
   LinkEventType,
   LinkPayload,
   MeshBackupConfig,
@@ -42,8 +41,8 @@ const DEAD_BACKUP_WIDGET_ORIGIN = 'https://backup-widget.invalid';
 
 // networkIds are real Mesh network ids (from the live demo pairs manifest,
 // https://demo-widget.cascadecode.com/backup/pairs/all.json). Static addresses
-// are used so no JIT backend is required; to demo JIT instead, drop `address`
-// and add a `jit: { initiateUrl, statusUrl, token }` block.
+// are used so no backend is required; flip the "Force JIT" toggle to instead
+// resolve addresses through the onAddressInit/onStatusPoll callbacks below.
 //
 // The destinations deliberately span all four Tier-2 logo cases. Tier 1 loads
 // the full manifest, so every logo renders. Tier 2 ships only the curated top-8
@@ -73,6 +72,46 @@ const DEMO_BACKUP_CONFIG: MeshBackupConfig = {
   // token logos are visible (USDC/USDT have logos; AAVE/DAI render initials in Tier 2).
 };
 
+// --- JIT via SDK callbacks (OR-452) ---------------------------------------
+// When "Force JIT" is on, the destinations drop their static `address` and the
+// widget resolves each one through these callbacks — which run HERE in the host
+// app (no token, no client endpoint in the widget). This mock stands in for a
+// call to your own backend: it reports `pending` for the first couple of polls,
+// then `ready` with a demo address, exercising the real poll loop. In a real
+// integration these call your backend with your session; return the SAME address
+// for a given (symbol, networkId) every time (idempotent).
+const jitPollCounts = new Map<string, number>();
+
+const demoOnAddressInit = (symbol: string, networkId: string) => {
+  jitPollCounts.set(`${symbol}:${networkId}`, 0);
+  console.log('onAddressInit', symbol, networkId);
+};
+
+const demoOnStatusPoll = async (
+  symbol: string,
+  networkId: string,
+): Promise<{status: 'pending' | 'ready' | 'failed'; address?: string}> => {
+  const key = `${symbol}:${networkId}`;
+  const n = (jitPollCounts.get(key) ?? 0) + 1;
+  jitPollCounts.set(key, n);
+  console.log('onStatusPoll', symbol, networkId, 'attempt', n);
+  // Pretend the address takes ~2 polls to provision.
+  if (n < 3) {
+    return {status: 'pending'};
+  }
+  return {status: 'ready', address: EVM_DEMO_ADDRESS};
+};
+
+// The address-less variant of the config used when "Force JIT" is on: same
+// destinations, `address` stripped so each resolves via the callbacks.
+const JIT_BACKUP_CONFIG: MeshBackupConfig = {
+  ...DEMO_BACKUP_CONFIG,
+  destinations: DEMO_BACKUP_CONFIG.destinations.map(({networkId, symbol}) => ({
+    networkId,
+    symbol,
+  })),
+};
+
 export default function App() {
   const [data, setData] = useState<
     AccessTokenPayload | TransferFinishedSuccessPayload | null
@@ -86,6 +125,10 @@ export default function App() {
   // from the SDK's `backupTierChanged` event so the active tier shows on screen.
   const [forceTier2, setForceTier2] = useState(false);
   const [backupTier, setBackupTier] = useState<'tier1' | 'tier2'>('tier1');
+  // Demo toggle: when on, destinations drop their static address and resolve via
+  // the onAddressInit/onStatusPoll callbacks (OR-452). Pair with Force Tier-2 to
+  // run JIT end to end against the bundled callback-widget.
+  const [forceJit, setForceJit] = useState(false);
   const connectButtonTitle = 'Connect account';
 
   function showIntegrationConnectedAlert(payload: AccessTokenPayload) {
@@ -125,9 +168,13 @@ export default function App() {
       : DEMO_BACKUP_WIDGET_ORIGIN;
     return (
       <View style={styles.flex}>
-        <LinkConnectBackup
+        {/* Spec entry point: the same <LinkConnect>, given a backupConfig in
+            place of a linkToken (CDC client spec §3.1). */}
+        <LinkConnect
           widgetOrigin={activeOrigin}
-          backupConfig={DEMO_BACKUP_CONFIG}
+          backupConfig={forceJit ? JIT_BACKUP_CONFIG : DEMO_BACKUP_CONFIG}
+          onAddressInit={demoOnAddressInit}
+          onStatusPoll={demoOnStatusPoll}
           settings={{language: 'en', theme: 'system'}}
           onTransferFinished={(payload: TransferFinishedPayload) => {
             if (payload.status === 'success') {
@@ -261,6 +308,22 @@ export default function App() {
               testID={'example-app-force-tier2-switch'}
               value={forceTier2}
               onValueChange={setForceTier2}
+            />
+          </View>
+
+          <View style={styles.switchRow}>
+            <View style={styles.switchLabelWrap}>
+              <Text style={styles.switchLabel}>Force JIT (address-less)</Text>
+              <Text style={styles.switchHint}>
+                Drops static addresses so each destination resolves via the
+                onAddressInit / onStatusPoll callbacks. Pair with Force Tier-2 to
+                run it against the bundled callback-widget.
+              </Text>
+            </View>
+            <Switch
+              testID={'example-app-force-jit-switch'}
+              value={forceJit}
+              onValueChange={setForceJit}
             />
           </View>
 

@@ -3,6 +3,7 @@ import React from 'react';
 import { AppState, Linking } from 'react-native';
 import { render, waitFor } from '@testing-library/react-native';
 import { LinkConnect } from '../components/LinkConnect';
+import { DEFAULT_BACKUP_WIDGET_ORIGIN } from '../constant';
 
 const mockedUseColorScheme = jest.fn();
 
@@ -41,6 +42,31 @@ describe('LinkConnect Component', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
+  });
+
+  it('delegates to the deposit-only backup flow when given a backupConfig (spec entry point)', async () => {
+    const { getByTestId } = render(
+      <LinkConnect
+        backupConfig={{
+          clientId: 'c1',
+          userId: 'u1',
+          destinations: [
+            { networkId: 'net-guid', symbol: 'USDC', address: '0xabc' },
+          ],
+        }}
+        onExit={mockOnExit}
+      />
+    );
+    await waitFor(() => {
+      // The backup flow loads the widget origin (not a decoded link token) and
+      // overlays the native close control.
+      expect(
+        getByTestId('webview').props.source.uri.startsWith(
+          DEFAULT_BACKUP_WIDGET_ORIGIN
+        )
+      ).toBe(true);
+      expect(getByTestId('backup-close-button')).toBeTruthy();
+    });
   });
 
   it('renders correctly when linkToken and accessTokens are provided', () => {
