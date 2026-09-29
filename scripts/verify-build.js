@@ -100,6 +100,24 @@ types.forEach((file) => {
   }
 });
 
+// The Tier-2 bundled fallback (OR-474) must ship as compiled modules — the
+// offline widget HTML + catalog snapshot are embedded in generated.js, so the
+// published package needs no raw .html/.json.
+const backupBundle = [
+  'generated.js',
+  'generated.d.ts',
+  'index.js',
+  'index.d.ts',
+];
+
+backupBundle.forEach((file) => {
+  const filePath = `${buildFolder}/lib/backup-bundle/${file}`;
+  if (!fs.existsSync(filePath)) {
+    console.error(`Missing backup-bundle/${file} file ❌`);
+    process.exit(1);
+  }
+});
+
 const utils = [
   'index.js',
   'index.d.ts',

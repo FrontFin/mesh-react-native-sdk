@@ -48,6 +48,9 @@ jobs:
       - name: Run unit tests ⚛️
         run: yarn test
 
+      - name: Check Tier-2 bundle size budget 📏
+        run: yarn bundle:check
+
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@40f5b61913e891f9d316696628698051136015be # v6.0.0
         env:

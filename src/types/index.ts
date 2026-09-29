@@ -40,7 +40,8 @@ export type LinkEventType =
   | TransferConfigureError
   | TransferAssetSelected
   | TransferNetworkSelected
-  | DefiWalletError;
+  | DefiWalletError
+  | BackupTierChanged;
 
 const LINK_EVENT_TYPE_KEYS = [
   'integrationConnected',
@@ -83,6 +84,7 @@ const LINK_EVENT_TYPE_KEYS = [
   'methodSelected',
   'homePageLoaded',
   'defiWalletError',
+  'backupTierChanged',
 ] as const;
 
 export const mappedLinkEvents: Record<string, string> = {
@@ -523,6 +525,28 @@ export interface TransferNetworkSelected extends LinkEventBase {
   payload: {
     id: string;
     name: string;
+  };
+}
+
+/**
+ * Emitted once when the backup flow cascades from Tier 1 (widget loaded from
+ * the independent backup origin) to Tier 2 (widget + catalog served from the
+ * SDK bundle, no Mesh-owned network dependency) — see design §5H. The cascade
+ * is single-shot per session, so this fires at most once. It lets the host
+ * measure how often Tier 2 actually engages so `TIER1_READY_TIMEOUT_MS` can be
+ * tuned from real data (design §13, over-eager-fallback risk).
+ */
+export interface BackupTierChanged extends LinkEventBase {
+  type: 'backupTierChanged';
+  payload: {
+    from: 'tier1';
+    to: 'tier2';
+    /**
+     * Why Tier 1 was abandoned: `loadError` = a hard WebView load/HTTP failure
+     * on the backup-origin document; `readyTimeout` = the widget did not
+     * complete its ready handshake within `TIER1_READY_TIMEOUT_MS`.
+     */
+    reason: 'loadError' | 'readyTimeout';
   };
 }
 

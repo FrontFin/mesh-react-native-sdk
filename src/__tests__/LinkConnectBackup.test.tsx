@@ -6,6 +6,8 @@ import { LinkConnectBackup } from '../components/LinkConnectBackup';
 import {
   DARK_THEME_COLOR_BOTTOM,
   DEFAULT_BACKUP_WIDGET_ORIGIN,
+  TIER1_READY_TIMEOUT_MS,
+  TIER2_READY_TIMEOUT_MS,
 } from '../constant';
 import type { MeshBackupConfig } from '../types';
 
@@ -56,6 +58,9 @@ describe('LinkConnectBackup', () => {
   });
 
   afterEach(() => {
+    // Restore real timers before RTL's auto-cleanup unmounts (a fake-timer
+    // cleanup can hang); describe-level afterEach runs before the global one.
+    jest.useRealTimers();
     jest.restoreAllMocks();
   });
 
@@ -190,40 +195,61 @@ describe('LinkConnectBackup', () => {
     });
   });
 
-  it('emits webViewLoadFailed and auto-reloads on onError', async () => {
+  it('emits webViewLoadFailed and cascades to Tier 2 on a hard onError (never reloads the unreachable origin)', async () => {
     const onEvent = jest.fn();
     const { getByTestId } = render(
       <LinkConnectBackup backupConfig={CONFIG} onEvent={onEvent} />
     );
-    await waitFor(() => {
+    await waitFor(() => getByTestId('webview'));
+    act(() => {
       getByTestId('webview').props.onError({
-        nativeEvent: { url: 'https://staging.example', code: -1009, description: 'offline' },
+        nativeEvent: {
+          url: DEFAULT_BACKUP_WIDGET_ORIGIN,
+          code: -1009,
+          description: 'offline',
+        },
       });
-      expect(onEvent).toHaveBeenCalledWith({
-        type: 'webViewLoadFailed',
-        payload: { url: 'https://staging.example', errorCode: -1009, errorDescription: 'offline' },
-      });
-      expect(mockReload).toHaveBeenCalledTimes(1);
     });
+    expect(onEvent).toHaveBeenCalledWith({
+      type: 'webViewLoadFailed',
+      payload: {
+        url: DEFAULT_BACKUP_WIDGET_ORIGIN,
+        errorCode: -1009,
+        errorDescription: 'offline',
+      },
+    });
+    // A hard load error on the backup origin cascades to the bundled Tier-2
+    // widget immediately — the unreachable origin is not reloaded.
+    expect(onEvent).toHaveBeenCalledWith({
+      type: 'backupTierChanged',
+      payload: { from: 'tier1', to: 'tier2', reason: 'loadError' },
+    });
+    expect(mockReload).not.toHaveBeenCalled();
+    const source = getByTestId('webview').props.source;
+    expect(typeof source.html).toBe('string');
+    expect(source.uri).toBeUndefined();
   });
 
-  it('auto-reloads on onHttpError 5xx but not 4xx', async () => {
-    const { getByTestId, rerender } = render(<LinkConnectBackup backupConfig={CONFIG} />);
-    await waitFor(() => {
-      getByTestId('webview').props.onHttpError({
-        nativeEvent: { url: 'https://staging.example', statusCode: 404 },
+  it.each([404, 503])(
+    'cascades to Tier 2 on a document %s (served-but-broken origin), not a reload',
+    async (statusCode) => {
+      const onEvent = jest.fn();
+      const { getByTestId } = render(
+        <LinkConnectBackup backupConfig={CONFIG} onEvent={onEvent} />
+      );
+      await waitFor(() => getByTestId('webview'));
+      act(() => {
+        getByTestId('webview').props.onHttpError({
+          nativeEvent: { url: DEFAULT_BACKUP_WIDGET_ORIGIN, statusCode },
+        });
+      });
+      expect(onEvent).toHaveBeenCalledWith({
+        type: 'backupTierChanged',
+        payload: { from: 'tier1', to: 'tier2', reason: 'loadError' },
       });
       expect(mockReload).not.toHaveBeenCalled();
-    });
-    // New instance so the once-only reload guard is fresh.
-    rerender(<LinkConnectBackup backupConfig={CONFIG} widgetOrigin="https://other.example" />);
-    await waitFor(() => {
-      getByTestId('webview').props.onHttpError({
-        nativeEvent: { url: 'https://other.example', statusCode: 503 },
-      });
-      expect(mockReload).toHaveBeenCalledTimes(1);
-    });
-  });
+    }
+  );
 
   it('shows the exit confirmation alert on showClose', async () => {
     const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
@@ -363,24 +389,20 @@ describe('LinkConnectBackup', () => {
     },
   );
 
-  it('re-enables the auto-reload retry after a settings change (recovery reset key)', async () => {
+  it('resets the once-only renderer-death reload guard on a settings change (recovery reset key)', async () => {
     const {getByTestId, rerender} = render(
       <LinkConnectBackup backupConfig={CONFIG} settings={{theme: 'light'}} />,
     );
-    await waitFor(() => {
-      getByTestId('webview').props.onError({
-        nativeEvent: {url: 'x', code: -1, description: ''},
-      });
-    });
+    await waitFor(() => getByTestId('webview'));
+    // First renderer death reloads once; a second in the same session does not.
+    act(() => getByTestId('webview').props.onRenderProcessGone());
+    act(() => getByTestId('webview').props.onRenderProcessGone());
     expect(mockReload).toHaveBeenCalledTimes(1);
-    // Changing theme changes linkUrl, so the guard must reset and the new URL's
-    // first error retries again (keyed on theme, not just widgetOrigin).
+    // Changing theme changes the reset key (keyed on theme + tier), so the guard
+    // resets and the next renderer death reloads again.
     rerender(<LinkConnectBackup backupConfig={CONFIG} settings={{theme: 'dark'}} />);
-    await waitFor(() => {
-      getByTestId('webview').props.onError({
-        nativeEvent: {url: 'x', code: -1, description: ''},
-      });
-    });
+    await waitFor(() => getByTestId('webview'));
+    act(() => getByTestId('webview').props.onRenderProcessGone());
     expect(mockReload).toHaveBeenCalledTimes(2);
   });
 
@@ -447,4 +469,131 @@ describe('LinkConnectBackup', () => {
     appStateCb?.('active');
     expect(mockReload).toHaveBeenCalledTimes(1);
   });
+
+  // ---- Tier-2 super-redundancy cascade (OR-474 / design §5H) ----------------
+
+  it('starts on Tier 1 (remote origin) and cascades to the bundled widget only after the ready timeout', () => {
+    jest.useFakeTimers();
+    const onEvent = jest.fn();
+    const { getByTestId, unmount } = render(
+      <LinkConnectBackup backupConfig={CONFIG} onEvent={onEvent} />
+    );
+    try {
+      // Before the timeout: Tier 1, loading from the backup origin.
+      expect(
+        getByTestId('webview').props.source.uri.startsWith(
+          DEFAULT_BACKUP_WIDGET_ORIGIN
+        )
+      ).toBe(true);
+      expect(onEvent).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'backupTierChanged' })
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(TIER1_READY_TIMEOUT_MS);
+      });
+
+      expect(onEvent).toHaveBeenCalledWith({
+        type: 'backupTierChanged',
+        payload: { from: 'tier1', to: 'tier2', reason: 'readyTimeout' },
+      });
+      const source = getByTestId('webview').props.source;
+      expect(typeof source.html).toBe('string');
+      expect(source.uri).toBeUndefined();
+    } finally {
+      unmount();
+      jest.clearAllTimers();
+      jest.useRealTimers();
+    }
+  }, 15000);
+
+  it('stays on Tier 1 when the widget completes its ready handshake before the timeout', () => {
+    jest.useFakeTimers();
+    const onEvent = jest.fn();
+    const { getByTestId, unmount } = render(
+      <LinkConnectBackup backupConfig={CONFIG} onEvent={onEvent} />
+    );
+    try {
+      // Ready handshake cancels the pending Tier-1 timeout (no state update, so
+      // no act wrapper needed — markReady only clears the timer ref).
+      loaded(getByTestId('webview'));
+      act(() => {
+        jest.advanceTimersByTime(TIER1_READY_TIMEOUT_MS * 2);
+      });
+      expect(onEvent).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'backupTierChanged' })
+      );
+      expect(
+        getByTestId('webview').props.source.uri.startsWith(
+          DEFAULT_BACKUP_WIDGET_ORIGIN
+        )
+      ).toBe(true);
+    } finally {
+      unmount();
+      jest.clearAllTimers();
+      jest.useRealTimers();
+    }
+  }, 15000);
+
+  it('in Tier 2, delivers config unconditionally (no origin guard) and injects nothing before content', () => {
+    jest.useFakeTimers();
+    const { getByTestId, unmount } = render(
+      <LinkConnectBackup backupConfig={CONFIG} />
+    );
+    try {
+      act(() => {
+        jest.advanceTimersByTime(TIER1_READY_TIMEOUT_MS);
+      });
+      const webview = getByTestId('webview');
+      // The bundled widget is Tier-2-aware at build time and inlines its own
+      // snapshot, so the SDK injects nothing before content.
+      expect(webview.props.injectedJavaScriptBeforeContentLoaded).toBeUndefined();
+
+      // Config delivery on the Tier-2 handshake is unconditional — the inline
+      // document is definitionally our widget. `loaded` is a sync handler with no
+      // state update, so it needs no act wrapper.
+      mockInject.mockClear();
+      loaded(webview);
+      const script: string = mockInject.mock.calls[0][0];
+      expect(script).toContain("dispatchEvent(new MessageEvent('message'");
+      // No Tier-1 origin pin in Tier 2 (the inline doc's origin is opaque).
+      expect(script).not.toContain('window.location.origin ===');
+      // The config still reaches the widget as the same typed envelope.
+      const literal = script.slice(
+        script.indexOf('JSON.parse(') + 'JSON.parse('.length,
+        script.lastIndexOf('),')
+      );
+      expect(JSON.parse(JSON.parse(literal))).toEqual({
+        type: 'meshBackupConfig',
+        payload: CONFIG,
+      });
+    } finally {
+      unmount();
+      jest.clearAllTimers();
+      jest.useRealTimers();
+    }
+  }, 15000);
+
+  it('fails closed (onExit) if the bundled Tier-2 assets never become ready', () => {
+    jest.useFakeTimers();
+    const onExit = jest.fn();
+    const { getByTestId, unmount } = render(
+      <LinkConnectBackup backupConfig={CONFIG} onExit={onExit} />
+    );
+    try {
+      act(() => {
+        jest.advanceTimersByTime(TIER1_READY_TIMEOUT_MS);
+      });
+      expect(getByTestId('webview').props.source.html).toBeDefined();
+      // Tier 2 never handshakes — surface an error, never a blank QR.
+      act(() => {
+        jest.advanceTimersByTime(TIER2_READY_TIMEOUT_MS);
+      });
+      expect(onExit).toHaveBeenCalledWith('Backup deposit flow is unavailable');
+    } finally {
+      unmount();
+      jest.clearAllTimers();
+      jest.useRealTimers();
+    }
+  }, 15000);
 });
