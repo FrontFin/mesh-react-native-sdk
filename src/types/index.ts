@@ -41,7 +41,8 @@ export type LinkEventType =
   | TransferAssetSelected
   | TransferNetworkSelected
   | DefiWalletError
-  | BackupTierChanged;
+  | BackupTierChanged
+  | WithdrawalRequested;
 
 const LINK_EVENT_TYPE_KEYS = [
   'integrationConnected',
@@ -85,6 +86,7 @@ const LINK_EVENT_TYPE_KEYS = [
   'homePageLoaded',
   'defiWalletError',
   'backupTierChanged',
+  'withdrawalRequested',
 ] as const;
 
 export const mappedLinkEvents: Record<string, string> = {
@@ -628,6 +630,14 @@ export interface DefiWalletError extends LinkEventBase {
       connectUri?: string;
     };
     timeStamp: number;
+  };
+}
+
+export interface WithdrawalRequested extends LinkEventBase {
+  type: 'withdrawalRequested';
+  payload: {
+    transferId: string;
+    status: 'pending' | 'success';
   };
 }
 
