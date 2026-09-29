@@ -5,6 +5,7 @@ import {
   SafeAreaView,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   TouchableOpacity,
@@ -30,6 +31,14 @@ const layout_width = Dimensions.get('window').width;
 // and takes a client-assembled MeshBackupConfig. This origin is the live demo
 // widget (OR-449); in production it would be the shipped backup origin.
 const DEMO_BACKUP_WIDGET_ORIGIN = 'https://demo-widget.cascadecode.com';
+
+// A deliberately unreachable origin (reserved `.invalid` TLD, RFC 6761). When the
+// "Force Tier-2 fallback" toggle is on, the backup flow is pointed here so the
+// Tier-1 widget load fails immediately and the SDK cascades to the bundled Tier-2
+// offline widget — the "second level" (no-Mesh-domain) fallback (OR-474). Flip
+// the toggle off to instead point at a routable-but-silent host (e.g.
+// 'http://10.255.255.1') to exercise the ready-handshake-timeout path instead.
+const DEAD_BACKUP_WIDGET_ORIGIN = 'https://backup-widget.invalid';
 
 // networkIds match the live demo pairs manifest
 // (https://demo-widget.cascadecode.com/backup/pairs/all.json). Static addresses
@@ -63,6 +72,11 @@ export default function App() {
   const [backupView, setBackupView] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [linkToken, setLinkToken] = useState<string>('');
+  // Demo toggle: when on, the backup flow is pointed at an unreachable origin so
+  // it cascades to the bundled Tier-2 fallback (OR-474). `backupTier` is surfaced
+  // from the SDK's `backupTierChanged` event so the active tier shows on screen.
+  const [forceTier2, setForceTier2] = useState(false);
+  const [backupTier, setBackupTier] = useState<'tier1' | 'tier2'>('tier1');
   const connectButtonTitle = 'Connect account';
 
   function showIntegrationConnectedAlert(payload: AccessTokenPayload) {
@@ -97,26 +111,43 @@ export default function App() {
   }
 
   if (backupView) {
+    const activeOrigin = forceTier2
+      ? DEAD_BACKUP_WIDGET_ORIGIN
+      : DEMO_BACKUP_WIDGET_ORIGIN;
     return (
-      <LinkConnectBackup
-        widgetOrigin={DEMO_BACKUP_WIDGET_ORIGIN}
-        backupConfig={DEMO_BACKUP_CONFIG}
-        settings={{language: 'en', theme: 'system'}}
-        onTransferFinished={(payload: TransferFinishedPayload) => {
-          if (payload.status === 'success') {
-            showTransferFinishedAlert(payload);
-          } else {
-            setError(payload.errorMessage);
-          }
-        }}
-        onEvent={(event: LinkEventType) => {
-          console.log('Backup event received:', event);
-        }}
-        onExit={(err?: string) => {
-          console.log('Backup onExit called:', err);
-          setBackupView(false);
-        }}
-      />
+      <View style={styles.flex}>
+        <LinkConnectBackup
+          widgetOrigin={activeOrigin}
+          backupConfig={DEMO_BACKUP_CONFIG}
+          settings={{language: 'en', theme: 'system'}}
+          onTransferFinished={(payload: TransferFinishedPayload) => {
+            if (payload.status === 'success') {
+              showTransferFinishedAlert(payload);
+            } else {
+              setError(payload.errorMessage);
+            }
+          }}
+          onEvent={(event: LinkEventType) => {
+            console.log('Backup event received:', event);
+            // Surface the Tier-1 → Tier-2 cascade so the demo shows which tier
+            // actually rendered the deposit (OR-474).
+            if (event.type === 'backupTierChanged') {
+              setBackupTier(event.payload.to);
+            }
+          }}
+          onExit={(err?: string) => {
+            console.log('Backup onExit called:', err);
+            setBackupView(false);
+          }}
+        />
+        <View pointerEvents="none" style={styles.tierBanner}>
+          <Text style={styles.tierBannerText}>
+            {backupTier === 'tier2'
+              ? '● Tier 2 · bundled offline widget (no Mesh network)'
+              : `○ Tier 1 · ${activeOrigin.replace(/^https?:\/\//, '')}`}
+          </Text>
+        </View>
+      </View>
     );
   }
 
@@ -182,13 +213,32 @@ export default function App() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => setBackupView(true)}
+            onPress={() => {
+              // Reset to Tier 1 each open; the cascade (if any) updates it.
+              setBackupTier('tier1');
+              setBackupView(true);
+            }}
             style={styles.backupBtn}
             testID={'example-app-backup-btn'}>
             <Text style={styles.connectButtonText}>
               Simulate outage — Backup deposit
             </Text>
           </TouchableOpacity>
+
+          <View style={styles.switchRow}>
+            <View style={styles.switchLabelWrap}>
+              <Text style={styles.switchLabel}>Force Tier-2 fallback</Text>
+              <Text style={styles.switchHint}>
+                Points the backup widget at an unreachable origin so it cascades
+                to the bundled offline widget.
+              </Text>
+            </View>
+            <Switch
+              testID={'example-app-force-tier2-switch'}
+              value={forceTier2}
+              onValueChange={setForceTier2}
+            />
+          </View>
 
           {data && (
             <View
@@ -212,11 +262,51 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
   container: {
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
+  },
+  switchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: layout_width * 0.9,
+    alignSelf: 'center',
+    marginTop: 16,
+  },
+  switchLabelWrap: {
+    flex: 1,
+    paddingRight: 12,
+  },
+  switchLabel: {
+    fontSize: 15,
+    color: '#363636',
+    fontWeight: '600',
+  },
+  switchHint: {
+    fontSize: 12,
+    color: '#6b6b6b',
+    marginTop: 2,
+  },
+  tierBanner: {
+    position: 'absolute',
+    left: 12,
+    right: 12,
+    bottom: 24,
+    backgroundColor: 'rgba(0,0,0,0.78)',
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  tierBannerText: {
+    color: 'white',
+    fontSize: 13,
+    textAlign: 'center',
   },
   headerDivider: {
     height: 80,

@@ -69,3 +69,20 @@ With Metro running, press <kbd>D</kbd> in the Metro terminal to open React Nativ
 
 > [!NOTE]
 > The project will use workspaces soon.
+
+## 🛟 Backup deposit flow & Tier-2 fallback
+
+The home screen has a **Simulate outage — Backup deposit** button that opens the
+deposit-only backup flow (`LinkConnectBackup`) — no link token, loaded from the
+backup widget origin (**Tier 1**).
+
+Toggle **Force Tier-2 fallback** before pressing it to point the widget at an
+unreachable origin. The Tier-1 load fails, so the SDK cascades to the **bundled
+Tier-2 offline widget** (no Mesh-owned network dependency, OR-474). A banner at the
+bottom of the flow shows which tier is live (`○ Tier 1 …` / `● Tier 2 · bundled
+offline widget`), and the cascade is logged in Metro as a `backupTierChanged`
+event. Because Tier 2 is served from the SDK bundle, this works even with the
+device fully offline.
+
+> Rebuild the SDK from the repo root (`yarn build`) before running so the example's
+> linked `../../dist` build includes the bundled Tier-2 widget.
