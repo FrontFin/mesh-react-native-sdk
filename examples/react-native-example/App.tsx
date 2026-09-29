@@ -40,28 +40,37 @@ const DEMO_BACKUP_WIDGET_ORIGIN = 'https://demo-widget.cascadecode.com';
 // 'http://10.255.255.1') to exercise the ready-handshake-timeout path instead.
 const DEAD_BACKUP_WIDGET_ORIGIN = 'https://backup-widget.invalid';
 
-// networkIds match the live demo pairs manifest
-// (https://demo-widget.cascadecode.com/backup/pairs/all.json). Static addresses
+// networkIds are real Mesh network ids (from the live demo pairs manifest,
+// https://demo-widget.cascadecode.com/backup/pairs/all.json). Static addresses
 // are used so no JIT backend is required; to demo JIT instead, drop `address`
 // and add a `jit: { initiateUrl, statusUrl, token }` block.
-// NOTE: these are demo addresses for showing the QR/copy screen only — do not
-// send real funds to them.
+//
+// The destinations deliberately span all four Tier-2 logo cases. Tier 1 loads
+// the full manifest, so every logo renders. Tier 2 ships only the curated top-8
+// tokens (USDC/USDT/ETH/BTC/SOL/XRP/BNB/DOGE) and top-8 networks (Ethereum/
+// Bitcoin/Solana/Tron/Polygon/Base/Arbitrum/XRPL), so anything outside those
+// falls back to the initials placeholder — visible drift, never a broken flow.
+//
+// NOTE: demo addresses for the QR/copy screen only — do not send real funds.
+// EVM chains share the 0x address format, so one demo address is reused for all.
+const EVM_DEMO_ADDRESS = '0x503828976D22510aad0201ac7EC88293211D23Da';
 const DEMO_BACKUP_CONFIG: MeshBackupConfig = {
   clientId: '26C2621E-2C09-4CCC-DCF7-08DE90525AA1', // CDC (Crypto.com)
   userId: 'rn-example-user',
   destinations: [
-    {
-      networkId: 'e3c7fdd8-b1fc-4e51-85ae-bb276e075611', // USDC · Ethereum
-      symbol: 'USDC',
-      address: '0x503828976D22510aad0201ac7EC88293211D23Da',
-    },
-    {
-      networkId: 'c5dc5d2e-68c1-4261-9a30-90b598738bf5', // USDC · Tron
-      symbol: 'USDC',
-      address: 'TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9',
-    },
+    // Both logos bundled (baseline).
+    {networkId: 'e3c7fdd8-b1fc-4e51-85ae-bb276e075611', symbol: 'USDC', address: EVM_DEMO_ADDRESS}, // USDC · Ethereum
+    {networkId: 'c5dc5d2e-68c1-4261-9a30-90b598738bf5', symbol: 'USDC', address: 'TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9'}, // USDC · Tron
+    // Tier 2: token INITIALS (AAVE not in top-8), network logo shown.
+    {networkId: 'e3c7fdd8-b1fc-4e51-85ae-bb276e075611', symbol: 'AAVE', address: EVM_DEMO_ADDRESS}, // AAVE · Ethereum
+    // Tier 2: token logo shown, network INITIALS (Optimism / Linea not in top-8).
+    {networkId: '18fa36b0-88a8-43ca-83db-9a874e0a2288', symbol: 'USDC', address: EVM_DEMO_ADDRESS}, // USDC · Optimism
+    {networkId: '46e4920f-bbb6-4970-95d0-5be58c526a82', symbol: 'USDT', address: EVM_DEMO_ADDRESS}, // USDT · Linea
+    // Tier 2: BOTH initials (DAI + Avalanche, neither bundled).
+    {networkId: 'bad16371-c22a-4bf4-a311-274d046cd760', symbol: 'DAI', address: EVM_DEMO_ADDRESS}, // DAI · Avalanche
   ],
-  preselectedSymbol: 'USDC',
+  // No preselectedSymbol: show the token-select screen so the bundled-vs-initials
+  // token logos are visible (USDC/USDT have logos; AAVE/DAI render initials in Tier 2).
 };
 
 export default function App() {
@@ -198,7 +207,11 @@ export default function App() {
               testID={'example-app-link-token-input'}
               value={linkToken}
               onChangeText={e => setLinkToken(e)}
-              onSubmitEditing={() => setView(true)}
+              onSubmitEditing={() => {
+                if (linkToken.trim()) {
+                  setView(true);
+                }
+              }}
               style={styles.exampleLinkTokenInput}
               placeholder="Enter link token"
               placeholderTextColor={'#363636'}
@@ -206,7 +219,18 @@ export default function App() {
           </View>
 
           <TouchableOpacity
-            onPress={() => setView(true)}
+            onPress={() => {
+              // The normal flow needs a real Mesh link token; without one
+              // LinkConnect has nothing to load (previously a blank screen).
+              if (!linkToken.trim()) {
+                Alert.alert(
+                  'Link token required',
+                  'Paste a Mesh link token above to start the normal Connect flow. The backup deposit flow below needs no token.',
+                );
+                return;
+              }
+              setView(true);
+            }}
             style={styles.conBtn}
             testID={'example-app-connect-btn'}>
             <Text style={styles.connectButtonText}>{connectButtonTitle}</Text>
