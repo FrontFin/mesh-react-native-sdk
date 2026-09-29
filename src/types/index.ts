@@ -541,3 +541,119 @@ export interface DefiWalletError extends LinkEventBase {
     timeStamp: number;
   };
 }
+
+// ---------------------------------------------------------------------------
+// Backup / redundancy flow (OR-451, canonical shape OR-446)
+//
+// A deposit-only funnel served from Mesh's independent backup infrastructure,
+// used when the primary Mesh API is unavailable. It takes its configuration
+// directly from the client (assembled server-side) and never calls the core
+// Mesh API. See the CDC backup integration spec for the client-facing contract.
+// ---------------------------------------------------------------------------
+
+/**
+ * A single deposit destination offered in the backup flow.
+ *
+ * `address` is optional **only** when the config carries a {@link MeshBackupJitConfig}
+ * `jit` block — an address-less destination is resolved via the client's own JIT
+ * endpoint at selection time. A destination with neither `address` nor a `jit`
+ * block cannot be resolved.
+ */
+export interface MeshBackupDestination {
+  /**
+   * Mesh network id (GUID). Must reference a token/network pair present in the
+   * backup pairs manifest.
+   */
+  networkId: string;
+  /** Token symbol, e.g. `'USDC'`. */
+  symbol: string;
+  /** Static deposit address. Omit to resolve this destination via JIT. */
+  address?: string;
+  /**
+   * Memo/tag for memo/tag chains (XRP, XLM, TON/TVM, Injective, muxed Stellar).
+   * `null`/omitted for chains that do not use one.
+   */
+  addressTag?: string | null;
+}
+
+/**
+ * Client-hosted JIT (just-in-time) address endpoints, required when any
+ * destination omits `address`. The widget calls these directly, presenting the
+ * `token` as `Authorization: Bearer <token>`. Mesh never sees or validates the
+ * token — the client owns its issuance and validation.
+ */
+export interface MeshBackupJitConfig {
+  /** `POST` endpoint that begins address resolution. */
+  initiateUrl: string;
+  /** `GET` endpoint the widget polls until an address is `ready`. */
+  statusUrl: string;
+  /**
+   * Short-lived (≤10 min), user-scoped bearer token, minted by the client
+   * server-side at outage-detection time. Treat as exposed — it lives in the
+   * WebView.
+   */
+  token: string;
+}
+
+/**
+ * Configuration handed to the backup deposit widget. Assemble this server-side
+ * (destinations and any JIT token should not be built in untrusted client code)
+ * and pass it to {@link LinkConnectBackup} via the `backupConfig` prop; it is
+ * delivered to the widget over the SDK message bridge. Canonical shape: OR-446.
+ */
+export interface MeshBackupConfig {
+  /** The client's Mesh client id. */
+  clientId: string;
+  /**
+   * The client's end-user identifier. Echoed by JIT and used for analytics —
+   * it is **not** an authentication credential.
+   */
+  userId: string;
+  /** Deposit destinations to offer. At least one is required. */
+  destinations: MeshBackupDestination[];
+  /**
+   * Preselect a token symbol, skipping the token-select screen. Must match one
+   * of the destination symbols; an unknown symbol falls back to token select.
+   */
+  preselectedSymbol?: string;
+  /** Required when any destination omits `address`. */
+  jit?: MeshBackupJitConfig;
+  /**
+   * Your correlation id, echoed to your JIT Initiate/Status endpoints so you can
+   * tie the resolved deposit address to a transaction in your system.
+   * Session-level; sent empty when omitted.
+   */
+  transactionId?: string;
+}
+
+/**
+ * Props for {@link LinkConnectBackup}, the deposit-only backup component. The
+ * host event contract (`onIntegrationConnected` / `onTransferFinished` /
+ * `onEvent` / `onExit`) matches {@link LinkConfiguration} so the same handlers
+ * can be reused on both the primary and backup paths.
+ */
+export interface LinkConnectBackupConfiguration {
+  /** Backup deposit configuration, assembled server-side. */
+  backupConfig: MeshBackupConfig;
+  /**
+   * Origin serving the standalone backup widget. Defaults to
+   * `DEFAULT_BACKUP_WIDGET_ORIGIN`. Override for staging or self-hosting.
+   */
+  widgetOrigin?: string;
+  /** Only `theme` and `language` apply to the backup flow. */
+  settings?: Pick<LinkSettings, 'theme' | 'language'>;
+  /** Render a plain `View` container instead of `SafeAreaView`. */
+  renderViewContainer?: boolean;
+  /**
+   * Hide the native close (✕) button. By default `LinkConnectBackup` overlays a
+   * native close control (the backup widget's deposit-only funnel has no exit
+   * affordance on its root screen), wired to `onExit` so the host can always
+   * dismiss the flow. Set `true` to suppress it, e.g. when the host provides its
+   * own chrome.
+   */
+  hideCloseButton?: boolean;
+  onIntegrationConnected?: (payload: LinkPayload) => void;
+  onTransferFinished?: (payload: TransferFinishedPayload) => void;
+  onEvent?: (event: LinkEventType) => void;
+  onExit?: (err?: string) => void;
+}
