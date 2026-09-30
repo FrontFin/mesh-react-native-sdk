@@ -27,9 +27,11 @@ const layout_width = Dimensions.get('window').width;
 // --- Backup / outage demo -------------------------------------------------
 // The deposit-only backup flow runs when the primary Mesh API is unavailable.
 // It needs no link token: it loads the standalone backup widget from its origin
-// and takes a client-assembled MeshBackupConfig. This origin is the live demo
-// widget (OR-449); in production it would be the shipped backup origin.
-const DEMO_BACKUP_WIDGET_ORIGIN = 'https://demo-widget.cascadecode.com';
+// and takes a client-assembled MeshBackupConfig. This defaults to the CI-deployed
+// backup widget (the `link-backup` Cloudflare Worker); override it in the app via
+// the "Tier-1 widget origin" field (e.g. to point at a locally-run widget).
+const DEMO_BACKUP_WIDGET_ORIGIN =
+  'https://link-backup.front-finance-account.workers.dev';
 
 // A deliberately unreachable origin (reserved `.invalid` TLD, RFC 6761). When the
 // "Force Tier-2 fallback" toggle is on, the backup flow is pointed here so the
@@ -39,10 +41,9 @@ const DEMO_BACKUP_WIDGET_ORIGIN = 'https://demo-widget.cascadecode.com';
 // 'http://10.255.255.1') to exercise the ready-handshake-timeout path instead.
 const DEAD_BACKUP_WIDGET_ORIGIN = 'https://backup-widget.invalid';
 
-// networkIds are real Mesh network ids (from the live demo pairs manifest,
-// https://demo-widget.cascadecode.com/backup/pairs/all.json). Static addresses
-// are used so no backend is required; flip the "Force JIT" toggle to instead
-// resolve addresses through the onAddressInit/onStatusPoll callbacks below.
+// networkIds are real Mesh network ids (from the widget's live pairs manifest).
+// Static addresses are used so no backend is required; flip the "Force JIT" toggle
+// to instead resolve addresses through the onAddressInit/onStatusPoll callbacks below.
 //
 // The destinations deliberately span all four Tier-2 logo cases. Tier 1 loads
 // the full manifest, so every logo renders. Tier 2 ships only the curated top-8
@@ -124,6 +125,10 @@ export default function App() {
   // it cascades to the bundled Tier-2 fallback (OR-474). `backupTier` is surfaced
   // from the SDK's `backupTierChanged` event so the active tier shows on screen.
   const [forceTier2, setForceTier2] = useState(false);
+  // Where the Tier-1 backup widget loads from (defaults to the CI-deployed
+  // widget). Editable in the UI to point at a local widget; ignored when Force
+  // Tier-2 is on (that path loads the SDK-bundled widget, not a remote origin).
+  const [tier1Origin, setTier1Origin] = useState(DEMO_BACKUP_WIDGET_ORIGIN);
   const [backupTier, setBackupTier] = useState<'tier1' | 'tier2'>('tier1');
   // Demo toggle: when on, destinations drop their static address and resolve via
   // the onAddressInit/onStatusPoll callbacks (OR-452). Pair with Force Tier-2 to
@@ -165,7 +170,7 @@ export default function App() {
   if (backupView) {
     const activeOrigin = forceTier2
       ? DEAD_BACKUP_WIDGET_ORIGIN
-      : DEMO_BACKUP_WIDGET_ORIGIN;
+      : tier1Origin.trim() || DEMO_BACKUP_WIDGET_ORIGIN;
     return (
       <View style={styles.flex}>
         {/* Spec entry point: the same <LinkConnect>, given a backupConfig in
@@ -282,6 +287,27 @@ export default function App() {
             testID={'example-app-connect-btn'}>
             <Text style={styles.connectButtonText}>{connectButtonTitle}</Text>
           </TouchableOpacity>
+
+          <View
+            testID={'example-app-backup-origin-container'}
+            style={styles.inputContainer}>
+            <Text style={styles.switchLabel}>Tier-1 widget origin</Text>
+            <TextInput
+              testID={'example-app-backup-origin-input'}
+              value={tier1Origin}
+              onChangeText={setTier1Origin}
+              editable={!forceTier2}
+              autoCapitalize={'none'}
+              autoCorrect={false}
+              style={styles.exampleLinkTokenInput}
+              placeholder={DEMO_BACKUP_WIDGET_ORIGIN}
+              placeholderTextColor={'#363636'}
+            />
+            <Text style={styles.switchHint}>
+              Where the backup widget loads from (ignored when Force Tier-2 is on).
+              Point at a locally-run widget to test without the hosted deploy.
+            </Text>
+          </View>
 
           <TouchableOpacity
             onPress={() => {
