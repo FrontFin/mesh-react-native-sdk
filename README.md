@@ -124,8 +124,9 @@ export default App;
 
 #### Withdrawal events
 
-When a user confirms a withdrawal, `onEvent` receives a `withdrawalRequested` event, then Link closes and calls `onExit`.
-Keep the `transferId` and continue the withdrawal once Link has closed, for example with your own 2FA prompt.
+When a user confirms a withdrawal, `onEvent` receives a `withdrawalRequested` event, then Link calls `onExit`.
+Link does not hide itself: unmount `LinkConnect` in `onExit`, then continue the withdrawal with the `transferId` from the event, for example with your own 2FA prompt.
+Treat the event, not `onExit`, as confirmation of the withdrawal.
 The payload carries no address or amount: read the transfer details from the webhook or the transfer API.
 
 ```tsx
