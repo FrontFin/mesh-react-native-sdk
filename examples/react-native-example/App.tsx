@@ -298,7 +298,7 @@ export default function App() {
 
           <View
             testID={'example-app-backup-origin-container'}
-            style={styles.inputContainer}>
+            style={styles.originField}>
             <Text style={styles.switchLabel}>Tier-1 widget origin</Text>
             <TextInput
               testID={'example-app-backup-origin-input'}
@@ -307,9 +307,9 @@ export default function App() {
               editable={!forceTier2}
               autoCapitalize={'none'}
               autoCorrect={false}
-              style={styles.exampleLinkTokenInput}
+              style={[styles.originInput, forceTier2 && styles.originInputDisabled]}
               placeholder={DEMO_BACKUP_WIDGET_ORIGIN}
-              placeholderTextColor={'#363636'}
+              placeholderTextColor={'#9a9a9a'}
             />
             <Text style={styles.switchHint}>
               Where the backup widget loads from (ignored when Force Tier-2 is on).
@@ -413,6 +413,26 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6b6b6b',
     marginTop: 2,
+  },
+  originField: {
+    width: layout_width * 0.9,
+    alignSelf: 'center',
+    marginTop: 16,
+  },
+  originInput: {
+    borderWidth: 1,
+    borderColor: '#363636',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginTop: 6,
+    marginBottom: 6,
+    fontSize: 14,
+    color: '#363636',
+  },
+  originInputDisabled: {
+    borderColor: '#cfcfcf',
+    color: '#9a9a9a',
   },
   tierBanner: {
     position: 'absolute',
