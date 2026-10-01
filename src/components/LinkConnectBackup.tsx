@@ -197,6 +197,18 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
         payload: { callId, ok, ...(result ? { result } : {}), ...(error ? { error } : {}) },
       });
 
+    // Defense-in-depth before crossing into the client's backend: only resolve a
+    // (symbol, networkId) the client actually declared as an ADDRESS-LESS JIT
+    // destination in backupConfig. Never run the host callback for an arbitrary
+    // pair, or one that already carries a static address (which needs no JIT).
+    const isJitDestination = props.backupConfig.destinations.some(
+      (d) => d.symbol === symbol && d.networkId === networkId && !d.address
+    );
+    if (!isJitDestination) {
+      respond(false, undefined, 'not an address-less JIT destination in backupConfig');
+      return;
+    }
+
     if (method === 'addressInit') {
       // Fire-and-forget kick-off: the return value is ignored; a throw/reject is
       // a generation failure. A missing handler is a benign no-op (the poll will

@@ -7,7 +7,10 @@ import { SDKContainer } from './SDKContainer';
 import { SDKViewContainer } from './SDKViewContainer';
 import { LinkConnectBackup } from './LinkConnectBackup';
 
-import type { LinkConfiguration } from '../types';
+import type {
+  LinkConfiguration,
+  LinkConnectTokenConfiguration,
+} from '../types';
 import { useSDKCallbacks } from '../hooks/useSDKCallbacks';
 import { useWebViewRecovery } from '../hooks/useWebViewRecovery';
 import { sdkSpecs } from '../utils/sdkConfig';
@@ -83,7 +86,7 @@ export const LinkConnect = (props: LinkConfiguration) => {
   return <LinkConnectPrimary {...props} />;
 };
 
-const LinkConnectPrimary = (props: LinkConfiguration) => {
+const LinkConnectPrimary = (props: LinkConnectTokenConfiguration) => {
   const {
     showNativeNavbar,
     showWebView,

@@ -1,7 +1,7 @@
 /* eslint-disable */
 import React from 'react';
 import { AppState, Linking } from 'react-native';
-import { render, waitFor } from '@testing-library/react-native';
+import { act, render, waitFor } from '@testing-library/react-native';
 import { LinkConnect } from '../components/LinkConnect';
 import { DEFAULT_BACKUP_WIDGET_ORIGIN } from '../constant';
 
@@ -15,13 +15,17 @@ jest.mock('react-native/Libraries/Utilities/useColorScheme', () => {
 
 // var avoids TDZ — the closure inside forwardRef reads this after module init
 var mockReload = jest.fn();
+var mockInject = jest.fn();
 
 jest.mock('react-native-webview', () => {
   const React = require('react');
   const { View } = require('react-native');
   return {
     WebView: React.forwardRef((props: any, ref: any) => {
-      React.useImperativeHandle(ref, () => ({ reload: mockReload }));
+      React.useImperativeHandle(ref, () => ({
+        reload: mockReload,
+        injectJavaScript: mockInject,
+      }));
       return React.createElement(View, props);
     }),
   };
@@ -67,6 +71,45 @@ describe('LinkConnect Component', () => {
       ).toBe(true);
       expect(getByTestId('backup-close-button')).toBeTruthy();
     });
+  });
+
+  it('forwards JIT callbacks through <LinkConnect backupConfig> to the backup flow', async () => {
+    const onAddressInit = jest.fn();
+    const onStatusPoll = jest
+      .fn()
+      .mockResolvedValue({ status: 'ready', address: '0xabc' });
+    const { getByTestId } = render(
+      <LinkConnect
+        backupConfig={{
+          clientId: 'c1',
+          userId: 'u1',
+          destinations: [{ networkId: 'net-guid', symbol: 'USDC' }], // address-less ⇒ JIT
+        }}
+        onAddressInit={onAddressInit}
+        onStatusPoll={onStatusPoll}
+        onExit={mockOnExit}
+      />
+    );
+    await waitFor(() => getByTestId('webview'));
+    mockInject.mockClear();
+    // A statusPoll request for the configured address-less pair must reach the
+    // host callback and get a response posted back — proving the dispatcher wires
+    // onAddressInit/onStatusPoll through, not just that a backup WebView renders.
+    await act(async () => {
+      getByTestId('webview').props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'meshBackupJitRequest',
+            payload: { callId: 'c1', method: 'statusPoll', symbol: 'USDC', networkId: 'net-guid' },
+          }),
+        },
+      });
+    });
+    expect(onStatusPoll).toHaveBeenCalledWith('USDC', 'net-guid');
+    await waitFor(() => expect(mockInject).toHaveBeenCalled());
+    const script: string = mockInject.mock.calls[mockInject.mock.calls.length - 1][0];
+    expect(script).toContain('meshBackupJitResponse');
+    expect(script).toContain('0xabc');
   });
 
   it('renders correctly when linkToken and accessTokens are provided', () => {

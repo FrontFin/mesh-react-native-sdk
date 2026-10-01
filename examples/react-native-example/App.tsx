@@ -17,6 +17,7 @@ import {
   LinkEventType,
   LinkPayload,
   MeshBackupConfig,
+  MeshBackupJitStatusResult,
   TransferFinishedPayload,
   TransferFinishedSuccessPayload,
 } from '@meshconnect/react-native-link-sdk';
@@ -91,7 +92,7 @@ const demoOnAddressInit = (symbol: string, networkId: string) => {
 const demoOnStatusPoll = async (
   symbol: string,
   networkId: string,
-): Promise<{status: 'pending' | 'ready' | 'failed'; address?: string}> => {
+): Promise<MeshBackupJitStatusResult> => {
   const key = `${symbol}:${networkId}`;
   const n = (jitPollCounts.get(key) ?? 0) + 1;
   jitPollCounts.set(key, n);
@@ -100,7 +101,14 @@ const demoOnStatusPoll = async (
   if (n < 3) {
     return {status: 'pending'};
   }
-  return {status: 'ready', address: EVM_DEMO_ADDRESS};
+  // Return the address the static config declared for THIS pair, so each network
+  // gets a correctly-formatted address (e.g. the Tron address for USDC·Tron, an
+  // EVM address for the EVM pairs) — not a one-size EVM address that would fail
+  // the widget's per-network format check.
+  const dest = DEMO_BACKUP_CONFIG.destinations.find(
+    d => d.symbol === symbol && d.networkId === networkId,
+  );
+  return {status: 'ready', address: dest?.address ?? EVM_DEMO_ADDRESS};
 };
 
 // The address-less variant of the config used when "Force JIT" is on: same

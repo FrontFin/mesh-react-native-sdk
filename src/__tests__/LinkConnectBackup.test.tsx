@@ -266,6 +266,31 @@ describe('LinkConnectBackup', () => {
     expect(mockInject).not.toHaveBeenCalled();
   });
 
+  it('rejects a JIT request for a pair not declared address-less in backupConfig', async () => {
+    const onStatusPoll = jest
+      .fn()
+      .mockResolvedValue({ status: 'ready', address: '0xabc' });
+    const { getByTestId } = render(
+      <LinkConnectBackup backupConfig={CONFIG} onStatusPoll={onStatusPoll} />
+    );
+    await waitFor(() => getByTestId('webview'));
+    mockInject.mockClear();
+    await act(async () => {
+      getByTestId('webview').props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'meshBackupJitRequest',
+            // Not a destination in CONFIG (CONFIG only has address-less USDC/net-guid).
+            payload: { callId: 'c9', method: 'statusPoll', symbol: 'ETH', networkId: 'other-net' },
+          }),
+        },
+      });
+    });
+    expect(onStatusPoll).not.toHaveBeenCalled();
+    await waitFor(() => expect(mockInject).toHaveBeenCalled());
+    expect(lastInjectedMessage().payload).toMatchObject({ callId: 'c9', ok: false });
+  });
+
   it('routes transferFinished to onTransferFinished and onEvent', async () => {
     const onTransferFinished = jest.fn();
     const onEvent = jest.fn();
