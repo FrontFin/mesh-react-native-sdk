@@ -194,3 +194,15 @@ To enable our SDK to interact with specific apps, please add the following URL s
     </array>
    ```
    This configuration allows our SDK to query and interact with the specified apps, ensuring seamless integration and functionality.
+
+## Returning to your app with deep links
+
+Some integrations complete in the device's external browser, then redirect to a **return URL** that must bring your app back to the foreground so the flow can resume. Configure the return URL for both platforms, and keep `LinkConnect` mounted while the user is away — don't navigate away from it when your app handles the incoming URL.
+
+### iOS
+
+Register a custom URL scheme (`CFBundleURLTypes` in `Info.plist`) or, preferably, a Universal Link (Associated Domains) so the redirect opens your app. Returning focus is enough: iOS foregrounds the existing scene and the mounted `LinkConnect` resumes automatically. See the [iOS SDK guide](https://github.com/FrontFin/mesh-ios-sdk#returning-to-your-app-with-deep-links) for setup details.
+
+### Android
+
+Register a custom URL scheme or an App Link as an `intent-filter` on your `MainActivity`, and keep its `android:launchMode="singleTask"` (the React Native template default). The redirect then brings your app's existing task to the front instead of starting a new Activity, so the in-progress Link flow isn't lost. If your `MainActivity` uses a different launch mode, route the link through a lightweight trampoline Activity instead — see the [Android SDK guide](https://github.com/FrontFin/mesh-android-sdk#returning-to-your-app-with-deep-links) for setup details and a sample trampoline Activity.
