@@ -14,14 +14,14 @@ import { sdkSpecs } from '../utils/sdkConfig';
 import {
   AccessTokenPayload,
   DelayedAuthPayload,
-  LinkConfiguration,
+  LinkConnectTokenConfiguration,
   LinkPayload,
   TransferFinishedPayload,
   isLinkEventTypeKey,
   mappedLinkEvents,
 } from '../';
 
-const useSDKCallbacks = (props: LinkConfiguration) => {
+const useSDKCallbacks = (props: LinkConnectTokenConfiguration) => {
   const [linkUrl, setLinkUrl] = useState<string | null>(null);
   const [showWebView, setShowWebView] = useState(false);
   const [showNativeNavbar, setShowNativeNavbar] = useState(false);

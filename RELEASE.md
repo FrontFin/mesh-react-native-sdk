@@ -1,5 +1,16 @@
 # Release React Native SDK
 
+> [!IMPORTANT]
+> **Refresh the Tier-2 backup bundle before every release.** The bundled offline
+> deposit fallback (`src/backup-bundle/`) ships a snapshot of the supported-pairs
+> catalog that **drifts** between releases. Regenerate `widget.offline.html` +
+> `catalog.snapshot.json` from the current `all.json` (the Phase 6a / OR-472
+> build step), then run `yarn bundle:embed` and commit the refreshed files
+> (including `generated.ts`). `yarn bundle:check` (also run in CI) enforces the
+> size budget and that the generated module is in sync. Drift is display-only —
+> a newer pair still works via the initials fallback — but a stale bundle means
+> majors added since the last release render without their name/logo in Tier 2.
+
 ## ✨ With Claude Code (recommended)
 
 1. Run `/bump-version` — bumps version according to [Semantic Versioning](https://semver.org/) and prepends a new entry to `CHANGELOG.md`.

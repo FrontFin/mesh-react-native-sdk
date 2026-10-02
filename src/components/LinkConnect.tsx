@@ -5,8 +5,12 @@ import React, { useMemo, useState } from 'react';
 import { NavBar } from './NavBar';
 import { SDKContainer } from './SDKContainer';
 import { SDKViewContainer } from './SDKViewContainer';
+import { LinkConnectBackup } from './LinkConnectBackup';
 
-import type { LinkConfiguration } from '../';
+import type {
+  LinkConfiguration,
+  LinkConnectTokenConfiguration,
+} from '../types';
 import { useSDKCallbacks } from '../hooks/useSDKCallbacks';
 import { useWebViewRecovery } from '../hooks/useWebViewRecovery';
 import { sdkSpecs } from '../utils/sdkConfig';
@@ -54,7 +58,35 @@ const LoadingComponentWebview = ({ darkTheme }: { darkTheme: boolean }) => {
   );
 };
 
+/**
+ * Single SDK entry point (CDC client spec §3.1). Renders the normal Link flow
+ * from a `linkToken`, or — when a `backupConfig` is supplied instead — the
+ * deposit-only backup flow (with its automatic Level 1 → Level 2 cascade and the
+ * `onAddressInit`/`onStatusPoll` JIT callbacks). The hooks below assume the
+ * primary (link-token) path, so the backup path is dispatched here, before them.
+ */
 export const LinkConnect = (props: LinkConfiguration) => {
+  if (props.backupConfig) {
+    return (
+      <LinkConnectBackup
+        backupConfig={props.backupConfig}
+        widgetOrigin={props.widgetOrigin}
+        settings={props.settings}
+        renderViewContainer={props.renderViewContainer}
+        hideCloseButton={props.hideCloseButton}
+        onAddressInit={props.onAddressInit}
+        onStatusPoll={props.onStatusPoll}
+        onIntegrationConnected={props.onIntegrationConnected}
+        onTransferFinished={props.onTransferFinished}
+        onEvent={props.onEvent}
+        onExit={props.onExit}
+      />
+    );
+  }
+  return <LinkConnectPrimary {...props} />;
+};
+
+const LinkConnectPrimary = (props: LinkConnectTokenConfiguration) => {
   const {
     showNativeNavbar,
     showWebView,
