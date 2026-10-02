@@ -64,9 +64,9 @@ const DEMO_BACKUP_CONFIG: MeshBackupConfig = {
     {networkId: 'c5dc5d2e-68c1-4261-9a30-90b598738bf5', symbol: 'USDC', address: 'TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9'}, // USDC · Tron
     // Tier 2: token INITIALS (AAVE not in top-8), network logo shown.
     {networkId: 'e3c7fdd8-b1fc-4e51-85ae-bb276e075611', symbol: 'AAVE', address: EVM_DEMO_ADDRESS}, // AAVE · Ethereum
-    // Tier 2: token logo shown, network INITIALS (Optimism / Linea not in top-8).
+    // Tier 2: token logo shown, network INITIALS (Optimism / Avalanche not in top-8).
     {networkId: '18fa36b0-88a8-43ca-83db-9a874e0a2288', symbol: 'USDC', address: EVM_DEMO_ADDRESS}, // USDC · Optimism
-    {networkId: '46e4920f-bbb6-4970-95d0-5be58c526a82', symbol: 'USDT', address: EVM_DEMO_ADDRESS}, // USDT · Linea
+    {networkId: 'bad16371-c22a-4bf4-a311-274d046cd760', symbol: 'USDT', address: EVM_DEMO_ADDRESS}, // USDT · Avalanche
     // Tier 2: BOTH initials (DAI + Avalanche, neither bundled).
     {networkId: 'bad16371-c22a-4bf4-a311-274d046cd760', symbol: 'DAI', address: EVM_DEMO_ADDRESS}, // DAI · Avalanche
   ],
