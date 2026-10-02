@@ -35,15 +35,23 @@ interface UseBackupTierArgs {
 export interface BackupTierController {
   /** The tier to render right now. */
   tier: BackupTier;
-  /** Call when the widget completes its ready handshake (its `loaded` message). */
-  markReady: () => void;
   /**
-   * Call on a hard load/HTTP error on the current surface. In Tier 1 (before
-   * ready) this cascades to Tier 2; in Tier 2 it fails closed. After Tier 1 is
-   * ready it is ignored here (a mid-session blip must not discard the funnel;
-   * renderer-death recovery is handled separately).
+   * Call when the widget completes its ready handshake (its `loaded` message),
+   * passing the tier of the surface that emitted it. Returns `true` if the ready
+   * applied to the current tier, `false` if it was a stale event from a
+   * torn-down surface (e.g. a queued Tier-1 `loaded` arriving after the cascade)
+   * — the caller skips config delivery in that case.
    */
-  reportLoadError: () => void;
+  markReady: (forTier: BackupTier) => boolean;
+  /**
+   * Call on a hard load/HTTP error on the current surface, passing the tier of
+   * the surface that emitted it. In Tier 1 (before ready) this cascades to Tier
+   * 2; in Tier 2 it fails closed. After Tier 1 is ready it is ignored here (a
+   * mid-session blip must not discard the funnel; renderer-death recovery is
+   * handled separately). An event stamped with a tier other than the live one is
+   * a stale event from a torn-down surface and is ignored.
+   */
+  reportLoadError: (forTier: BackupTier) => void;
 }
 
 /**
@@ -134,13 +142,22 @@ export function useBackupTier({
     // identity changes would be wrong (the callback refs above stay current).
   }, [enabled]);
 
-  const markReady = () => {
+  const markReady = (forTier: BackupTier): boolean => {
+    // The WebView is keyed by tier, so a Tier-1 surface torn down by the cascade
+    // can still deliver a queued `loaded`. Ignoring it is critical: accepting it
+    // would set readyRef and clear the Tier-2 fail-closed timer, stranding a
+    // never-ready Tier-2 surface on a blank screen with no safety net.
+    if (forTier !== tierRef.current) return false;
     readyRef.current = true;
     // Whichever tier just handshook is healthy — cancel its pending timer.
     clearTimer();
+    return true;
   };
 
-  const reportLoadError = () => {
+  const reportLoadError = (forTier: BackupTier) => {
+    // A stale error from the torn-down Tier-1 surface must not be read as a
+    // Tier-2 failure (which would fail closed and exit the host prematurely).
+    if (forTier !== tierRef.current) return;
     if (tierRef.current === 'tier1') {
       // Immediate cascade — do not wait out the ready timeout (design §5H).
       cascadeToTier2('loadError');

@@ -29,32 +29,34 @@ describe('useBackupTier (Tier-1 → Tier-2 cascade)', () => {
     expect(onFallback).toHaveBeenCalledWith('readyTimeout');
 
     // A later trigger neither re-fires the fallback nor flaps back to Tier 1.
-    act(() => result.current.reportLoadError());
+    act(() => result.current.reportLoadError('tier2'));
     expect(onFallback).toHaveBeenCalledTimes(1);
     expect(result.current.tier).toBe('tier2');
   });
 
   it('cascades immediately on a Tier-1 load error, without waiting out the timeout', () => {
     const { result, onFallback } = setup();
-    act(() => result.current.reportLoadError());
+    act(() => result.current.reportLoadError('tier1'));
     expect(onFallback).toHaveBeenCalledWith('loadError');
     expect(result.current.tier).toBe('tier2');
   });
 
   it('ignores a load error once Tier 1 is ready (no cascade mid-session)', () => {
     const { result, onFallback } = setup();
-    act(() => result.current.markReady());
+    act(() => {
+      result.current.markReady('tier1');
+    });
     act(() => {
       jest.advanceTimersByTime(TIER1_READY_TIMEOUT_MS * 2);
     });
-    act(() => result.current.reportLoadError());
+    act(() => result.current.reportLoadError('tier1'));
     expect(onFallback).not.toHaveBeenCalled();
     expect(result.current.tier).toBe('tier1');
   });
 
   it('fails closed if the bundled Tier-2 assets never become ready', () => {
     const { result, onTier2Unavailable } = setup();
-    act(() => result.current.reportLoadError()); // → Tier 2
+    act(() => result.current.reportLoadError('tier1')); // → Tier 2
     expect(onTier2Unavailable).not.toHaveBeenCalled();
     act(() => {
       jest.advanceTimersByTime(TIER2_READY_TIMEOUT_MS);
@@ -64,9 +66,9 @@ describe('useBackupTier (Tier-1 → Tier-2 cascade)', () => {
 
   it('fails closed at most once even if a Tier-2 load error and the timeout both fire', () => {
     const { result, onTier2Unavailable } = setup();
-    act(() => result.current.reportLoadError()); // → Tier 2
+    act(() => result.current.reportLoadError('tier1')); // → Tier 2
     // A load error on the bundled document fails closed immediately…
-    act(() => result.current.reportLoadError());
+    act(() => result.current.reportLoadError('tier2'));
     expect(onTier2Unavailable).toHaveBeenCalledTimes(1);
     // …and the (now cleared) safety timeout must not exit the host a second time.
     act(() => {
@@ -77,8 +79,44 @@ describe('useBackupTier (Tier-1 → Tier-2 cascade)', () => {
 
   it('does not fail closed when Tier 2 becomes ready in time', () => {
     const { result, onTier2Unavailable } = setup();
-    act(() => result.current.reportLoadError()); // → Tier 2
-    act(() => result.current.markReady());
+    act(() => result.current.reportLoadError('tier1')); // → Tier 2
+    act(() => {
+      result.current.markReady('tier2');
+    });
+    act(() => {
+      jest.advanceTimersByTime(TIER2_READY_TIMEOUT_MS * 2);
+    });
+    expect(onTier2Unavailable).not.toHaveBeenCalled();
+  });
+
+  it('ignores a stale Tier-1 ready after the cascade (keeps the Tier-2 fail-closed net armed)', () => {
+    const { result, onTier2Unavailable } = setup();
+    act(() => result.current.reportLoadError('tier1')); // → Tier 2
+    // A queued Tier-1 `loaded` lands after the cascade. It must NOT mark ready or
+    // cancel the Tier-2 safety timer.
+    let accepted = true;
+    act(() => {
+      accepted = result.current.markReady('tier1');
+    });
+    expect(accepted).toBe(false);
+    // Tier 2 never handshakes → the (still-armed) safety net fails closed.
+    act(() => {
+      jest.advanceTimersByTime(TIER2_READY_TIMEOUT_MS);
+    });
+    expect(onTier2Unavailable).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores a stale Tier-1 error after the cascade (not read as a Tier-2 failure)', () => {
+    const { result, onTier2Unavailable } = setup();
+    act(() => result.current.reportLoadError('tier1')); // → Tier 2
+    // A second, queued Tier-1 error lands after the cascade. It must NOT be read
+    // as a Tier-2 failure (which would fail closed and exit the host).
+    act(() => result.current.reportLoadError('tier1'));
+    expect(onTier2Unavailable).not.toHaveBeenCalled();
+    // Tier 2 then handshakes normally — no fail-closed exit.
+    act(() => {
+      result.current.markReady('tier2');
+    });
     act(() => {
       jest.advanceTimersByTime(TIER2_READY_TIMEOUT_MS * 2);
     });

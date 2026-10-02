@@ -190,6 +190,23 @@ describe('LinkConnectBackup', () => {
     });
   });
 
+  it('replies ok:false when an addressInit arrives with no onAddressInit handler (fail closed)', async () => {
+    // A declared address-less JIT destination with no onAddressInit is a
+    // misconfiguration — it must be rejected, not acked ok:true (which would let
+    // the widget start polling for an address whose generation never began).
+    const { getByTestId } = render(<LinkConnectBackup backupConfig={CONFIG} />);
+    await waitFor(() => getByTestId('webview'));
+    mockInject.mockClear();
+    await act(async () => {
+      jitRequest(getByTestId('webview'), 'addressInit');
+    });
+    await waitFor(() => expect(mockInject).toHaveBeenCalled());
+    const msg = lastInjectedMessage();
+    expect(msg.payload.callId).toBe('call-1');
+    expect(msg.payload.ok).toBe(false);
+    expect(typeof msg.payload.error).toBe('string');
+  });
+
   it('resolves a JIT statusPoll via onStatusPoll and posts the result back', async () => {
     const onStatusPoll = jest
       .fn()

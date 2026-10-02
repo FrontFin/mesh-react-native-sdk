@@ -345,11 +345,14 @@ export interface LinkSettings {
   theme?: LinkTheme;
 }
 
-/** Handlers + display options common to both the normal and backup entry paths. */
+/**
+ * Handlers common to both the normal and backup entry paths. Only genuinely
+ * shared fields live here — display options that apply to just one path
+ * (`settings`/`disableDomainWhiteList` on the token path) are declared on that
+ * variant so they do not type-check in the other mode, where they are ignored.
+ */
 export interface LinkConnectCommon {
-  settings?: LinkSettings;
   renderViewContainer?: boolean; // this will render the container View instead of SafeAreaView
-  disableDomainWhiteList?: boolean; // this will disable the domain white list check
   onIntegrationConnected?: (payload: LinkPayload) => void;
   onTransferFinished?: (payload: TransferFinishedPayload) => void;
   onEvent?: (event: LinkEventType) => void;
@@ -360,6 +363,9 @@ export interface LinkConnectCommon {
 export interface LinkConnectTokenConfiguration extends LinkConnectCommon {
   /** The Mesh link token (normal path). */
   linkToken: string;
+  /** Full Link UI settings (accessTokens, displayFiatCurrency, theme, language). */
+  settings?: LinkSettings;
+  disableDomainWhiteList?: boolean; // this will disable the domain white list check
   backupConfig?: never;
   widgetOrigin?: never;
   hideCloseButton?: never;
@@ -375,6 +381,14 @@ export interface LinkConnectBackupModeConfiguration extends LinkConnectCommon {
    * `onAddressInit`/`onStatusPoll` resolve any address-less destinations.
    */
   backupConfig: MeshBackupConfig;
+  /**
+   * Only `theme` and `language` apply to the backup flow (same narrowed type as
+   * {@link LinkConnectBackupConfiguration.settings}); `accessTokens` /
+   * `displayFiatCurrency` are primary-path-only and have no effect here.
+   */
+  settings?: Pick<LinkSettings, 'theme' | 'language'>;
+  /** The backup delegate has no allow-list opt-out, so this is token-path-only. */
+  disableDomainWhiteList?: never;
   linkToken?: never;
   /**
    * Origin serving the standalone backup widget. Defaults to

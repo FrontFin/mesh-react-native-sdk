@@ -210,11 +210,19 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
     }
 
     if (method === 'addressInit') {
+      // Fail closed, symmetric with statusPoll: a declared address-less JIT
+      // destination with no onAddressInit handler is a misconfiguration. Never
+      // ack ok:true — that would let the widget start polling for an address
+      // whose generation was never kicked off.
+      const onAddressInit = props.onAddressInit;
+      if (!onAddressInit) {
+        respond(false, undefined, 'no onAddressInit handler provided');
+        return;
+      }
       // Fire-and-forget kick-off: the return value is ignored; a throw/reject is
-      // a generation failure. A missing handler is a benign no-op (the poll will
-      // fail closed if there is genuinely no resolver).
+      // a generation failure.
       Promise.resolve()
-        .then(() => props.onAddressInit?.(symbol, networkId))
+        .then(() => onAddressInit(symbol, networkId))
         .then(() => respond(true))
         .catch((e: unknown) => respond(false, undefined, errorMessage(e)));
       return;
@@ -235,9 +243,13 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
   const { linkUrl, darkTheme, handleMessage } = useBackupCallbacks(props, {
     onWidgetLoaded: () => {
       // The widget's `loaded` message IS the ready handshake — it cancels the
-      // pending tier timeout for whichever tier is current.
-      markReady();
-      deliverConfig();
+      // pending tier timeout for the surface that emitted it. The WebView is
+      // keyed by tier, so a torn-down Tier-1 surface can still deliver a queued
+      // `loaded` after the cascade; stamp it with this render's tier so the hook
+      // can ignore a stale one (and we skip re-delivering config in that case).
+      if (markReady(tier)) {
+        deliverConfig();
+      }
     },
     onJitRequest: handleJitRequest,
   });
@@ -368,7 +380,9 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
           });
           // A hard load failure on the backup origin cascades to Tier 2
           // immediately (design §5H) — do not reload the unreachable origin.
-          reportLoadError();
+          // Stamped with this render's tier so a stale error from a torn-down
+          // surface is ignored rather than misread as a failure of the new tier.
+          reportLoadError(tier);
         }}
         onHttpError={({ nativeEvent }) => {
           props.onEvent?.({
@@ -382,7 +396,7 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
           // page rather than the widget — treat it as a hard load error and
           // cascade to Tier 2.
           if (nativeEvent.statusCode >= 400) {
-            reportLoadError();
+            reportLoadError(tier);
           }
         }}
         onContentProcessDidTerminate={recoverFromRendererDeath}
