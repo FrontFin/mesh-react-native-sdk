@@ -4,21 +4,17 @@ export const DARK_THEME_COLOR_BOTTOM = '#0E0D0D';
 export const LIGHT_THEME_COLOR_BOTTOM = '#FBFBFB';
 
 /**
- * Default origin for the standalone backup deposit widget (OR-449), served from
- * Mesh's independent backup infrastructure. It is deliberately **not** a
- * `meshconnect.com` origin: the backup flow must share no failure domain with
- * the primary Mesh API, so if `meshconnect.com` is down the widget still loads.
- * This is the single value swapped at origin-migration time; override per-call
- * via `LinkConnectBackup`'s `widgetOrigin` prop for staging, demo, or self-host.
+ * Default origin for the standalone backup deposit widget (OR-449). This is the
+ * live production widget; override per-call via `LinkConnectBackup`'s
+ * `widgetOrigin` prop for staging, demo, or self-host. Money path: this origin
+ * serves the deposit-address UI during a `meshconnect.com` outage.
  *
- * ⚠️ PLACEHOLDER — must be replaced with the production, Mesh-owned backup origin
- * before this ships to clients. It deliberately uses the reserved `.invalid` TLD
- * (RFC 6761) so it can never resolve to a real — possibly attacker-controlled —
- * host if it reaches a release un-reconciled. Money path: this origin serves the
- * deposit-address UI during an outage. (As of 2026-09-23 the deployed widget is
- * a demo at `https://demo-widget.cascadecode.com` — pass it via `widgetOrigin`.)
+ * Known tradeoff: this is a `meshconnect.com` subdomain, not the fully
+ * independent DNS apex OR-447 specified (app hosting is independent Cloudflare
+ * infra; the DNS zone is not). A `meshconnect.com` zone-level outage would take
+ * this down too. Accepted risk, confirmed 2026-10-01.
  */
-export const DEFAULT_BACKUP_WIDGET_ORIGIN = 'https://backup-widget.invalid';
+export const DEFAULT_BACKUP_WIDGET_ORIGIN = 'https://backup.meshconnect.com';
 
 /**
  * The `type` the backup widget's message bridge requires on the config it

@@ -7,7 +7,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- `LinkConnectBackup`: a deposit-only backup component for use when the primary Mesh API is unavailable. It loads the standalone backup widget from `DEFAULT_BACKUP_WIDGET_ORIGIN` (overridable via the `widgetOrigin` prop) and hydrates it with a `MeshBackupConfig` delivered over the WebView message bridge — there is no link token and no core Mesh API dependency. Host callbacks (`onIntegrationConnected` / `onTransferFinished` / `onEvent` / `onExit`) and renderer-death recovery match `LinkConnect`. New exported types: `MeshBackupConfig`, `MeshBackupDestination`, `MeshBackupJitConfig`, `LinkConnectBackupConfiguration`. The existing `LinkConnect` (link-token) path is unchanged. (OR-451)
+- `LinkConnectBackup`: a deposit-only backup flow for when the primary Mesh API is unavailable, no link token required. (OR-451)
+
+### Changed
+
+- `LinkConnectBackup` now defaults to the live production backup widget. (PRG-1299)
 
 ## 2.4.8
 

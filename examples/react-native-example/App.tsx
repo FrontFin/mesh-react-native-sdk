@@ -27,12 +27,12 @@ const layout_width = Dimensions.get('window').width;
 // --- Backup / outage demo -------------------------------------------------
 // The deposit-only backup flow runs when the primary Mesh API is unavailable.
 // It needs no link token: it loads the standalone backup widget from its origin
-// and takes a client-assembled MeshBackupConfig. This origin is the live demo
-// widget (OR-449); in production it would be the shipped backup origin.
-const DEMO_BACKUP_WIDGET_ORIGIN = 'https://demo-widget.cascadecode.com';
-
-// networkIds match the live demo pairs manifest
-// (https://demo-widget.cascadecode.com/backup/pairs/all.json). Static addresses
+// and takes a client-assembled MeshBackupConfig. No widgetOrigin override here
+// on purpose: this demos the SDK's own default, the live production widget
+// (OR-449).
+//
+// networkIds match the live production pairs manifest
+// (https://pairs.cascadecode.com/backup/pairs/all.json). Static addresses
 // are used so no JIT backend is required; to demo JIT instead, drop `address`
 // and add a `jit: { initiateUrl, statusUrl, token }` block.
 // NOTE: these are demo addresses for showing the QR/copy screen only — do not
@@ -99,7 +99,6 @@ export default function App() {
   if (backupView) {
     return (
       <LinkConnectBackup
-        widgetOrigin={DEMO_BACKUP_WIDGET_ORIGIN}
         backupConfig={DEMO_BACKUP_CONFIG}
         settings={{language: 'en', theme: 'system'}}
         onTransferFinished={(payload: TransferFinishedPayload) => {
