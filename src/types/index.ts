@@ -40,7 +40,8 @@ export type LinkEventType =
   | TransferConfigureError
   | TransferAssetSelected
   | TransferNetworkSelected
-  | DefiWalletError;
+  | DefiWalletError
+  | BackupTierChanged;
 
 const LINK_EVENT_TYPE_KEYS = [
   'integrationConnected',
@@ -83,6 +84,7 @@ const LINK_EVENT_TYPE_KEYS = [
   'methodSelected',
   'homePageLoaded',
   'defiWalletError',
+  'backupTierChanged',
 ] as const;
 
 export const mappedLinkEvents: Record<string, string> = {
@@ -343,16 +345,81 @@ export interface LinkSettings {
   theme?: LinkTheme;
 }
 
-export interface LinkConfiguration {
-  linkToken: string;
-  settings?: LinkSettings;
+/**
+ * Handlers common to both the normal and backup entry paths. Only genuinely
+ * shared fields live here — display options that apply to just one path
+ * (`settings`/`disableDomainWhiteList` on the token path) are declared on that
+ * variant so they do not type-check in the other mode, where they are ignored.
+ */
+export interface LinkConnectCommon {
   renderViewContainer?: boolean; // this will render the container View instead of SafeAreaView
-  disableDomainWhiteList?: boolean; // this will disable the domain white list check
   onIntegrationConnected?: (payload: LinkPayload) => void;
   onTransferFinished?: (payload: TransferFinishedPayload) => void;
   onEvent?: (event: LinkEventType) => void;
   onExit?: (err?: string) => void;
 }
+
+/** Normal path: a Mesh link token, and none of the backup-only fields. */
+export interface LinkConnectTokenConfiguration extends LinkConnectCommon {
+  /** The Mesh link token (normal path). */
+  linkToken: string;
+  /** Full Link UI settings (accessTokens, displayFiatCurrency, theme, language). */
+  settings?: LinkSettings;
+  disableDomainWhiteList?: boolean; // this will disable the domain white list check
+  backupConfig?: never;
+  widgetOrigin?: never;
+  hideCloseButton?: never;
+  onAddressInit?: never;
+  onStatusPoll?: never;
+}
+
+/** Outage path: a {@link MeshBackupConfig} in place of a link token. */
+export interface LinkConnectBackupModeConfiguration extends LinkConnectCommon {
+  /**
+   * Backup deposit config, assembled server-side. When set, `LinkConnect` renders
+   * the deposit-only backup flow (the Level 1 / Level 2 cascade is automatic);
+   * `onAddressInit`/`onStatusPoll` resolve any address-less destinations.
+   */
+  backupConfig: MeshBackupConfig;
+  /**
+   * Only `theme` and `language` apply to the backup flow (same narrowed type as
+   * {@link LinkConnectBackupConfiguration.settings}); `accessTokens` /
+   * `displayFiatCurrency` are primary-path-only and have no effect here.
+   */
+  settings?: Pick<LinkSettings, 'theme' | 'language'>;
+  /** The backup delegate has no allow-list opt-out, so this is token-path-only. */
+  disableDomainWhiteList?: never;
+  linkToken?: never;
+  /**
+   * Origin serving the standalone backup widget. Defaults to
+   * `DEFAULT_BACKUP_WIDGET_ORIGIN`. Override for staging or self-hosting.
+   */
+  widgetOrigin?: string;
+  /** Hide the native close (✕) button overlaid on the flow. */
+  hideCloseButton?: boolean;
+  /**
+   * JIT kick-off (CDC client spec §6.1). Required only if any backup destination
+   * omits `address`. See {@link LinkConnectBackupConfiguration.onAddressInit}.
+   */
+  onAddressInit?: (symbol: string, networkId: string) => void | Promise<unknown>;
+  /**
+   * JIT status poll (CDC client spec §6.2). Required only if any backup
+   * destination omits `address`. See {@link LinkConnectBackupConfiguration.onStatusPoll}.
+   */
+  onStatusPoll?: (
+    symbol: string,
+    networkId: string
+  ) => Promise<MeshBackupJitStatusResult>;
+}
+
+/**
+ * Props for {@link LinkConnect}. Exactly one entry-point credential is required:
+ * a `linkToken` (normal path) **or** a `backupConfig` (outage path — CDC client
+ * spec §3.1) — the two are mutually exclusive, enforced at the type level.
+ */
+export type LinkConfiguration =
+  | LinkConnectTokenConfiguration
+  | LinkConnectBackupModeConfiguration;
 
 export type TransferFinishedPayload =
   | TransferFinishedSuccessPayload
@@ -526,6 +593,28 @@ export interface TransferNetworkSelected extends LinkEventBase {
   };
 }
 
+/**
+ * Emitted once when the backup flow cascades from Tier 1 (widget loaded from
+ * the independent backup origin) to Tier 2 (widget + catalog served from the
+ * SDK bundle, no Mesh-owned network dependency) — see design §5H. The cascade
+ * is single-shot per session, so this fires at most once. It lets the host
+ * measure how often Tier 2 actually engages so `TIER1_READY_TIMEOUT_MS` can be
+ * tuned from real data (design §13, over-eager-fallback risk).
+ */
+export interface BackupTierChanged extends LinkEventBase {
+  type: 'backupTierChanged';
+  payload: {
+    from: 'tier1';
+    to: 'tier2';
+    /**
+     * Why Tier 1 was abandoned: `loadError` = a hard WebView load/HTTP failure
+     * on the backup-origin document; `readyTimeout` = the widget did not
+     * complete its ready handshake within `TIER1_READY_TIMEOUT_MS`.
+     */
+    reason: 'loadError' | 'readyTimeout';
+  };
+}
+
 export interface DefiWalletError extends LinkEventBase {
   type: 'defiWalletError';
   payload: {
@@ -554,10 +643,11 @@ export interface DefiWalletError extends LinkEventBase {
 /**
  * A single deposit destination offered in the backup flow.
  *
- * `address` is optional **only** when the config carries a {@link MeshBackupJitConfig}
- * `jit` block — an address-less destination is resolved via the client's own JIT
- * endpoint at selection time. A destination with neither `address` nor a `jit`
- * block cannot be resolved.
+ * `address` is optional **only** when the host supplies the JIT callbacks
+ * ({@link LinkConnectBackupConfiguration.onAddressInit} /
+ * {@link LinkConnectBackupConfiguration.onStatusPoll}) — an address-less
+ * destination is resolved through those callbacks at selection time. A
+ * destination with neither `address` nor the callbacks cannot be resolved.
  */
 export interface MeshBackupDestination {
   /**
@@ -567,7 +657,7 @@ export interface MeshBackupDestination {
   networkId: string;
   /** Token symbol, e.g. `'USDC'`. */
   symbol: string;
-  /** Static deposit address. Omit to resolve this destination via JIT. */
+  /** Static deposit address. Omit to resolve this destination via the JIT callbacks. */
   address?: string;
   /**
    * Memo/tag for memo/tag chains (XRP, XLM, TON/TVM, Injective, muxed Stellar).
@@ -577,36 +667,37 @@ export interface MeshBackupDestination {
 }
 
 /**
- * Client-hosted JIT (just-in-time) address endpoints, required when any
- * destination omits `address`. The widget calls these directly, presenting the
- * `token` as `Authorization: Bearer <token>`. Mesh never sees or validates the
- * token — the client owns its issuance and validation.
+ * Result the host's {@link LinkConnectBackupConfiguration.onStatusPoll} callback
+ * resolves to (CDC client spec §6.2). A discriminated union on `status` so a
+ * `ready` result must carry an `address` at the type level (the bridge contract
+ * requires it and the widget rejects a `ready` without one):
+ * - `pending` ⇒ the widget polls again;
+ * - `ready` ⇒ done — `address` required (+ `addressTag` for memo/tag chains:
+ *   XRP, XLM, TON/TVM, Injective, muxed Stellar);
+ * - `failed` ⇒ terminal error.
  */
-export interface MeshBackupJitConfig {
-  /** `POST` endpoint that begins address resolution. */
-  initiateUrl: string;
-  /** `GET` endpoint the widget polls until an address is `ready`. */
-  statusUrl: string;
-  /**
-   * Short-lived (≤10 min), user-scoped bearer token, minted by the client
-   * server-side at outage-detection time. Treat as exposed — it lives in the
-   * WebView.
-   */
-  token: string;
-}
+export type MeshBackupJitStatusResult =
+  | { status: 'ready'; address: string; addressTag?: string }
+  | { status: 'pending' }
+  | { status: 'failed' };
 
 /**
  * Configuration handed to the backup deposit widget. Assemble this server-side
- * (destinations and any JIT token should not be built in untrusted client code)
- * and pass it to {@link LinkConnectBackup} via the `backupConfig` prop; it is
- * delivered to the widget over the SDK message bridge. Canonical shape: OR-446.
+ * (destinations should not be built in untrusted client code) and pass it to
+ * {@link LinkConnectBackup} via the `backupConfig` prop; it is delivered to the
+ * widget over the SDK message bridge. Canonical shape: OR-446 / CDC client spec §3.
+ *
+ * There is no JIT endpoint/token block: address-less destinations are resolved
+ * entirely through the {@link LinkConnectBackupConfiguration.onAddressInit} /
+ * {@link LinkConnectBackupConfiguration.onStatusPoll} callbacks, which run in the
+ * host app against the client's own backend (no credential ever enters the widget).
  */
 export interface MeshBackupConfig {
   /** The client's Mesh client id. */
   clientId: string;
   /**
-   * The client's end-user identifier. Echoed by JIT and used for analytics —
-   * it is **not** an authentication credential.
+   * The client's end-user identifier. Used for analytics — it is **not** an
+   * authentication credential.
    */
   userId: string;
   /** Deposit destinations to offer. At least one is required. */
@@ -616,14 +707,6 @@ export interface MeshBackupConfig {
    * of the destination symbols; an unknown symbol falls back to token select.
    */
   preselectedSymbol?: string;
-  /** Required when any destination omits `address`. */
-  jit?: MeshBackupJitConfig;
-  /**
-   * Your correlation id, echoed to your JIT Initiate/Status endpoints so you can
-   * tie the resolved deposit address to a transaction in your system.
-   * Session-level; sent empty when omitted.
-   */
-  transactionId?: string;
 }
 
 /**
@@ -652,6 +735,26 @@ export interface LinkConnectBackupConfiguration {
    * own chrome.
    */
   hideCloseButton?: boolean;
+  /**
+   * JIT kick-off callback (CDC client spec §6.1). Required only if any destination
+   * omits `address`. Called **once** in the host app when the user confirms a
+   * `(symbol, networkId)` — kick off address generation against your own backend
+   * with your own session. The return value is **ignored** (return a promise if
+   * async); a **thrown/rejected** result is treated as a generation failure.
+   */
+  onAddressInit?: (symbol: string, networkId: string) => void | Promise<unknown>;
+  /**
+   * JIT status poll (CDC client spec §6.2). Required only if any destination omits
+   * `address`. Polled ~every 2–3s (~3-min deadline) with the same
+   * `(symbol, networkId)` until it resolves `ready` or `failed`. Return the same
+   * address for a given `(symbol, networkId)` every time (idempotent) — a repeat
+   * poll must never yield a new address. A thrown/rejected promise, or
+   * `status: 'failed'`, ends the attempt with an error.
+   */
+  onStatusPoll?: (
+    symbol: string,
+    networkId: string
+  ) => Promise<MeshBackupJitStatusResult>;
   onIntegrationConnected?: (payload: LinkPayload) => void;
   onTransferFinished?: (payload: TransferFinishedPayload) => void;
   onEvent?: (event: LinkEventType) => void;
