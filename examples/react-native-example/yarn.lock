@@ -1644,7 +1644,7 @@
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
 "@meshconnect/react-native-link-sdk@../../dist":
-  version "2.4.8"
+  version "2.5.0"
   dependencies:
     query-string "7"
     react-native-webview "^13.16.1"
