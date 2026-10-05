@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import {
   AccessTokenPayload,
+  DEFAULT_BACKUP_WIDGET_ORIGIN,
   LinkConnect,
   LinkEventType,
   LinkPayload,
@@ -28,11 +29,11 @@ const layout_width = Dimensions.get('window').width;
 // --- Backup / outage demo -------------------------------------------------
 // The deposit-only backup flow runs when the primary Mesh API is unavailable.
 // It needs no link token: it loads the standalone backup widget from its origin
-// and takes a client-assembled MeshBackupConfig. This defaults to the CI-deployed
-// backup widget (the `link-backup` Cloudflare Worker); override it in the app via
-// the "Tier-1 widget origin" field (e.g. to point at a locally-run widget).
-const DEMO_BACKUP_WIDGET_ORIGIN =
-  'https://link-backup.front-finance-account.workers.dev';
+// and takes a client-assembled MeshBackupConfig. By default this demo passes NO
+// `widgetOrigin`, so the SDK uses its own built-in default
+// (DEFAULT_BACKUP_WIDGET_ORIGIN = the production backup widget) — exactly what a
+// client gets out of the box. Type an origin in the "Tier-1 widget origin" field
+// to override it (e.g. a locally-run widget); leave it blank to use the default.
 
 // A deliberately unreachable origin (reserved `.invalid` TLD, RFC 6761). When the
 // "Force Tier-2 fallback" toggle is on, the backup flow is pointed here so the
@@ -133,10 +134,11 @@ export default function App() {
   // it cascades to the bundled Tier-2 fallback (OR-474). `backupTier` is surfaced
   // from the SDK's `backupTierChanged` event so the active tier shows on screen.
   const [forceTier2, setForceTier2] = useState(false);
-  // Where the Tier-1 backup widget loads from (defaults to the CI-deployed
-  // widget). Editable in the UI to point at a local widget; ignored when Force
-  // Tier-2 is on (that path loads the SDK-bundled widget, not a remote origin).
-  const [tier1Origin, setTier1Origin] = useState(DEMO_BACKUP_WIDGET_ORIGIN);
+  // Optional Tier-1 origin override. Blank (the default) means "pass no
+  // widgetOrigin", so the SDK loads its own default (the production backup
+  // widget). Type a value to point at another origin (e.g. a local widget);
+  // ignored when Force Tier-2 is on (that path loads the SDK-bundled widget).
+  const [tier1Origin, setTier1Origin] = useState('');
   const [backupTier, setBackupTier] = useState<'tier1' | 'tier2'>('tier1');
   // Demo toggle: when on, destinations drop their static address and resolve via
   // the onAddressInit/onStatusPoll callbacks (OR-452). Pair with Force Tier-2 to
@@ -176,15 +178,24 @@ export default function App() {
   }
 
   if (backupView) {
-    const activeOrigin = forceTier2
+    const customOrigin = tier1Origin.trim();
+    // Prop passed to LinkConnect: omit it (undefined) when there is no override,
+    // so the SDK falls back to DEFAULT_BACKUP_WIDGET_ORIGIN — the exact path a
+    // production client takes. A typed value overrides it; Force Tier-2 points at
+    // a dead origin so the Tier-1 load fails and the SDK cascades to Tier 2.
+    const widgetOriginOverride = forceTier2
       ? DEAD_BACKUP_WIDGET_ORIGIN
-      : tier1Origin.trim() || DEMO_BACKUP_WIDGET_ORIGIN;
+      : customOrigin || undefined;
+    // The origin actually in effect, for the on-screen banner: the override if
+    // set, else the SDK's own default that LinkConnect will use.
+    const activeOrigin =
+      widgetOriginOverride ?? DEFAULT_BACKUP_WIDGET_ORIGIN;
     return (
       <View style={styles.flex}>
         {/* Spec entry point: the same <LinkConnect>, given a backupConfig in
             place of a linkToken (CDC client spec §3.1). */}
         <LinkConnect
-          widgetOrigin={activeOrigin}
+          widgetOrigin={widgetOriginOverride}
           backupConfig={forceJit ? JIT_BACKUP_CONFIG : DEMO_BACKUP_CONFIG}
           onAddressInit={demoOnAddressInit}
           onStatusPoll={demoOnStatusPoll}
@@ -299,7 +310,7 @@ export default function App() {
           <View
             testID={'example-app-backup-origin-container'}
             style={styles.originField}>
-            <Text style={styles.switchLabel}>Tier-1 widget origin</Text>
+            <Text style={styles.switchLabel}>Tier-1 widget origin (optional)</Text>
             <TextInput
               testID={'example-app-backup-origin-input'}
               value={tier1Origin}
@@ -308,12 +319,13 @@ export default function App() {
               autoCapitalize={'none'}
               autoCorrect={false}
               style={[styles.originInput, forceTier2 && styles.originInputDisabled]}
-              placeholder={DEMO_BACKUP_WIDGET_ORIGIN}
+              placeholder={`${DEFAULT_BACKUP_WIDGET_ORIGIN} (SDK default)`}
               placeholderTextColor={'#9a9a9a'}
             />
             <Text style={styles.switchHint}>
-              Where the backup widget loads from (ignored when Force Tier-2 is on).
-              Point at a locally-run widget to test without the hosted deploy.
+              Leave blank to use the SDK's built-in production default. Type an
+              origin to override it, e.g. a locally-run widget. Ignored when Force
+              Tier-2 is on.
             </Text>
           </View>
 
