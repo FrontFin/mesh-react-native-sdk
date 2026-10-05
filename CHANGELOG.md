@@ -3,15 +3,17 @@
 All notable changes to the Mesh Connect React Native SDK are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## Unreleased
+## 2.4.9
 
 ### Added
 
-- `LinkConnectBackup`: a deposit-only backup flow for when the primary Mesh API is unavailable, no link token required. (OR-451)
+- New backup deposit flow for when Mesh's main service is down. No link token needed.
+- If the backup flow can't load either, the SDK falls back to an offline version built into the app, so a deposit can still go through.
+- Support for generating deposit addresses on demand, for backup destinations that don't have one set up ahead of time.
 
 ### Changed
 
-- `LinkConnectBackup` now defaults to the live production backup widget. (PRG-1299)
+- The backup flow now points to the live production widget instead of a test placeholder.
 
 ## 2.4.8
 
