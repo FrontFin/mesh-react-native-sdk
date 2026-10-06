@@ -3,6 +3,12 @@
 All notable changes to the Mesh Connect React Native SDK are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## Unreleased
+
+### Fixed
+
+- The offline backup fallback now matches the live backup widget: it is locked down so it can't make network requests, hides destinations that aren't in its bundled catalog, allows pinch-zoom, and falls back to token selection when the preselected token isn't available. (OR-452)
+
 ## 2.5.0
 
 ### Added
