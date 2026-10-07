@@ -30,7 +30,9 @@ export const urlSearchParams = (url?: string) => {
     );
     const value =
       separator === -1 ? null : decodeQueryComponent(pair.slice(separator + 1));
-    occurrences.set(key, [...(occurrences.get(key) ?? []), value]);
+    const values = occurrences.get(key);
+    if (values) values.push(value);
+    else occurrences.set(key, [value]);
   }
 
   const params: Record<string, string> = Object.create(null);

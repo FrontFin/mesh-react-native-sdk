@@ -11,7 +11,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Removed
 
-- The `query-string` dependency, which pulled in a vulnerable `decode-uri-component`. No change to SDK behaviour.
+- The `query-string` dependency, which pulled in a vulnerable `decode-uri-component`. Malformed `%` sequences in the link URL are now kept as-is instead of partially decoded.
 
 ## 2.5.0
 
