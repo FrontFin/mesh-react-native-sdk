@@ -8,6 +8,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 
 - The offline backup fallback now matches the live backup widget: it is locked down so it can't make network requests, hides destinations that aren't in its bundled catalog, allows pinch-zoom, and falls back to token selection when the preselected token isn't available. If none of the configured destinations are in the bundled catalog, the offline fallback shows an error instead of a deposit screen. (OR-452)
+- The offline backup fallback's bundled catalog is refreshed to all currently supported token/network pairs (714, up from 270), so recently added pairs are offered when the fallback is in use. (OR-452)
 
 ## 2.5.0
 
