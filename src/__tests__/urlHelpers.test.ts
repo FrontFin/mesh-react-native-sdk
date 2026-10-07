@@ -9,6 +9,13 @@ describe('urlSearchParams function', () => {
       'https://example.com?search=query&sort': { search: 'query' },
       'https://example.com?test%20encoded=value': { 'test encoded': 'value' },
       'https://example.com/path?name=John&age=30': { age: '30', name: 'John' },
+      'https://example.com?a=1+2&b=x=y': { a: '1 2', b: 'x=y' },
+      'https://example.com?a=1&a=2&b=3': { b: '3' },
+      'https://example.com?a&a=1': {},
+      'https://example.com??a=1': { a: '1' },
+      'https://example.com#hash?a=1': {},
+      'https://example.com?bad=%E0%A4%A': { bad: '%E0%A4%A' },
+      'https://example.com?constructor=1': { constructor: '1' },
     };
 
     Object.entries(urls).forEach(([url, params]) => {

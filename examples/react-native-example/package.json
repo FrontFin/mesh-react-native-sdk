@@ -35,5 +35,8 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "resolutions": {
+    "fast-xml-parser": "^5.10.1"
   }
 }
