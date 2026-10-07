@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import { OFFLINE_WIDGET_HTML, getBundledOfflineWidget } from '../backup-bundle';
 
 describe('Tier-2 backup bundle', () => {
@@ -12,6 +13,46 @@ describe('Tier-2 backup bundle', () => {
     // so Tier 2 makes no Mesh-owned network call. Guards against a regression that
     // reintroduces a remote script/style/logo URL.
     expect(OFFLINE_WIDGET_HTML).not.toMatch(/(src|href)\s*=\s*["']https?:/i);
+  });
+
+  it('enforces the exact hash-only, no-network CSP (no stale or extra sources)', () => {
+    // The widget's CSP allows inline code only by hash and blocks all network
+    // access. If one byte of the inline script/style changes without the hash being
+    // regenerated, the WebView blocks it and the offline fallback renders blank; if
+    // a source like `https:` creeps in, the no-network guarantee is gone. So pin the
+    // hash sets EXACTLY to the actual inline code, and every other directive.
+    const csp = OFFLINE_WIDGET_HTML.match(
+      /<meta\s+http-equiv=(["'])Content-Security-Policy\1\s+content=(["'])([\s\S]*?)\2/i
+    )?.[3];
+    expect(csp).toBeDefined();
+    const directives = new Map<string, string[]>();
+    for (const part of (csp ?? '').split(';')) {
+      const [name, ...srcs] = part.trim().split(/\s+/).filter(Boolean);
+      if (!name) continue;
+      // A duplicated directive is ignored by browsers after the first — reject it.
+      expect(directives.has(name.toLowerCase())).toBe(false);
+      directives.set(name.toLowerCase(), srcs);
+    }
+    const sha256 = (body: string) =>
+      `'sha256-${createHash('sha256').update(body, 'utf8').digest('base64')}'`;
+    const inlineHashes = (pattern: RegExp) =>
+      [...new Set([...OFFLINE_WIDGET_HTML.matchAll(pattern)].map((m) => sha256(m[1])))].sort();
+
+    const scriptHashes = inlineHashes(/<script\b[^>]*>([\s\S]*?)<\/script>/gi);
+    const styleHashes = inlineHashes(/<style\b[^>]*>([\s\S]*?)<\/style>/gi);
+    expect(scriptHashes.length).toBeGreaterThan(0);
+    expect(styleHashes.length).toBeGreaterThan(0);
+
+    // Exactly the allowlisted directives, each with exactly the expected sources.
+    expect(Object.fromEntries([...directives].map(([k, v]) => [k, [...v].sort()]))).toEqual({
+      'default-src': ["'none'"],
+      'script-src': scriptHashes,
+      'style-src': styleHashes,
+      'img-src': ['data:'],
+      'connect-src': ["'none'"],
+      'base-uri': ["'none'"],
+      'form-action': ["'none'"],
+    });
   });
 
   it('speaks the SDK message bridge the host drives (loaded handshake + config)', () => {

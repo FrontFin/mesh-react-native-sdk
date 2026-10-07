@@ -22,9 +22,16 @@ widget signals readiness with its usual `loaded` handshake.
 ## Drift / refresh (release checklist)
 
 The snapshot **drifts** between releases — a pair added after a client's installed
-SDK version won't have a bundled name/logo. Drift is **display-only**: such a pair
-still works in Tier 2 (initials placeholder + the config's own symbol; the address
-comes from `MeshBackupConfig` or the client's JIT callback, never the snapshot).
+SDK version isn't in it. Drift is **not** display-only: the widget offers only
+destinations present in its loaded catalog (the client spec requires every
+`destinations[]` pair to be in the manifest), so in Tier 2 a configured destination
+missing from the bundled snapshot is **not offered** until an SDK release ships a
+newer snapshot. If none of the configured destinations are in the snapshot, Tier 2
+shows an error. (An invalid/corrupt snapshot is treated as "no catalog": every
+configured destination is kept, with initials placeholders.) The snapshot only ever
+filters destinations and supplies names/logos — the address always comes from
+`MeshBackupConfig` or the client's JIT callback, never the snapshot. Pairs inside
+the snapshot but outside the curated top-N logo set render an initials placeholder.
 
 **On every SDK release**, re-vendor both files from `mesh-backup-widget` (rebuild
 its Phase 6a snapshot from the current `all.json`, then its Phase 6b offline
