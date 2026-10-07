@@ -3,6 +3,16 @@
 All notable changes to the Mesh Connect React Native SDK are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2.5.1
+
+### Changed
+
+- Updated dependencies to patch known security vulnerabilities.
+
+### Removed
+
+- The `query-string` dependency, which pulled in a vulnerable `decode-uri-component`. No change to SDK behaviour.
+
 ## 2.5.0
 
 ### Added
