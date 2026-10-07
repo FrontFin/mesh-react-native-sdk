@@ -7,9 +7,11 @@
 > `catalog.snapshot.json` from the current `all.json` (the Phase 6a / OR-472
 > build step), then run `yarn bundle:embed` and commit the refreshed files
 > (including `generated.ts`). `yarn bundle:check` (also run in CI) enforces the
-> size budget and that the generated module is in sync. Drift is display-only —
-> a newer pair still works via the initials fallback — but a stale bundle means
-> majors added since the last release render without their name/logo in Tier 2.
+> size budget and that the generated module is in sync. Drift is **not**
+> display-only: Tier 2 offers only destinations present in the bundled catalog,
+> so a pair added since the last refresh is **not offered** in Tier 2 (and if no
+> configured destination is in it, Tier 2 shows an error) until a release ships
+> a newer snapshot.
 
 ## ✨ With Claude Code (recommended)
 

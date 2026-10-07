@@ -3,7 +3,7 @@
 All notable changes to the Mesh Connect React Native SDK are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## 2.5.1
+## 2.5.2
 
 ### Changed
 
@@ -12,6 +12,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Removed
 
 - The `query-string` dependency, which pulled in a vulnerable `decode-uri-component`. Malformed `%` sequences in the link URL are now kept as-is instead of partially decoded.
+
+## 2.5.1
+
+### Fixed
+
+- Offline backup fallback now matches the live widget: no network calls, hides destinations not in its bundled catalog, allows pinch-zoom, and falls back to token select when needed.
+- Refreshed the bundled catalog to all currently supported pairs (270 → 714), so recently added destinations show up in the fallback.
 
 ## 2.5.0
 
