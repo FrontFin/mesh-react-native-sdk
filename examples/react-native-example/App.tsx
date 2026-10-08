@@ -118,10 +118,14 @@ const demoOnAddressInit = (symbol: string, networkId: string) => {
   console.log('onAddressInit', symbol, networkId);
 };
 
-const demoOnStatusPoll = async (
-  symbol: string,
-  networkId: string,
-): Promise<MeshBackupJitStatusResult> => {
+// Built per open from the ACTIVE destination list (demo or large set), so the
+// address returned for a pair is the one that config declares for it.
+const makeDemoOnStatusPoll =
+  (destinations: MeshBackupConfig['destinations']) =>
+  async (
+    symbol: string,
+    networkId: string,
+  ): Promise<MeshBackupJitStatusResult> => {
   const key = `${symbol}:${networkId}`;
   const n = (jitPollCounts.get(key) ?? 0) + 1;
   jitPollCounts.set(key, n);
@@ -130,14 +134,13 @@ const demoOnStatusPoll = async (
   if (n < 3) {
     return {status: 'pending'};
   }
-  // Return the address the static config declared for THIS pair, so each network
-  // gets a correctly-formatted address (e.g. the Tron address for USDC·Tron, an
-  // EVM address for the EVM pairs) — not a one-size EVM address that would fail
-  // the widget's per-network format check.
-  const dest = [
-    ...DEMO_BACKUP_CONFIG.destinations,
-    ...LARGE_DESTINATIONS,
-  ].find(d => d.symbol === symbol && d.networkId === networkId);
+  // Return the address the active config declared for THIS pair, so each
+  // network gets a correctly-formatted address (e.g. the Tron address for
+  // USDC·Tron, an EVM address for the EVM pairs) — not a one-size EVM address
+  // that would fail the widget's per-network format check.
+  const dest = destinations.find(
+    d => d.symbol === symbol && d.networkId === networkId,
+  );
   return {status: 'ready', address: dest?.address ?? EVM_DEMO_ADDRESS};
 };
 
@@ -247,7 +250,7 @@ export default function App() {
           widgetOrigin={widgetOriginOverride}
           backupConfig={forceJit ? withoutAddresses(baseConfig) : baseConfig}
           onAddressInit={demoOnAddressInit}
-          onStatusPoll={demoOnStatusPoll}
+          onStatusPoll={makeDemoOnStatusPoll(baseConfig.destinations)}
           settings={{language: 'en', theme: 'system'}}
           onTransferFinished={(payload: TransferFinishedPayload) => {
             if (payload.status === 'success') {
