@@ -115,16 +115,22 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
   const recoveryResetKey = `${props.widgetOrigin ?? ''}|${
     props.settings?.theme ?? ''
   }|${props.settings?.language ?? ''}|${tier}`;
+  // A recovery reload starts the reloaded document's handshake over, so if it
+  // errors or never sends `loaded` the flow still cascades (Tier 1) or fails
+  // closed (Tier 2) instead of being treated as already ready.
   const { webViewRef, recoverFromRendererDeath: recoverWebView } =
-    useWebViewRecovery(recoveryResetKey);
+    useWebViewRecovery(recoveryResetKey, () => {
+      setReadySurface(null);
+      restartHandshake();
+    });
   // The document (see `surfaceKey` below) whose widget has completed its ready
   // handshake. Once the current document's widget is up it draws its own close
   // (✕) in the same corner, so the native one is shown only until then
   // (spinner, a hanging Tier 1, Tier 2 mounting, or a reload after the host
   // changes origin/theme/language) — otherwise the two overlap as a double ✕.
   const [readySurface, setReadySurface] = useState<string | null>(null);
-  // A dead renderer reloads to a blank surface: bring the native close back
-  // until the reloaded widget handshakes again.
+  // A dead renderer leaves a blank surface: bring the native close back right
+  // away (the reload — now or on return to foreground — restarts the handshake).
   const recoverFromRendererDeath = () => {
     setReadySurface(null);
     recoverWebView();

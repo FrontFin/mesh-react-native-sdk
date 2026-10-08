@@ -821,6 +821,43 @@ describe('LinkConnectBackup', () => {
     });
   });
 
+  it.each([
+    ['foreground', false],
+    ['background (reload deferred to foreground return)', true],
+  ])('a renderer-death reload after ready restarts the handshake (%s)', async (_, backgrounded) => {
+    let appStateCb: ((s: string) => void) | undefined;
+    jest.spyOn(AppState, 'addEventListener').mockImplementation((event: any, cb: any) => {
+      if (event === 'change') appStateCb = cb;
+      return { remove: jest.fn() } as any;
+    });
+    const onEvent = jest.fn();
+    const { getByTestId } = render(<LinkConnectBackup backupConfig={CONFIG} onEvent={onEvent} />);
+    await waitFor(() => getByTestId('webview'));
+    act(() => loaded(getByTestId('webview')));
+    await waitFor(() => expect(getByTestId('webview')).toBeTruthy());
+
+    (AppState as any).currentState = backgrounded ? 'background' : 'active';
+    act(() => getByTestId('webview').props.onRenderProcessGone());
+    if (backgrounded) {
+      expect(mockReload).not.toHaveBeenCalled();
+      (AppState as any).currentState = 'active';
+      act(() => appStateCb?.('active'));
+    }
+    expect(mockReload).toHaveBeenCalledTimes(1);
+    // Native close is back while the reloaded document loads…
+    expect(getByTestId('backup-close-button')).toBeTruthy();
+    // …and if the reload fails, the flow still falls back instead of ignoring it.
+    act(() => {
+      getByTestId('webview').props.onError({
+        nativeEvent: { url: DEFAULT_BACKUP_WIDGET_ORIGIN, code: -1009, description: 'offline' },
+      });
+    });
+    expect(onEvent).toHaveBeenCalledWith({
+      type: 'backupTierChanged',
+      payload: { from: 'tier1', to: 'tier2', reason: 'loadError' },
+    });
+  });
+
   it('defers recovery to foreground return when the renderer dies backgrounded', async () => {
     let appStateCb: ((s: string) => void) | undefined;
     jest.spyOn(AppState, 'addEventListener').mockImplementation((event: any, cb: any) => {
