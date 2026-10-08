@@ -107,12 +107,6 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
     },
   });
   const isTier2 = tier === 'tier2';
-  // The tier whose widget has completed its ready handshake. Once the current
-  // tier's widget is up it draws its own close (✕) in the same corner, so the
-  // native one is shown only until then (spinner, a hanging Tier 1, Tier 2
-  // mounting) — otherwise the two overlap as a double ✕.
-  const [readyTier, setReadyTier] = useState<typeof tier | null>(null);
-  const widgetReady = readyTier === tier;
 
   // Render-process-death recovery, shared with LinkConnect. The reset key must
   // change whenever the loaded surface does so a new session gets a fresh
@@ -123,10 +117,18 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
   }|${props.settings?.language ?? ''}|${tier}`;
   const { webViewRef, recoverFromRendererDeath: recoverWebView } =
     useWebViewRecovery(recoveryResetKey);
+  // The surface (same key as above: origin + theme + language + tier) whose
+  // widget has completed its ready handshake. Once the current surface's widget
+  // is up it draws its own close (✕) in the same corner, so the native one is
+  // shown only until then (spinner, a hanging Tier 1, Tier 2 mounting, or a
+  // reload after the host changes origin/theme/language) — otherwise the two
+  // overlap as a double ✕.
+  const [readySurface, setReadySurface] = useState<string | null>(null);
+  const widgetReady = readySurface === recoveryResetKey;
   // A dead renderer reloads to a blank surface: bring the native close back
   // until the reloaded widget handshakes again.
   const recoverFromRendererDeath = () => {
-    setReadyTier(null);
+    setReadySurface(null);
     recoverWebView();
   };
 
@@ -260,7 +262,7 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
       // `loaded` after the cascade; stamp it with this render's tier so the hook
       // can ignore a stale one (and we skip re-delivering config in that case).
       if (markReady(tier)) {
-        setReadyTier(tier);
+        setReadySurface(recoveryResetKey);
         deliverConfig();
       }
     },

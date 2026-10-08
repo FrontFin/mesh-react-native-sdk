@@ -639,6 +639,21 @@ describe('LinkConnectBackup', () => {
     await waitFor(() => expect(queryByTestId('backup-close-button')).toBeNull());
   });
 
+  it('brings the native close back when origin/theme/language reloads the widget', async () => {
+    const { getByTestId, queryByTestId, rerender } = render(
+      <LinkConnectBackup backupConfig={CONFIG} settings={{ theme: 'light' }} />
+    );
+    await waitFor(() => getByTestId('webview'));
+    act(() => loaded(getByTestId('webview')));
+    await waitFor(() => expect(queryByTestId('backup-close-button')).toBeNull());
+
+    // Same tier, new surface: the replacement widget hasn't handshaken yet.
+    rerender(<LinkConnectBackup backupConfig={CONFIG} settings={{ theme: 'dark' }} />);
+    await waitFor(() => getByTestId('backup-close-button'));
+    act(() => loaded(getByTestId('webview')));
+    await waitFor(() => expect(queryByTestId('backup-close-button')).toBeNull());
+  });
+
   it('brings the native close back for the Tier-2 surface until it is ready', async () => {
     const { getByTestId, queryByTestId } = render(
       <LinkConnectBackup backupConfig={CONFIG} />
