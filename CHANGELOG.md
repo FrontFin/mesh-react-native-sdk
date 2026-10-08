@@ -21,6 +21,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Backup flow now falls back to the offline version (or exits cleanly) if the widget fails to reload after you change `widgetOrigin`, `theme` or `language` mid-session, instead of staying on a broken screen.
 - Backup flow now accepts Hedera account ids (`0.0.12345`), NEAR named accounts (`alice.near`) and EOS/WAX dotted names; it previously refused to show a QR code for them.
 
+## 2.5.2
+
+### Changed
+
+- Updated dependencies to patch known security vulnerabilities.
+
+### Removed
+
+- The `query-string` dependency, which pulled in a vulnerable `decode-uri-component`. Malformed `%` sequences in the link URL are now kept as-is instead of partially decoded.
+
 ## 2.5.1
 
 ### Fixed
