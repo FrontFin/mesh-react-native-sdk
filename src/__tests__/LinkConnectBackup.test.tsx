@@ -694,6 +694,45 @@ describe('LinkConnectBackup', () => {
     await waitFor(() => expect(typeof getByTestId('webview').props.source.html).toBe('string'));
   });
 
+  it('ignores a stale loaded/error from the previous document after a same-tier reload', async () => {
+    const onEvent = jest.fn();
+    const { getByTestId, rerender } = render(
+      <LinkConnectBackup backupConfig={CONFIG} settings={{ theme: 'light' }} onEvent={onEvent} />
+    );
+    await waitFor(() => getByTestId('webview'));
+    act(() => loaded(getByTestId('webview')));
+    // Handlers of the light-theme document (its WebView unmounts on the reload).
+    const { onMessage: previousOnMessage, onError: previousOnError } =
+      getByTestId('webview').props;
+
+    rerender(<LinkConnectBackup backupConfig={CONFIG} settings={{ theme: 'dark' }} onEvent={onEvent} />);
+    await waitFor(() => expect(getByTestId('webview').props.source.uri).toContain('theme=dark'));
+
+    // A queued `loaded` from the old document must not mark the new one ready…
+    act(() => {
+      previousOnMessage({ nativeEvent: { data: JSON.stringify({ type: 'loaded' }) } });
+    });
+    expect(getByTestId('backup-close-button')).toBeTruthy();
+    // …and a stale error from it must not be read as the new document failing.
+    act(() => {
+      previousOnError({
+        nativeEvent: { url: DEFAULT_BACKUP_WIDGET_ORIGIN, code: -1009, description: 'offline' },
+      });
+    });
+    expect(onEvent).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'backupTierChanged' }));
+
+    // The new document failing still cascades (its handshake was not cancelled).
+    act(() => {
+      getByTestId('webview').props.onError({
+        nativeEvent: { url: DEFAULT_BACKUP_WIDGET_ORIGIN, code: -1009, description: 'offline' },
+      });
+    });
+    expect(onEvent).toHaveBeenCalledWith({
+      type: 'backupTierChanged',
+      payload: { from: 'tier1', to: 'tier2', reason: 'loadError' },
+    });
+  });
+
   describe('Tier 2 after ready', () => {
     // Timer behaviour of a restarted handshake is covered in useBackupTier tests;
     // here the load-error path (immediate, no timers) proves the wiring: after a

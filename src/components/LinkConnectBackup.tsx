@@ -256,9 +256,12 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
     onWidgetLoaded: () => {
       // The widget's `loaded` message IS the ready handshake — it cancels the
       // pending tier timeout for the surface that emitted it. The WebView is
-      // keyed by tier, so a torn-down Tier-1 surface can still deliver a queued
-      // `loaded` after the cascade; stamp it with this render's tier so the hook
-      // can ignore a stale one (and we skip re-delivering config in that case).
+      // keyed by document (`surfaceKey`), so a torn-down surface — the Tier-1
+      // one after the cascade, or the previous document after a same-tier
+      // reload — can still deliver a queued `loaded`. Ignore it: it must not
+      // mark the replacement ready or cancel its timer (and we skip
+      // re-delivering config). markReady(tier) re-checks the tier as well.
+      if (!isCurrentSurface()) return;
       if (markReady(tier)) {
         setReadySurface(surfaceKey);
         deliverConfig();
@@ -272,6 +275,11 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
   // only changes with the theme (origin/language don't reload it).
   const surfaceKey = isTier2 ? `tier2|${widgetTheme}` : `tier1|${linkUrl}`;
   const widgetReady = readySurface === surfaceKey;
+  // The latest document key, so handlers captured by an earlier (torn-down)
+  // WebView instance can tell their events are stale.
+  const currentSurfaceRef = useRef(surfaceKey);
+  currentSurfaceRef.current = surfaceKey;
+  const isCurrentSurface = () => surfaceKey === currentSurfaceRef.current;
   // A same-tier reload (host changed origin/theme/language mid-session) starts
   // the ready handshake over, so a failed or silent reload still falls back /
   // fails closed. A tier change is the cascade itself, which arms its own timer.
@@ -367,9 +375,11 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
         </TouchableOpacity>
       )}
       <WebView
-        // Remount cleanly on the tier transition so the remote source is torn
-        // down and the bundled document mounts fresh with its own handshake.
-        key={tier}
+        // Remount per document — on the tier transition and on a same-tier
+        // reload (origin/theme/language change) — so the old source is torn down
+        // and the new document mounts fresh with its own handshake and handlers
+        // (which carry its `surfaceKey`, letting stale events be ignored).
+        key={surfaceKey}
         bounces={false}
         style={{
           backgroundColor: isDark
@@ -418,9 +428,10 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
           });
           // A hard load failure on the backup origin cascades to Tier 2
           // immediately (design §5H) — do not reload the unreachable origin.
-          // Stamped with this render's tier so a stale error from a torn-down
-          // surface is ignored rather than misread as a failure of the new tier.
-          reportLoadError(tier);
+          // Stamped with this render's document (and tier) so a stale error from
+          // a torn-down surface is ignored rather than misread as a failure of
+          // the current one.
+          if (isCurrentSurface()) reportLoadError(tier);
         }}
         onHttpError={({ nativeEvent }) => {
           props.onEvent?.({
@@ -433,7 +444,7 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
           // A 4xx/5xx on the document itself means the origin served an error
           // page rather than the widget — treat it as a hard load error and
           // cascade to Tier 2.
-          if (nativeEvent.statusCode >= 400) {
+          if (nativeEvent.statusCode >= 400 && isCurrentSurface()) {
             reportLoadError(tier);
           }
         }}
