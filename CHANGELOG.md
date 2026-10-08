@@ -17,6 +17,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 
 - Offline backup fallback now follows `settings.theme` (`dark` / `light`) instead of the app's own appearance.
+- Backup flow no longer shows two overlapping close (✕) buttons: the SDK's own close shows only until the widget has loaded.
 
 ## 2.5.1
 

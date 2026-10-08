@@ -107,6 +107,12 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
     },
   });
   const isTier2 = tier === 'tier2';
+  // The tier whose widget has completed its ready handshake. Once the current
+  // tier's widget is up it draws its own close (✕) in the same corner, so the
+  // native one is shown only until then (spinner, a hanging Tier 1, Tier 2
+  // mounting) — otherwise the two overlap as a double ✕.
+  const [readyTier, setReadyTier] = useState<typeof tier | null>(null);
+  const widgetReady = readyTier === tier;
 
   // Render-process-death recovery, shared with LinkConnect. The reset key must
   // change whenever the loaded surface does so a new session gets a fresh
@@ -115,8 +121,14 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
   const recoveryResetKey = `${props.widgetOrigin ?? ''}|${
     props.settings?.theme ?? ''
   }|${props.settings?.language ?? ''}|${tier}`;
-  const { webViewRef, recoverFromRendererDeath } =
+  const { webViewRef, recoverFromRendererDeath: recoverWebView } =
     useWebViewRecovery(recoveryResetKey);
+  // A dead renderer reloads to a blank surface: bring the native close back
+  // until the reloaded widget handshakes again.
+  const recoverFromRendererDeath = () => {
+    setReadyTier(null);
+    recoverWebView();
+  };
 
   // Deliver the deposit config into the widget once it signals `loaded`,
   // mirroring the web SDK's post-on-loaded handshake. The widget's bridge
@@ -248,6 +260,7 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
       // `loaded` after the cascade; stamp it with this render's tier so the hook
       // can ignore a stale one (and we skip re-delivering config in that case).
       if (markReady(tier)) {
+        setReadyTier(tier);
         deliverConfig();
       }
     },
@@ -306,10 +319,11 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
   return (
     <SDKWrapperComponent isDarkTheme={isDark}>
       {/* Deposit-only: the widget owns its own in-funnel navigation, so there is
-          no native NavBar. The always-present close (✕) below is the single
-          exit affordance back to the host. */}
+          no native NavBar. The native close (✕) below is the exit affordance
+          until the widget is ready; after that the widget's own ✕ (which exits
+          through the same onExit) takes over. */}
       {initialLoading && <LoadingComponentWebview darkTheme={isDark} />}
-      {!props.hideCloseButton && (
+      {!props.hideCloseButton && !widgetReady && (
         <TouchableOpacity
           testID={'backup-close-button'}
           accessibilityRole={'button'}

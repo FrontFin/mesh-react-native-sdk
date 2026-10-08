@@ -620,6 +620,42 @@ describe('LinkConnectBackup', () => {
     );
   });
 
+  it('shows the native close only until the widget is ready (no double ✕)', async () => {
+    const { getByTestId, queryByTestId } = render(
+      <LinkConnectBackup backupConfig={CONFIG} />
+    );
+    // Before the widget handshakes (spinner / hanging Tier 1) the native ✕ is
+    // the only way out.
+    await waitFor(() => getByTestId('backup-close-button'));
+
+    // Once ready, the widget draws its own ✕ in the same corner.
+    act(() => loaded(getByTestId('webview')));
+    await waitFor(() => expect(queryByTestId('backup-close-button')).toBeNull());
+
+    // A dead renderer reloads blank: the native ✕ comes back until it's ready again.
+    act(() => getByTestId('webview').props.onRenderProcessGone());
+    await waitFor(() => getByTestId('backup-close-button'));
+    act(() => loaded(getByTestId('webview')));
+    await waitFor(() => expect(queryByTestId('backup-close-button')).toBeNull());
+  });
+
+  it('brings the native close back for the Tier-2 surface until it is ready', async () => {
+    const { getByTestId, queryByTestId } = render(
+      <LinkConnectBackup backupConfig={CONFIG} />
+    );
+    await waitFor(() => getByTestId('webview'));
+    act(() => {
+      getByTestId('webview').props.onError({
+        nativeEvent: { url: DEFAULT_BACKUP_WIDGET_ORIGIN, code: -1009, description: 'offline' },
+      });
+    });
+    // Cascaded to Tier 2, which hasn't handshaken yet.
+    await waitFor(() => expect(typeof getByTestId('webview').props.source.html).toBe('string'));
+    expect(getByTestId('backup-close-button')).toBeTruthy();
+    act(() => loaded(getByTestId('webview')));
+    await waitFor(() => expect(queryByTestId('backup-close-button')).toBeNull());
+  });
+
   it('recovers a dead renderer while foregrounded (renderer-death recovery)', async () => {
     const { getByTestId } = render(<LinkConnectBackup backupConfig={CONFIG} />);
     await waitFor(() => {
