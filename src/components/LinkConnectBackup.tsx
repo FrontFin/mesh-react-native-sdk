@@ -115,13 +115,16 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
   const recoveryResetKey = `${props.widgetOrigin ?? ''}|${
     props.settings?.theme ?? ''
   }|${props.settings?.language ?? ''}|${tier}`;
-  // A recovery reload starts the reloaded document's handshake over, so if it
-  // errors or never sends `loaded` the flow still cascades (Tier 1) or fails
-  // closed (Tier 2) instead of being treated as already ready.
+  // Bumped on every recovery reload. It is part of `surfaceKey` (below) but NOT
+  // of `recoveryResetKey`: the reload is a new document — remounted, with its
+  // own handlers, so events still queued by the dying one are dropped, and its
+  // handshake restarts like any same-tier reload — while the once-only
+  // auto-reload guard is kept (resetting it could reload a crashing page forever).
+  const [recoveryGeneration, setRecoveryGeneration] = useState(0);
   const { webViewRef, recoverFromRendererDeath: recoverWebView } =
     useWebViewRecovery(recoveryResetKey, () => {
       setReadySurface(null);
-      restartHandshake();
+      setRecoveryGeneration((generation) => generation + 1);
     });
   // The document (see `surfaceKey` below) whose widget has completed its ready
   // handshake. Once the current document's widget is up it draws its own close
@@ -274,17 +277,22 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
 
   // Identity of the document the WebView is actually showing: Tier 1 loads the
   // widget URL (origin + theme + language); Tier 2 loads the bundled HTML, which
-  // only changes with the theme (origin/language don't reload it).
-  const surfaceKey = isTier2 ? `tier2|${widgetTheme}` : `tier1|${linkUrl}`;
+  // only changes with the theme (origin/language don't reload it). Each
+  // renderer-death recovery reload is a new document too (`recoveryGeneration`).
+  // The tier is always the first `|` segment.
+  const surfaceKey = `${
+    isTier2 ? `tier2|${widgetTheme}` : `tier1|${linkUrl}`
+  }|r${recoveryGeneration}`;
   const widgetReady = readySurface === surfaceKey;
   // The latest document key, so handlers captured by an earlier (torn-down)
   // WebView instance can tell their events are stale.
   const currentSurfaceRef = useRef(surfaceKey);
   currentSurfaceRef.current = surfaceKey;
   const isCurrentSurface = () => surfaceKey === currentSurfaceRef.current;
-  // A same-tier reload (host changed origin/theme/language mid-session) starts
-  // the ready handshake over, so a failed or silent reload still falls back /
-  // fails closed. A tier change is the cascade itself, which arms its own timer.
+  // A same-tier reload (host changed origin/theme/language mid-session, or a
+  // renderer-death recovery) starts the ready handshake over, so a failed or
+  // silent reload still falls back / fails closed. A tier change is the cascade
+  // itself, which arms its own timer.
   const previousSurfaceKey = useRef(surfaceKey);
   useEffect(() => {
     const previous = previousSurfaceKey.current;
