@@ -1,6 +1,6 @@
 import { Image, TouchableOpacity, View } from 'react-native';
 import { WebView } from 'react-native-webview';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { SDKContainer } from './SDKContainer';
 import { SDKViewContainer } from './SDKViewContainer';
@@ -91,7 +91,7 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
   // Tier-2 assets somehow never become ready, fail closed (never a blank QR).
   // Disabled for an invalid origin: that path mounts no WebView (returns null
   // below), so the timers must not fire a spurious fallback/exit.
-  const { tier, markReady, reportLoadError } = useBackupTier({
+  const { tier, markReady, reportLoadError, restartHandshake } = useBackupTier({
     enabled: isValidWidgetOrigin,
     onFallback: (reason: BackupTierFallbackReason) => {
       // A fresh remote-origin session begins in Tier 2's bundled surface — reset
@@ -117,14 +117,12 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
   }|${props.settings?.language ?? ''}|${tier}`;
   const { webViewRef, recoverFromRendererDeath: recoverWebView } =
     useWebViewRecovery(recoveryResetKey);
-  // The surface (same key as above: origin + theme + language + tier) whose
-  // widget has completed its ready handshake. Once the current surface's widget
-  // is up it draws its own close (✕) in the same corner, so the native one is
-  // shown only until then (spinner, a hanging Tier 1, Tier 2 mounting, or a
-  // reload after the host changes origin/theme/language) — otherwise the two
-  // overlap as a double ✕.
+  // The document (see `surfaceKey` below) whose widget has completed its ready
+  // handshake. Once the current document's widget is up it draws its own close
+  // (✕) in the same corner, so the native one is shown only until then
+  // (spinner, a hanging Tier 1, Tier 2 mounting, or a reload after the host
+  // changes origin/theme/language) — otherwise the two overlap as a double ✕.
   const [readySurface, setReadySurface] = useState<string | null>(null);
-  const widgetReady = readySurface === recoveryResetKey;
   // A dead renderer reloads to a blank surface: bring the native close back
   // until the reloaded widget handshakes again.
   const recoverFromRendererDeath = () => {
@@ -262,12 +260,30 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
       // `loaded` after the cascade; stamp it with this render's tier so the hook
       // can ignore a stale one (and we skip re-delivering config in that case).
       if (markReady(tier)) {
-        setReadySurface(recoveryResetKey);
+        setReadySurface(surfaceKey);
         deliverConfig();
       }
     },
     onJitRequest: handleJitRequest,
   });
+
+  // Identity of the document the WebView is actually showing: Tier 1 loads the
+  // widget URL (origin + theme + language); Tier 2 loads the bundled HTML, which
+  // only changes with the theme (origin/language don't reload it).
+  const surfaceKey = isTier2 ? `tier2|${widgetTheme}` : `tier1|${linkUrl}`;
+  const widgetReady = readySurface === surfaceKey;
+  // A same-tier reload (host changed origin/theme/language mid-session) starts
+  // the ready handshake over, so a failed or silent reload still falls back /
+  // fails closed. A tier change is the cascade itself, which arms its own timer.
+  const previousSurfaceKey = useRef(surfaceKey);
+  useEffect(() => {
+    const previous = previousSurfaceKey.current;
+    previousSurfaceKey.current = surfaceKey;
+    if (previous === surfaceKey) return;
+    if (previous.split('|')[0] !== surfaceKey.split('|')[0]) return;
+    restartHandshake();
+    // Re-run solely on a new document (restartHandshake reads refs only).
+  }, [surfaceKey]);
 
   const injectedScript = useMemo(
     () => `

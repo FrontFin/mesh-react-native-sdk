@@ -671,6 +671,83 @@ describe('LinkConnectBackup', () => {
     await waitFor(() => expect(queryByTestId('backup-close-button')).toBeNull());
   });
 
+  it('falls back to Tier 2 when a same-tier reload after ready fails to load', async () => {
+    const onEvent = jest.fn();
+    const { getByTestId, rerender } = render(
+      <LinkConnectBackup backupConfig={CONFIG} settings={{ theme: 'light' }} onEvent={onEvent} />
+    );
+    await waitFor(() => getByTestId('webview'));
+    act(() => loaded(getByTestId('webview')));
+
+    // Host changes the theme → Tier 1 reloads the widget; that reload fails.
+    rerender(<LinkConnectBackup backupConfig={CONFIG} settings={{ theme: 'dark' }} onEvent={onEvent} />);
+    await waitFor(() => expect(getByTestId('webview').props.source.uri).toContain('theme=dark'));
+    act(() => {
+      getByTestId('webview').props.onError({
+        nativeEvent: { url: DEFAULT_BACKUP_WIDGET_ORIGIN, code: -1009, description: 'offline' },
+      });
+    });
+    expect(onEvent).toHaveBeenCalledWith({
+      type: 'backupTierChanged',
+      payload: { from: 'tier1', to: 'tier2', reason: 'loadError' },
+    });
+    await waitFor(() => expect(typeof getByTestId('webview').props.source.html).toBe('string'));
+  });
+
+  describe('Tier 2 after ready', () => {
+    // Timer behaviour of a restarted handshake is covered in useBackupTier tests;
+    // here the load-error path (immediate, no timers) proves the wiring: after a
+    // restart a Tier-2 error fails closed, without one it is ignored.
+    const offline = {
+      nativeEvent: { url: 'about:blank', code: -1, description: 'load failed' },
+    };
+    const readyTier2 = async (onExit: jest.Mock) => {
+      const utils = render(
+        <LinkConnectBackup backupConfig={CONFIG} settings={{ theme: 'light' }} onExit={onExit} />
+      );
+      await waitFor(() => utils.getByTestId('webview'));
+      act(() => {
+        utils.getByTestId('webview').props.onError({
+          nativeEvent: { url: DEFAULT_BACKUP_WIDGET_ORIGIN, code: -1009, description: 'offline' },
+        });
+      });
+      await waitFor(() =>
+        expect(typeof utils.getByTestId('webview').props.source.html).toBe('string')
+      );
+      act(() => loaded(utils.getByTestId('webview')));
+      await waitFor(() => expect(utils.queryByTestId('backup-close-button')).toBeNull());
+      return utils;
+    };
+
+    it('a language change does not reload the bundled widget, so nothing restarts', async () => {
+      const onExit = jest.fn();
+      const { rerender, getByTestId, queryByTestId } = await readyTier2(onExit);
+      const html = getByTestId('webview').props.source.html;
+      rerender(
+        <LinkConnectBackup
+          backupConfig={CONFIG}
+          settings={{ theme: 'light', language: 'en' }}
+          onExit={onExit}
+        />
+      );
+      expect(getByTestId('webview').props.source.html).toBe(html);
+      expect(queryByTestId('backup-close-button')).toBeNull();
+      // Still the same ready document: a stray error is ignored, no exit.
+      act(() => getByTestId('webview').props.onError(offline));
+      expect(onExit).not.toHaveBeenCalled();
+    });
+
+    it('a theme change reloads it: the native close returns and a failed reload fails closed', async () => {
+      const onExit = jest.fn();
+      const { rerender, getByTestId } = await readyTier2(onExit);
+      rerender(<LinkConnectBackup backupConfig={CONFIG} settings={{ theme: 'dark' }} onExit={onExit} />);
+      expect(getByTestId('webview').props.source.html).toContain('data-theme="dark"');
+      await waitFor(() => getByTestId('backup-close-button'));
+      act(() => getByTestId('webview').props.onError(offline));
+      expect(onExit).toHaveBeenCalledWith('Backup deposit flow is unavailable');
+    });
+  });
+
   it('recovers a dead renderer while foregrounded (renderer-death recovery)', async () => {
     const { getByTestId } = render(<LinkConnectBackup backupConfig={CONFIG} />);
     await waitFor(() => {
