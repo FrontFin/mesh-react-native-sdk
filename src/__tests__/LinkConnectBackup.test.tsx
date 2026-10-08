@@ -694,18 +694,35 @@ describe('LinkConnectBackup', () => {
     await waitFor(() => expect(typeof getByTestId('webview').props.source.html).toBe('string'));
   });
 
-  it('ignores a stale loaded/error from the previous document after a same-tier reload', async () => {
+  it('ignores everything from the previous document after a same-tier reload', async () => {
     const onEvent = jest.fn();
+    const onExit = jest.fn();
     const { getByTestId, rerender } = render(
-      <LinkConnectBackup backupConfig={CONFIG} settings={{ theme: 'light' }} onEvent={onEvent} />
+      <LinkConnectBackup
+        backupConfig={CONFIG}
+        settings={{ theme: 'light' }}
+        onEvent={onEvent}
+        onExit={onExit}
+      />
     );
     await waitFor(() => getByTestId('webview'));
     act(() => loaded(getByTestId('webview')));
     // Handlers of the light-theme document (its WebView unmounts on the reload).
-    const { onMessage: previousOnMessage, onError: previousOnError } =
-      getByTestId('webview').props;
+    const {
+      onMessage: previousOnMessage,
+      onError: previousOnError,
+      onHttpError: previousOnHttpError,
+    } = getByTestId('webview').props;
 
-    rerender(<LinkConnectBackup backupConfig={CONFIG} settings={{ theme: 'dark' }} onEvent={onEvent} />);
+    onEvent.mockClear(); // pageLoaded etc. from the first document
+    rerender(
+      <LinkConnectBackup
+        backupConfig={CONFIG}
+        settings={{ theme: 'dark' }}
+        onEvent={onEvent}
+        onExit={onExit}
+      />
+    );
     await waitFor(() => expect(getByTestId('webview').props.source.uri).toContain('theme=dark'));
 
     // A queued `loaded` from the old document must not mark the new one ready…
@@ -719,7 +736,16 @@ describe('LinkConnectBackup', () => {
         nativeEvent: { url: DEFAULT_BACKUP_WIDGET_ORIGIN, code: -1009, description: 'offline' },
       });
     });
-    expect(onEvent).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'backupTierChanged' }));
+    act(() => {
+      previousOnHttpError({ nativeEvent: { url: DEFAULT_BACKUP_WIDGET_ORIGIN, statusCode: 503 } });
+    });
+    // No host event at all from the torn-down document (not even webViewLoadFailed).
+    expect(onEvent).not.toHaveBeenCalled();
+    // Other queued messages from it don't reach the host either.
+    act(() => {
+      previousOnMessage({ nativeEvent: { data: JSON.stringify({ type: 'close' }) } });
+    });
+    expect(onExit).not.toHaveBeenCalled();
 
     // The new document failing still cascades (its handshake was not cancelled).
     act(() => {

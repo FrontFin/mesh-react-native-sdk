@@ -255,13 +255,9 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
   const { linkUrl, widgetTheme, darkTheme, handleMessage } = useBackupCallbacks(props, {
     onWidgetLoaded: () => {
       // The widget's `loaded` message IS the ready handshake — it cancels the
-      // pending tier timeout for the surface that emitted it. The WebView is
-      // keyed by document (`surfaceKey`), so a torn-down surface — the Tier-1
-      // one after the cascade, or the previous document after a same-tier
-      // reload — can still deliver a queued `loaded`. Ignore it: it must not
-      // mark the replacement ready or cancel its timer (and we skip
-      // re-delivering config). markReady(tier) re-checks the tier as well.
-      if (!isCurrentSurface()) return;
+      // pending tier timeout for the surface that emitted it. Messages from a
+      // torn-down document never get here (onMessage drops them, see the
+      // WebView below); markReady(tier) re-checks the tier as well.
       if (markReady(tier)) {
         setReadySurface(surfaceKey);
         deliverConfig();
@@ -392,7 +388,14 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
         // offline widget from an inline HTML string (no network).
         source={isTier2 ? { html: offlineHtml } : { uri: linkUrl }}
         cacheMode={'LOAD_DEFAULT'}
-        onMessage={handleMessage}
+        // The WebView is keyed by document (`surfaceKey`), so a torn-down one —
+        // the Tier-1 surface after the cascade, or the previous document after a
+        // same-tier reload — can still deliver queued messages. Drop them all
+        // (loaded, close, JIT requests, transfer events…) before any host
+        // callback runs: only the current document speaks for the flow.
+        onMessage={(event) => {
+          if (isCurrentSurface()) handleMessage(event);
+        }}
         onLoadEnd={() => {
           setInitialLoading(false);
         }}
@@ -418,6 +421,9 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
         }
         domStorageEnabled={true}
         onError={({ nativeEvent }) => {
+          // A stale error from a torn-down document is not this flow's failure:
+          // report nothing to the host and don't cascade.
+          if (!isCurrentSurface()) return;
           props.onEvent?.({
             type: 'webViewLoadFailed',
             payload: {
@@ -428,12 +434,10 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
           });
           // A hard load failure on the backup origin cascades to Tier 2
           // immediately (design §5H) — do not reload the unreachable origin.
-          // Stamped with this render's document (and tier) so a stale error from
-          // a torn-down surface is ignored rather than misread as a failure of
-          // the current one.
-          if (isCurrentSurface()) reportLoadError(tier);
+          reportLoadError(tier);
         }}
         onHttpError={({ nativeEvent }) => {
+          if (!isCurrentSurface()) return;
           props.onEvent?.({
             type: 'webViewLoadFailed',
             payload: {
@@ -444,7 +448,7 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
           // A 4xx/5xx on the document itself means the origin served an error
           // page rather than the widget — treat it as a hard load error and
           // cascade to Tier 2.
-          if (nativeEvent.statusCode >= 400 && isCurrentSurface()) {
+          if (nativeEvent.statusCode >= 400) {
             reportLoadError(tier);
           }
         }}
