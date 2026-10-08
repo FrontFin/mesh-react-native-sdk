@@ -1,6 +1,6 @@
 {
   "name": "meshconnect-react-native-example",
-  "version": "2.5.1",
+  "version": "2.5.2",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -35,5 +35,8 @@
   },
   "engines": {
     "node": ">=18"
+  },
+  "resolutions": {
+    "fast-xml-parser": "^5.10.1"
   }
 }
