@@ -2,6 +2,19 @@ import { OFFLINE_WIDGET_HTML } from './generated';
 
 export { OFFLINE_WIDGET_HTML };
 
+/**
+ * The Tier-2 widget HTML with the host theme applied. Tier 2 loads from an inline
+ * string, so unlike Tier 1 there is no URL to carry `?theme=`; without this the
+ * widget falls back to `prefers-color-scheme`, which follows the APP's appearance
+ * and ignores an explicit `settings.theme`. The widget's CSS honours
+ * `:root[data-theme]`, and an attribute on `<html>` is outside every CSP hash.
+ * If the root tag isn't found the HTML is returned unchanged (theme then follows
+ * `prefers-color-scheme`) — never a broken document.
+ */
+export function withWidgetTheme(html: string, theme: 'dark' | 'light'): string {
+  return html.replace(/<html(?=[\s>])/i, `<html data-theme="${theme}"`);
+}
+
 /** The bundled Tier-2 asset: the self-contained offline widget HTML. */
 export interface BundledOfflineWidget {
   /**

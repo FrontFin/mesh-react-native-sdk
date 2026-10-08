@@ -499,6 +499,31 @@ describe('LinkConnectBackup', () => {
     });
   });
 
+  it.each([
+    ['dark', 'light'],
+    ['light', 'dark'],
+  ] as const)(
+    'Tier 2 renders the host %s theme even on a %s device (no URL to carry ?theme=)',
+    async (theme, device) => {
+      jest.spyOn(Appearance, 'getColorScheme').mockReturnValue(device);
+      const { getByTestId } = render(
+        <LinkConnectBackup
+          backupConfig={CONFIG}
+          settings={{ theme }}
+          widgetOrigin="https://backup-widget.invalid"
+        />
+      );
+      await waitFor(() => getByTestId('webview'));
+      act(() => {
+        getByTestId('webview').props.onError({
+          nativeEvent: { url: 'https://backup-widget.invalid', code: -1003, description: 'dns' },
+        });
+      });
+      const { html } = getByTestId('webview').props.source;
+      expect(html).toContain(`<html data-theme="${theme}"`);
+    }
+  );
+
   it('derives theme from device appearance when the host sets no theme', async () => {
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('light');
     const { getByTestId } = render(<LinkConnectBackup backupConfig={CONFIG} />);

@@ -3,6 +3,21 @@
 All notable changes to the Mesh Connect React Native SDK are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## Unreleased
+
+### Added
+
+- Offline backup fallback: search on the token and network lists, most-used tokens and networks listed first, and clearer network names (for example "BNB Smart Chain" instead of "BSC").
+
+### Changed
+
+- Offline backup fallback now shows every destination in your config, even ones its bundled catalog doesn't list yet. Only a destination on a network added after this SDK version is hidden, because it can't be named offline.
+- Network ids are never shown to users in the backup flow.
+
+### Fixed
+
+- Offline backup fallback now follows `settings.theme` (`dark` / `light`) instead of the app's own appearance.
+
 ## 2.5.1
 
 ### Fixed

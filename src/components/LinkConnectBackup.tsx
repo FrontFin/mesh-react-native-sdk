@@ -15,7 +15,7 @@ import { useBackupTier } from '../hooks/useBackupTier';
 import type { BackupTierFallbackReason } from '../hooks/useBackupTier';
 import { sdkSpecs } from '../utils/sdkConfig';
 import { extractOrigin, toInjectableJson } from '../utils';
-import { OFFLINE_WIDGET_HTML } from '../backup-bundle';
+import { OFFLINE_WIDGET_HTML, withWidgetTheme } from '../backup-bundle';
 import {
   BACKUP_CONFIG_MESSAGE_TYPE,
   BACKUP_JIT_RESPONSE_MESSAGE_TYPE,
@@ -240,7 +240,7 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
       .catch((e: unknown) => respond(false, undefined, errorMessage(e)));
   };
 
-  const { linkUrl, darkTheme, handleMessage } = useBackupCallbacks(props, {
+  const { linkUrl, widgetTheme, darkTheme, handleMessage } = useBackupCallbacks(props, {
     onWidgetLoaded: () => {
       // The widget's `loaded` message IS the ready handshake — it cancels the
       // pending tier timeout for the surface that emitted it. The WebView is
@@ -267,6 +267,12 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
     : SDKContainer;
 
   const isDark = !!darkTheme;
+
+  // Tier 2 has no URL to carry ?theme=, so the theme goes on the HTML itself.
+  const offlineHtml = useMemo(
+    () => withWidgetTheme(OFFLINE_WIDGET_HTML, widgetTheme),
+    [widgetTheme]
+  );
 
   // The backup widget is a single-origin static SPA and, being deposit-only, has
   // no OAuth/wallet hand-offs — nothing should ever leave it. react-native-webview
@@ -342,7 +348,7 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
         ref={webViewRef}
         // Tier 1 loads the widget from its origin; Tier 2 loads the bundled
         // offline widget from an inline HTML string (no network).
-        source={isTier2 ? { html: OFFLINE_WIDGET_HTML } : { uri: linkUrl }}
+        source={isTier2 ? { html: offlineHtml } : { uri: linkUrl }}
         cacheMode={'LOAD_DEFAULT'}
         onMessage={handleMessage}
         onLoadEnd={() => {

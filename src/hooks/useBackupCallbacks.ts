@@ -69,20 +69,25 @@ const useBackupCallbacks = (
   const settingsTheme = props.settings?.theme;
   const language = resolveLanguage(props.settings?.language);
 
+  // Resolved once per settings change (no Appearance listener — a mid-session
+  // device toggle must not reload the WebView and reset the funnel). Tier 1 sends
+  // it as ?theme=; Tier 2 stamps it onto the bundled HTML (withWidgetTheme).
+  const widgetTheme = useMemo(
+    () => resolveWidgetTheme(settingsTheme),
+    [settingsTheme]
+  );
+
   const linkUrl = useMemo(
     () =>
       buildBackupWidgetUrl(widgetOrigin, {
         platform: sdkSpecs.platform,
         sdkVersion: sdkSpecs.version,
         // Always a resolved 'dark'/'light' — the widget matches the host theme
-        // via ?theme= rather than the device's prefers-color-scheme. Resolved
-        // inside the memo so it's read once per URL, not re-read on every render
-        // (no Appearance listener — a mid-session device toggle must not reload
-        // the WebView and reset the funnel).
-        theme: resolveWidgetTheme(settingsTheme),
+        // via ?theme= rather than the device's prefers-color-scheme.
+        theme: widgetTheme,
         language,
       }),
-    [widgetOrigin, settingsTheme, language]
+    [widgetOrigin, widgetTheme, language]
   );
 
   // Unlike the primary path there is no token-embedded theme; default to
@@ -192,6 +197,7 @@ const useBackupCallbacks = (
 
   return {
     linkUrl,
+    widgetTheme,
     showNativeNavbar,
     darkTheme,
     handleMessage,
