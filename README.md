@@ -122,6 +122,21 @@ export default App;
 | `onExit`                 | `(err: string) => void)`                     | optional          | Called if connection not happened. Returns an error message |
 | `onEvent`                | `(event: LinkEventType) => void`             | optional          | Callback called when an event is triggered                  |
 
+#### Withdrawal events
+
+When a user confirms a withdrawal, `onEvent` receives a `withdrawalRequested` event, then Link calls `onExit`.
+Link does not hide itself: unmount `LinkConnect` in `onExit`, then continue the withdrawal with the `transferId` from the event, for example with your own 2FA prompt.
+Treat the event, not `onExit`, as confirmation of the withdrawal.
+The payload carries no address or amount: read the transfer details from the webhook or the transfer API.
+
+```tsx
+onEvent={(event: LinkEventType) => {
+  if (event.type === 'withdrawalRequested') {
+    const { transferId, status } = event.payload; // 'pending' or 'success'; treat any other value as pending
+  }
+}}
+```
+
 The `LinkSettings` option allows to configure the Link behaviour:
 
 - `language` - Link UI language as a BCP-47 tag (e.g. 'en', 'en-US'). Accepts 'system' to follow the device language.
