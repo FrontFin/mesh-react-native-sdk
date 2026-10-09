@@ -466,8 +466,15 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
             reportLoadError(tier);
           }
         }}
-        onContentProcessDidTerminate={recoverFromRendererDeath}
-        onRenderProcessGone={recoverFromRendererDeath}
+        // Renderer death is reported per WebView instance: a queued callback from
+        // a torn-down document must not reload the current (healthy) one or
+        // bring back the native close, so it is surface-gated like the rest.
+        onContentProcessDidTerminate={() => {
+          if (isCurrentSurface()) recoverFromRendererDeath();
+        }}
+        onRenderProcessGone={() => {
+          if (isCurrentSurface()) recoverFromRendererDeath();
+        }}
       />
     </SDKWrapperComponent>
   );

@@ -897,6 +897,30 @@ describe('LinkConnectBackup', () => {
     });
   });
 
+  it('ignores a renderer-death callback from a torn-down document', async () => {
+    const { getByTestId, queryByTestId, rerender } = render(
+      <LinkConnectBackup backupConfig={CONFIG} settings={{ theme: 'light' }} />
+    );
+    await waitFor(() => getByTestId('webview'));
+    const { onRenderProcessGone: staleGone, onContentProcessDidTerminate: staleTerminate } =
+      getByTestId('webview').props;
+
+    // Same-tier reload to a new document, which becomes ready.
+    rerender(<LinkConnectBackup backupConfig={CONFIG} settings={{ theme: 'dark' }} />);
+    await waitFor(() => expect(getByTestId('webview').props.source.uri).toContain('theme=dark'));
+    act(() => loaded(getByTestId('webview')));
+    await waitFor(() => expect(queryByTestId('backup-close-button')).toBeNull());
+
+    // The old document's queued death callbacks must not touch the healthy one.
+    (AppState as any).currentState = 'active';
+    act(() => {
+      staleGone();
+      staleTerminate();
+    });
+    expect(mockReload).not.toHaveBeenCalled();
+    expect(queryByTestId('backup-close-button')).toBeNull();
+  });
+
   it('defers recovery to foreground return when the renderer dies backgrounded', async () => {
     let appStateCb: ((s: string) => void) | undefined;
     jest.spyOn(AppState, 'addEventListener').mockImplementation((event: any, cb: any) => {
