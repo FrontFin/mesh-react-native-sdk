@@ -18,6 +18,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Offline backup fallback now follows `settings.theme` (`dark` / `light`) instead of the app's own appearance.
 - Backup flow no longer shows two overlapping close (✕) buttons: the SDK's own close shows only until the widget has loaded.
+- Backup flow can be closed while it is still loading: the loading screens now show a close (✕).
 - Backup flow now falls back to the offline version (or exits cleanly) if the widget fails to reload after you change `widgetOrigin`, `theme` or `language` mid-session, instead of staying on a broken screen.
 - Backup flow now accepts Hedera account ids (`0.0.12345`), NEAR named accounts (`alice.near`) and EOS/WAX dotted names; it previously refused to show a QR code for them.
 

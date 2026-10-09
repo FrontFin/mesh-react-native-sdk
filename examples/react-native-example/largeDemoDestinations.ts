@@ -1,7 +1,6 @@
-// GENERATED — do not edit by hand. Demo data for the "Large destination set" toggle.
-// Every pair in CDC's backup pairs manifest (client 26c2621e-2c09-4ccc-dcf7-08de90525aa1),
-// https://link-supported-pairs.meshconnect.com/backup/pairs/<clientId>.json, as of 2026-10-08T02:00:00.1689786+00:00:
-// 602 destinations across 124 networks.
+// GENERATED — do not edit by hand. Demo data for the "Large destination set" toggle:
+// a production-sized backup config, 602 destinations across 124 networks,
+// taken from a backup pairs manifest as of 2026-10-08.
 // Addresses are DEMO addresses: random strings in each chain's real format (prefix,
 // alphabet, length), derived from the networkId so they are stable. Nobody controls
 // them — NEVER send funds to any of them.
