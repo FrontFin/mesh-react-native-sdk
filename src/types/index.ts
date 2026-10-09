@@ -637,7 +637,8 @@ export interface WithdrawalRequested extends LinkEventBase {
   type: 'withdrawalRequested';
   payload: {
     transferId: string;
-    status: 'pending' | 'success';
+    // 'pending' or 'success' today; treat any other value as pending.
+    status: string;
   };
 }
 
