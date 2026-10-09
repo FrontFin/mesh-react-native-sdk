@@ -921,6 +921,53 @@ describe('LinkConnectBackup', () => {
     expect(queryByTestId('backup-close-button')).toBeNull();
   });
 
+  it('drops everything from a document whose renderer died, even before the deferred reload', async () => {
+    let appStateCb: ((s: string) => void) | undefined;
+    jest.spyOn(AppState, 'addEventListener').mockImplementation((event: any, cb: any) => {
+      if (event === 'change') appStateCb = cb;
+      return { remove: jest.fn() } as any;
+    });
+    const onEvent = jest.fn();
+    const onExit = jest.fn();
+    const { getByTestId } = render(
+      <LinkConnectBackup backupConfig={CONFIG} onEvent={onEvent} onExit={onExit} />
+    );
+    await waitFor(() => getByTestId('webview'));
+    act(() => loaded(getByTestId('webview')));
+
+    // Renderer dies while backgrounded: the reload waits for the foreground…
+    (AppState as any).currentState = 'background';
+    act(() => getByTestId('webview').props.onRenderProcessGone());
+    expect(mockReload).not.toHaveBeenCalled();
+    onEvent.mockClear();
+
+    // …but the dead document is already invalidated: its queued events do nothing.
+    act(() => {
+      const webview = getByTestId('webview');
+      webview.props.onMessage({ nativeEvent: { data: JSON.stringify({ type: 'close' }) } });
+      webview.props.onError({
+        nativeEvent: { url: DEFAULT_BACKUP_WIDGET_ORIGIN, code: -1009, description: 'offline' },
+      });
+    });
+    expect(onExit).not.toHaveBeenCalled();
+    expect(onEvent).not.toHaveBeenCalled();
+    expect(getByTestId('backup-close-button')).toBeTruthy();
+
+    // Back in the foreground the reload runs and the new document is live again.
+    (AppState as any).currentState = 'active';
+    act(() => appStateCb?.('active'));
+    expect(mockReload).toHaveBeenCalledTimes(1);
+    act(() => {
+      getByTestId('webview').props.onError({
+        nativeEvent: { url: DEFAULT_BACKUP_WIDGET_ORIGIN, code: -1009, description: 'offline' },
+      });
+    });
+    expect(onEvent).toHaveBeenCalledWith({
+      type: 'backupTierChanged',
+      payload: { from: 'tier1', to: 'tier2', reason: 'loadError' },
+    });
+  });
+
   it('defers recovery to foreground return when the renderer dies backgrounded', async () => {
     let appStateCb: ((s: string) => void) | undefined;
     jest.spyOn(AppState, 'addEventListener').mockImplementation((event: any, cb: any) => {

@@ -132,9 +132,15 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
   // (spinner, a hanging Tier 1, Tier 2 mounting, or a reload after the host
   // changes origin/theme/language) — otherwise the two overlap as a double ✕.
   const [readySurface, setReadySurface] = useState<string | null>(null);
-  // A dead renderer leaves a blank surface: bring the native close back right
-  // away (the reload — now or on return to foreground — restarts the handshake).
+  // The document whose renderer died, until a recovery reload replaces it
+  // (the reload — and its new `surfaceKey` — may wait for the next foreground).
+  const deadSurfaceRef = useRef<string | null>(null);
+  // A dead renderer leaves a blank surface: invalidate it at once, so nothing it
+  // queued (close, loaded, JIT, errors) is acted on even while the reload waits
+  // for the foreground, and bring the native close back. The reload — now or on
+  // return to foreground — remounts and restarts the handshake.
   const recoverFromRendererDeath = () => {
+    deadSurfaceRef.current = currentSurfaceRef.current;
     setReadySurface(null);
     recoverWebView();
   };
@@ -288,7 +294,9 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
   // WebView instance can tell their events are stale.
   const currentSurfaceRef = useRef(surfaceKey);
   currentSurfaceRef.current = surfaceKey;
-  const isCurrentSurface = () => surfaceKey === currentSurfaceRef.current;
+  const isCurrentSurface = () =>
+    surfaceKey === currentSurfaceRef.current &&
+    surfaceKey !== deadSurfaceRef.current;
   // A same-tier reload (host changed origin/theme/language mid-session, or a
   // renderer-death recovery) starts the ready handshake over, so a failed or
   // silent reload still falls back / fails closed. A tier change is the cascade
