@@ -25,7 +25,7 @@ import {
   TransferFinishedSuccessPayload,
 } from '@meshconnect/react-native-link-sdk';
 import Reports from './components/reports';
-import {LARGE_DESTINATIONS} from './cdcDestinations';
+import {LARGE_DESTINATIONS} from './largeDemoDestinations';
 
 const layout_width = Dimensions.get('window').width;
 
@@ -85,7 +85,7 @@ const DEAD_BACKUP_WIDGET_ORIGIN = 'https://backup-widget.invalid';
 // EVM chains share the 0x address format, so one demo address is reused for all.
 const EVM_DEMO_ADDRESS = '0x503828976D22510aad0201ac7EC88293211D23Da';
 const DEMO_BACKUP_CONFIG: MeshBackupConfig = {
-  clientId: '26C2621E-2C09-4CCC-DCF7-08DE90525AA1', // CDC (Crypto.com)
+  clientId: '00000000-0000-4000-8000-000000000000', // placeholder client id
   userId: 'rn-example-user',
   destinations: [
     // Both logos bundled (baseline).
@@ -144,8 +144,8 @@ const makeDemoOnStatusPoll =
   return {status: 'ready', address: dest?.address ?? EVM_DEMO_ADDRESS};
 };
 
-// The large-set variant: every pair in CDC's backup manifest (~600 destinations,
-// see cdcDestinations.ts) to exercise the widget at a realistic CDC config size.
+// The large-set variant: ~600 destinations (see largeDemoDestinations.ts) to
+// exercise the widget at a realistic production config size.
 const LARGE_BACKUP_CONFIG: MeshBackupConfig = {
   ...DEMO_BACKUP_CONFIG,
   destinations: LARGE_DESTINATIONS,
@@ -183,7 +183,7 @@ export default function App() {
   // the onAddressInit/onStatusPoll callbacks (OR-452). Pair with Force Tier-2 to
   // run JIT end to end against the bundled callback-widget.
   const [forceJit, setForceJit] = useState(false);
-  // Demo toggle: when on, pass CDC's full catalog (~600 destinations) instead of
+  // Demo toggle: when on, pass a production-sized config (~600 destinations) instead of
   // the 6 hand-picked ones, to test the widget with a production-sized config.
   const [largeSet, setLargeSet] = useState(false);
   const connectButtonTitle = 'Connect account';
@@ -245,7 +245,7 @@ export default function App() {
       <View style={[styles.flex, {backgroundColor: c.bg}]}>
         {statusBar}
         {/* Spec entry point: the same <LinkConnect>, given a backupConfig in
-            place of a linkToken (CDC client spec §3.1). */}
+            place of a linkToken (backup client spec §3.1). */}
         <LinkConnect
           widgetOrigin={widgetOriginOverride}
           backupConfig={forceJit ? withoutAddresses(baseConfig) : baseConfig}
@@ -438,7 +438,7 @@ export default function App() {
                 Large destination set ({LARGE_DESTINATIONS.length})
               </Text>
               <Text style={[styles.switchHint, {color: c.muted}]}>
-                Passes every pair in CDC's backup manifest instead of the 6 demo
+                Passes a production-sized set of pairs instead of the 6 demo
                 destinations. Addresses are demo addresses — never send funds.
               </Text>
             </View>

@@ -36,7 +36,7 @@ jest.mock('react-native-webview', () => {
 });
 
 const CONFIG: MeshBackupConfig = {
-  clientId: '26C2621E-2C09-4CCC-DCF7-08DE90525AA1',
+  clientId: '00000000-0000-4000-8000-000000000000',
   userId: 'end-user-123',
   destinations: [{ networkId: 'net-guid', symbol: 'USDC' }],
   preselectedSymbol: 'USDC',

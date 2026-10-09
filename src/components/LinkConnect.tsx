@@ -59,7 +59,7 @@ const LoadingComponentWebview = ({ darkTheme }: { darkTheme: boolean }) => {
 };
 
 /**
- * Single SDK entry point (CDC client spec §3.1). Renders the normal Link flow
+ * Single SDK entry point (backup client spec §3.1). Renders the normal Link flow
  * from a `linkToken`, or — when a `backupConfig` is supplied instead — the
  * deposit-only backup flow (with its automatic Level 1 → Level 2 cascade and the
  * `onAddressInit`/`onStatusPoll` JIT callbacks). The hooks below assume the
