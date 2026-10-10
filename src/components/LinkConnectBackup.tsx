@@ -1,6 +1,6 @@
 import { Image, TouchableOpacity, View } from 'react-native';
 import { WebView } from 'react-native-webview';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { SDKContainer } from './SDKContainer';
 import { SDKViewContainer } from './SDKViewContainer';
@@ -15,7 +15,7 @@ import { useBackupTier } from '../hooks/useBackupTier';
 import type { BackupTierFallbackReason } from '../hooks/useBackupTier';
 import { sdkSpecs } from '../utils/sdkConfig';
 import { extractOrigin, toInjectableJson } from '../utils';
-import { OFFLINE_WIDGET_HTML } from '../backup-bundle';
+import { OFFLINE_WIDGET_HTML, withWidgetTheme } from '../backup-bundle';
 import {
   BACKUP_CONFIG_MESSAGE_TYPE,
   BACKUP_JIT_RESPONSE_MESSAGE_TYPE,
@@ -91,7 +91,7 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
   // Tier-2 assets somehow never become ready, fail closed (never a blank QR).
   // Disabled for an invalid origin: that path mounts no WebView (returns null
   // below), so the timers must not fire a spurious fallback/exit.
-  const { tier, markReady, reportLoadError } = useBackupTier({
+  const { tier, markReady, reportLoadError, restartHandshake } = useBackupTier({
     enabled: isValidWidgetOrigin,
     onFallback: (reason: BackupTierFallbackReason) => {
       // A fresh remote-origin session begins in Tier 2's bundled surface — reset
@@ -115,8 +115,35 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
   const recoveryResetKey = `${props.widgetOrigin ?? ''}|${
     props.settings?.theme ?? ''
   }|${props.settings?.language ?? ''}|${tier}`;
-  const { webViewRef, recoverFromRendererDeath } =
-    useWebViewRecovery(recoveryResetKey);
+  // Bumped on every recovery reload. It is part of `surfaceKey` (below) but NOT
+  // of `recoveryResetKey`: the reload is a new document — remounted, with its
+  // own handlers, so events still queued by the dying one are dropped, and its
+  // handshake restarts like any same-tier reload — while the once-only
+  // auto-reload guard is kept (resetting it could reload a crashing page forever).
+  const [recoveryGeneration, setRecoveryGeneration] = useState(0);
+  const { webViewRef, recoverFromRendererDeath: recoverWebView } =
+    useWebViewRecovery(recoveryResetKey, () => {
+      setReadySurface(null);
+      setRecoveryGeneration((generation) => generation + 1);
+    });
+  // The document (see `surfaceKey` below) whose widget has completed its ready
+  // handshake. Once the current document's widget is up it draws its own close
+  // (✕) in the same corner, so the native one is shown only until then
+  // (spinner, a hanging Tier 1, Tier 2 mounting, or a reload after the host
+  // changes origin/theme/language) — otherwise the two overlap as a double ✕.
+  const [readySurface, setReadySurface] = useState<string | null>(null);
+  // The document whose renderer died, until a recovery reload replaces it
+  // (the reload — and its new `surfaceKey` — may wait for the next foreground).
+  const deadSurfaceRef = useRef<string | null>(null);
+  // A dead renderer leaves a blank surface: invalidate it at once, so nothing it
+  // queued (close, loaded, JIT, errors) is acted on even while the reload waits
+  // for the foreground, and bring the native close back. The reload — now or on
+  // return to foreground — remounts and restarts the handshake.
+  const recoverFromRendererDeath = () => {
+    deadSurfaceRef.current = currentSurfaceRef.current;
+    setReadySurface(null);
+    recoverWebView();
+  };
 
   // Deliver the deposit config into the widget once it signals `loaded`,
   // mirroring the web SDK's post-on-loaded handshake. The widget's bridge
@@ -240,19 +267,49 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
       .catch((e: unknown) => respond(false, undefined, errorMessage(e)));
   };
 
-  const { linkUrl, darkTheme, handleMessage } = useBackupCallbacks(props, {
+  const { linkUrl, widgetTheme, darkTheme, handleMessage } = useBackupCallbacks(props, {
     onWidgetLoaded: () => {
       // The widget's `loaded` message IS the ready handshake — it cancels the
-      // pending tier timeout for the surface that emitted it. The WebView is
-      // keyed by tier, so a torn-down Tier-1 surface can still deliver a queued
-      // `loaded` after the cascade; stamp it with this render's tier so the hook
-      // can ignore a stale one (and we skip re-delivering config in that case).
+      // pending tier timeout for the surface that emitted it. Messages from a
+      // torn-down document never get here (onMessage drops them, see the
+      // WebView below); markReady(tier) re-checks the tier as well.
       if (markReady(tier)) {
+        setReadySurface(surfaceKey);
         deliverConfig();
       }
     },
     onJitRequest: handleJitRequest,
   });
+
+  // Identity of the document the WebView is actually showing: Tier 1 loads the
+  // widget URL (origin + theme + language); Tier 2 loads the bundled HTML, which
+  // only changes with the theme (origin/language don't reload it). Each
+  // renderer-death recovery reload is a new document too (`recoveryGeneration`).
+  // The tier is always the first `|` segment.
+  const surfaceKey = `${
+    isTier2 ? `tier2|${widgetTheme}` : `tier1|${linkUrl}`
+  }|r${recoveryGeneration}`;
+  const widgetReady = readySurface === surfaceKey;
+  // The latest document key, so handlers captured by an earlier (torn-down)
+  // WebView instance can tell their events are stale.
+  const currentSurfaceRef = useRef(surfaceKey);
+  currentSurfaceRef.current = surfaceKey;
+  const isCurrentSurface = () =>
+    surfaceKey === currentSurfaceRef.current &&
+    surfaceKey !== deadSurfaceRef.current;
+  // A same-tier reload (host changed origin/theme/language mid-session, or a
+  // renderer-death recovery) starts the ready handshake over, so a failed or
+  // silent reload still falls back / fails closed. A tier change is the cascade
+  // itself, which arms its own timer.
+  const previousSurfaceKey = useRef(surfaceKey);
+  useEffect(() => {
+    const previous = previousSurfaceKey.current;
+    previousSurfaceKey.current = surfaceKey;
+    if (previous === surfaceKey) return;
+    if (previous.split('|')[0] !== surfaceKey.split('|')[0]) return;
+    restartHandshake();
+    // Re-run solely on a new document (restartHandshake reads refs only).
+  }, [surfaceKey]);
 
   const injectedScript = useMemo(
     () => `
@@ -267,6 +324,12 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
     : SDKContainer;
 
   const isDark = !!darkTheme;
+
+  // Tier 2 has no URL to carry ?theme=, so the theme goes on the HTML itself.
+  const offlineHtml = useMemo(
+    () => withWidgetTheme(OFFLINE_WIDGET_HTML, widgetTheme),
+    [widgetTheme]
+  );
 
   // The backup widget is a single-origin static SPA and, being deposit-only, has
   // no OAuth/wallet hand-offs — nothing should ever leave it. react-native-webview
@@ -300,10 +363,11 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
   return (
     <SDKWrapperComponent isDarkTheme={isDark}>
       {/* Deposit-only: the widget owns its own in-funnel navigation, so there is
-          no native NavBar. The always-present close (✕) below is the single
-          exit affordance back to the host. */}
+          no native NavBar. The native close (✕) below is the exit affordance
+          until the widget is ready; after that the widget's own ✕ (which exits
+          through the same onExit) takes over. */}
       {initialLoading && <LoadingComponentWebview darkTheme={isDark} />}
-      {!props.hideCloseButton && (
+      {!props.hideCloseButton && !widgetReady && (
         <TouchableOpacity
           testID={'backup-close-button'}
           accessibilityRole={'button'}
@@ -329,9 +393,11 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
         </TouchableOpacity>
       )}
       <WebView
-        // Remount cleanly on the tier transition so the remote source is torn
-        // down and the bundled document mounts fresh with its own handshake.
-        key={tier}
+        // Remount per document — on the tier transition and on a same-tier
+        // reload (origin/theme/language change) — so the old source is torn down
+        // and the new document mounts fresh with its own handshake and handlers
+        // (which carry its `surfaceKey`, letting stale events be ignored).
+        key={surfaceKey}
         bounces={false}
         style={{
           backgroundColor: isDark
@@ -342,9 +408,16 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
         ref={webViewRef}
         // Tier 1 loads the widget from its origin; Tier 2 loads the bundled
         // offline widget from an inline HTML string (no network).
-        source={isTier2 ? { html: OFFLINE_WIDGET_HTML } : { uri: linkUrl }}
+        source={isTier2 ? { html: offlineHtml } : { uri: linkUrl }}
         cacheMode={'LOAD_DEFAULT'}
-        onMessage={handleMessage}
+        // The WebView is keyed by document (`surfaceKey`), so a torn-down one —
+        // the Tier-1 surface after the cascade, or the previous document after a
+        // same-tier reload — can still deliver queued messages. Drop them all
+        // (loaded, close, JIT requests, transfer events…) before any host
+        // callback runs: only the current document speaks for the flow.
+        onMessage={(event) => {
+          if (isCurrentSurface()) handleMessage(event);
+        }}
         onLoadEnd={() => {
           setInitialLoading(false);
         }}
@@ -370,6 +443,9 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
         }
         domStorageEnabled={true}
         onError={({ nativeEvent }) => {
+          // A stale error from a torn-down document is not this flow's failure:
+          // report nothing to the host and don't cascade.
+          if (!isCurrentSurface()) return;
           props.onEvent?.({
             type: 'webViewLoadFailed',
             payload: {
@@ -380,11 +456,10 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
           });
           // A hard load failure on the backup origin cascades to Tier 2
           // immediately (design §5H) — do not reload the unreachable origin.
-          // Stamped with this render's tier so a stale error from a torn-down
-          // surface is ignored rather than misread as a failure of the new tier.
           reportLoadError(tier);
         }}
         onHttpError={({ nativeEvent }) => {
+          if (!isCurrentSurface()) return;
           props.onEvent?.({
             type: 'webViewLoadFailed',
             payload: {
@@ -399,8 +474,15 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
             reportLoadError(tier);
           }
         }}
-        onContentProcessDidTerminate={recoverFromRendererDeath}
-        onRenderProcessGone={recoverFromRendererDeath}
+        // Renderer death is reported per WebView instance: a queued callback from
+        // a torn-down document must not reload the current (healthy) one or
+        // bring back the native close, so it is surface-gated like the rest.
+        onContentProcessDidTerminate={() => {
+          if (isCurrentSurface()) recoverFromRendererDeath();
+        }}
+        onRenderProcessGone={() => {
+          if (isCurrentSurface()) recoverFromRendererDeath();
+        }}
       />
     </SDKWrapperComponent>
   );

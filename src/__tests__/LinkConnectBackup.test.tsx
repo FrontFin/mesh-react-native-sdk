@@ -36,7 +36,7 @@ jest.mock('react-native-webview', () => {
 });
 
 const CONFIG: MeshBackupConfig = {
-  clientId: '26C2621E-2C09-4CCC-DCF7-08DE90525AA1',
+  clientId: '00000000-0000-4000-8000-000000000000',
   userId: 'end-user-123',
   destinations: [{ networkId: 'net-guid', symbol: 'USDC' }],
   preselectedSymbol: 'USDC',
@@ -499,6 +499,31 @@ describe('LinkConnectBackup', () => {
     });
   });
 
+  it.each([
+    ['dark', 'light'],
+    ['light', 'dark'],
+  ] as const)(
+    'Tier 2 renders the host %s theme even on a %s device (no URL to carry ?theme=)',
+    async (theme, device) => {
+      jest.spyOn(Appearance, 'getColorScheme').mockReturnValue(device);
+      const { getByTestId } = render(
+        <LinkConnectBackup
+          backupConfig={CONFIG}
+          settings={{ theme }}
+          widgetOrigin="https://backup-widget.invalid"
+        />
+      );
+      await waitFor(() => getByTestId('webview'));
+      act(() => {
+        getByTestId('webview').props.onError({
+          nativeEvent: { url: 'https://backup-widget.invalid', code: -1003, description: 'dns' },
+        });
+      });
+      const { html } = getByTestId('webview').props.source;
+      expect(html).toContain(`<html data-theme="${theme}"`);
+    }
+  );
+
   it('derives theme from device appearance when the host sets no theme', async () => {
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('light');
     const { getByTestId } = render(<LinkConnectBackup backupConfig={CONFIG} />);
@@ -595,11 +620,351 @@ describe('LinkConnectBackup', () => {
     );
   });
 
+  it('shows the native close only until the widget is ready (no double ✕)', async () => {
+    const { getByTestId, queryByTestId } = render(
+      <LinkConnectBackup backupConfig={CONFIG} />
+    );
+    // Before the widget handshakes (spinner / hanging Tier 1) the native ✕ is
+    // the only way out.
+    await waitFor(() => getByTestId('backup-close-button'));
+
+    // Once ready, the widget draws its own ✕ in the same corner.
+    act(() => loaded(getByTestId('webview')));
+    await waitFor(() => expect(queryByTestId('backup-close-button')).toBeNull());
+
+    // A dead renderer reloads blank: the native ✕ comes back until it's ready again.
+    act(() => getByTestId('webview').props.onRenderProcessGone());
+    await waitFor(() => getByTestId('backup-close-button'));
+    act(() => loaded(getByTestId('webview')));
+    await waitFor(() => expect(queryByTestId('backup-close-button')).toBeNull());
+  });
+
+  it('brings the native close back when origin/theme/language reloads the widget', async () => {
+    const { getByTestId, queryByTestId, rerender } = render(
+      <LinkConnectBackup backupConfig={CONFIG} settings={{ theme: 'light' }} />
+    );
+    await waitFor(() => getByTestId('webview'));
+    act(() => loaded(getByTestId('webview')));
+    await waitFor(() => expect(queryByTestId('backup-close-button')).toBeNull());
+
+    // Same tier, new surface: the replacement widget hasn't handshaken yet.
+    rerender(<LinkConnectBackup backupConfig={CONFIG} settings={{ theme: 'dark' }} />);
+    await waitFor(() => getByTestId('backup-close-button'));
+    act(() => loaded(getByTestId('webview')));
+    await waitFor(() => expect(queryByTestId('backup-close-button')).toBeNull());
+  });
+
+  it('brings the native close back for the Tier-2 surface until it is ready', async () => {
+    const { getByTestId, queryByTestId } = render(
+      <LinkConnectBackup backupConfig={CONFIG} />
+    );
+    await waitFor(() => getByTestId('webview'));
+    act(() => {
+      getByTestId('webview').props.onError({
+        nativeEvent: { url: DEFAULT_BACKUP_WIDGET_ORIGIN, code: -1009, description: 'offline' },
+      });
+    });
+    // Cascaded to Tier 2, which hasn't handshaken yet.
+    await waitFor(() => expect(typeof getByTestId('webview').props.source.html).toBe('string'));
+    expect(getByTestId('backup-close-button')).toBeTruthy();
+    act(() => loaded(getByTestId('webview')));
+    await waitFor(() => expect(queryByTestId('backup-close-button')).toBeNull());
+  });
+
+  it('falls back to Tier 2 when a same-tier reload after ready fails to load', async () => {
+    const onEvent = jest.fn();
+    const { getByTestId, rerender } = render(
+      <LinkConnectBackup backupConfig={CONFIG} settings={{ theme: 'light' }} onEvent={onEvent} />
+    );
+    await waitFor(() => getByTestId('webview'));
+    act(() => loaded(getByTestId('webview')));
+
+    // Host changes the theme → Tier 1 reloads the widget; that reload fails.
+    rerender(<LinkConnectBackup backupConfig={CONFIG} settings={{ theme: 'dark' }} onEvent={onEvent} />);
+    await waitFor(() => expect(getByTestId('webview').props.source.uri).toContain('theme=dark'));
+    act(() => {
+      getByTestId('webview').props.onError({
+        nativeEvent: { url: DEFAULT_BACKUP_WIDGET_ORIGIN, code: -1009, description: 'offline' },
+      });
+    });
+    expect(onEvent).toHaveBeenCalledWith({
+      type: 'backupTierChanged',
+      payload: { from: 'tier1', to: 'tier2', reason: 'loadError' },
+    });
+    await waitFor(() => expect(typeof getByTestId('webview').props.source.html).toBe('string'));
+  });
+
+  it('ignores everything from the previous document after a same-tier reload', async () => {
+    const onEvent = jest.fn();
+    const onExit = jest.fn();
+    const { getByTestId, rerender } = render(
+      <LinkConnectBackup
+        backupConfig={CONFIG}
+        settings={{ theme: 'light' }}
+        onEvent={onEvent}
+        onExit={onExit}
+      />
+    );
+    await waitFor(() => getByTestId('webview'));
+    act(() => loaded(getByTestId('webview')));
+    // Handlers of the light-theme document (its WebView unmounts on the reload).
+    const {
+      onMessage: previousOnMessage,
+      onError: previousOnError,
+      onHttpError: previousOnHttpError,
+    } = getByTestId('webview').props;
+
+    onEvent.mockClear(); // pageLoaded etc. from the first document
+    rerender(
+      <LinkConnectBackup
+        backupConfig={CONFIG}
+        settings={{ theme: 'dark' }}
+        onEvent={onEvent}
+        onExit={onExit}
+      />
+    );
+    await waitFor(() => expect(getByTestId('webview').props.source.uri).toContain('theme=dark'));
+
+    // A queued `loaded` from the old document must not mark the new one ready…
+    act(() => {
+      previousOnMessage({ nativeEvent: { data: JSON.stringify({ type: 'loaded' }) } });
+    });
+    expect(getByTestId('backup-close-button')).toBeTruthy();
+    // …and a stale error from it must not be read as the new document failing.
+    act(() => {
+      previousOnError({
+        nativeEvent: { url: DEFAULT_BACKUP_WIDGET_ORIGIN, code: -1009, description: 'offline' },
+      });
+    });
+    act(() => {
+      previousOnHttpError({ nativeEvent: { url: DEFAULT_BACKUP_WIDGET_ORIGIN, statusCode: 503 } });
+    });
+    // No host event at all from the torn-down document (not even webViewLoadFailed).
+    expect(onEvent).not.toHaveBeenCalled();
+    // Other queued messages from it don't reach the host either.
+    act(() => {
+      previousOnMessage({ nativeEvent: { data: JSON.stringify({ type: 'close' }) } });
+    });
+    expect(onExit).not.toHaveBeenCalled();
+
+    // The new document failing still cascades (its handshake was not cancelled).
+    act(() => {
+      getByTestId('webview').props.onError({
+        nativeEvent: { url: DEFAULT_BACKUP_WIDGET_ORIGIN, code: -1009, description: 'offline' },
+      });
+    });
+    expect(onEvent).toHaveBeenCalledWith({
+      type: 'backupTierChanged',
+      payload: { from: 'tier1', to: 'tier2', reason: 'loadError' },
+    });
+  });
+
+  describe('Tier 2 after ready', () => {
+    // Timer behaviour of a restarted handshake is covered in useBackupTier tests;
+    // here the load-error path (immediate, no timers) proves the wiring: after a
+    // restart a Tier-2 error fails closed, without one it is ignored.
+    const offline = {
+      nativeEvent: { url: 'about:blank', code: -1, description: 'load failed' },
+    };
+    const readyTier2 = async (onExit: jest.Mock) => {
+      const utils = render(
+        <LinkConnectBackup backupConfig={CONFIG} settings={{ theme: 'light' }} onExit={onExit} />
+      );
+      await waitFor(() => utils.getByTestId('webview'));
+      act(() => {
+        utils.getByTestId('webview').props.onError({
+          nativeEvent: { url: DEFAULT_BACKUP_WIDGET_ORIGIN, code: -1009, description: 'offline' },
+        });
+      });
+      await waitFor(() =>
+        expect(typeof utils.getByTestId('webview').props.source.html).toBe('string')
+      );
+      act(() => loaded(utils.getByTestId('webview')));
+      await waitFor(() => expect(utils.queryByTestId('backup-close-button')).toBeNull());
+      return utils;
+    };
+
+    it('a language change does not reload the bundled widget, so nothing restarts', async () => {
+      const onExit = jest.fn();
+      const { rerender, getByTestId, queryByTestId } = await readyTier2(onExit);
+      const html = getByTestId('webview').props.source.html;
+      rerender(
+        <LinkConnectBackup
+          backupConfig={CONFIG}
+          settings={{ theme: 'light', language: 'en' }}
+          onExit={onExit}
+        />
+      );
+      expect(getByTestId('webview').props.source.html).toBe(html);
+      expect(queryByTestId('backup-close-button')).toBeNull();
+      // Still the same ready document: a stray error is ignored, no exit.
+      act(() => getByTestId('webview').props.onError(offline));
+      expect(onExit).not.toHaveBeenCalled();
+    });
+
+    it('a theme change reloads it: the native close returns and a failed reload fails closed', async () => {
+      const onExit = jest.fn();
+      const { rerender, getByTestId } = await readyTier2(onExit);
+      rerender(<LinkConnectBackup backupConfig={CONFIG} settings={{ theme: 'dark' }} onExit={onExit} />);
+      expect(getByTestId('webview').props.source.html).toContain('data-theme="dark"');
+      await waitFor(() => getByTestId('backup-close-button'));
+      act(() => getByTestId('webview').props.onError(offline));
+      expect(onExit).toHaveBeenCalledWith('Backup deposit flow is unavailable');
+    });
+  });
+
   it('recovers a dead renderer while foregrounded (renderer-death recovery)', async () => {
     const { getByTestId } = render(<LinkConnectBackup backupConfig={CONFIG} />);
     await waitFor(() => {
       getByTestId('webview').props.onRenderProcessGone();
       expect(mockReload).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it.each([
+    ['foreground', false],
+    ['background (reload deferred to foreground return)', true],
+  ])('a renderer-death reload after ready restarts the handshake (%s)', async (_, backgrounded) => {
+    let appStateCb: ((s: string) => void) | undefined;
+    jest.spyOn(AppState, 'addEventListener').mockImplementation((event: any, cb: any) => {
+      if (event === 'change') appStateCb = cb;
+      return { remove: jest.fn() } as any;
+    });
+    const onEvent = jest.fn();
+    const { getByTestId } = render(<LinkConnectBackup backupConfig={CONFIG} onEvent={onEvent} />);
+    await waitFor(() => getByTestId('webview'));
+    act(() => loaded(getByTestId('webview')));
+    await waitFor(() => expect(getByTestId('webview')).toBeTruthy());
+
+    (AppState as any).currentState = backgrounded ? 'background' : 'active';
+    act(() => getByTestId('webview').props.onRenderProcessGone());
+    if (backgrounded) {
+      expect(mockReload).not.toHaveBeenCalled();
+      (AppState as any).currentState = 'active';
+      act(() => appStateCb?.('active'));
+    }
+    expect(mockReload).toHaveBeenCalledTimes(1);
+    // Native close is back while the reloaded document loads…
+    expect(getByTestId('backup-close-button')).toBeTruthy();
+    // …and if the reload fails, the flow still falls back instead of ignoring it.
+    act(() => {
+      getByTestId('webview').props.onError({
+        nativeEvent: { url: DEFAULT_BACKUP_WIDGET_ORIGIN, code: -1009, description: 'offline' },
+      });
+    });
+    expect(onEvent).toHaveBeenCalledWith({
+      type: 'backupTierChanged',
+      payload: { from: 'tier1', to: 'tier2', reason: 'loadError' },
+    });
+  });
+
+  it('a recovery reload is a new document: events queued by the dead one are dropped', async () => {
+    const onEvent = jest.fn();
+    const onExit = jest.fn();
+    const { getByTestId } = render(
+      <LinkConnectBackup backupConfig={CONFIG} onEvent={onEvent} onExit={onExit} />
+    );
+    await waitFor(() => getByTestId('webview'));
+    act(() => loaded(getByTestId('webview')));
+    // Handlers of the document whose renderer is about to die.
+    const { onMessage: deadOnMessage, onError: deadOnError } = getByTestId('webview').props;
+
+    (AppState as any).currentState = 'active';
+    act(() => getByTestId('webview').props.onRenderProcessGone());
+    expect(mockReload).toHaveBeenCalledTimes(1);
+    onEvent.mockClear();
+
+    // Queued messages / errors from the dead document reach nothing…
+    act(() => {
+      deadOnMessage({ nativeEvent: { data: JSON.stringify({ type: 'loaded' }) } });
+      deadOnMessage({ nativeEvent: { data: JSON.stringify({ type: 'close' }) } });
+      deadOnError({
+        nativeEvent: { url: DEFAULT_BACKUP_WIDGET_ORIGIN, code: -1009, description: 'offline' },
+      });
+    });
+    expect(onExit).not.toHaveBeenCalled();
+    expect(onEvent).not.toHaveBeenCalled();
+    // …so the reloaded document is not marked ready, and its own failure cascades.
+    expect(getByTestId('backup-close-button')).toBeTruthy();
+    act(() => {
+      getByTestId('webview').props.onError({
+        nativeEvent: { url: DEFAULT_BACKUP_WIDGET_ORIGIN, code: -1009, description: 'offline' },
+      });
+    });
+    expect(onEvent).toHaveBeenCalledWith({
+      type: 'backupTierChanged',
+      payload: { from: 'tier1', to: 'tier2', reason: 'loadError' },
+    });
+  });
+
+  it('ignores a renderer-death callback from a torn-down document', async () => {
+    const { getByTestId, queryByTestId, rerender } = render(
+      <LinkConnectBackup backupConfig={CONFIG} settings={{ theme: 'light' }} />
+    );
+    await waitFor(() => getByTestId('webview'));
+    const { onRenderProcessGone: staleGone, onContentProcessDidTerminate: staleTerminate } =
+      getByTestId('webview').props;
+
+    // Same-tier reload to a new document, which becomes ready.
+    rerender(<LinkConnectBackup backupConfig={CONFIG} settings={{ theme: 'dark' }} />);
+    await waitFor(() => expect(getByTestId('webview').props.source.uri).toContain('theme=dark'));
+    act(() => loaded(getByTestId('webview')));
+    await waitFor(() => expect(queryByTestId('backup-close-button')).toBeNull());
+
+    // The old document's queued death callbacks must not touch the healthy one.
+    (AppState as any).currentState = 'active';
+    act(() => {
+      staleGone();
+      staleTerminate();
+    });
+    expect(mockReload).not.toHaveBeenCalled();
+    expect(queryByTestId('backup-close-button')).toBeNull();
+  });
+
+  it('drops everything from a document whose renderer died, even before the deferred reload', async () => {
+    let appStateCb: ((s: string) => void) | undefined;
+    jest.spyOn(AppState, 'addEventListener').mockImplementation((event: any, cb: any) => {
+      if (event === 'change') appStateCb = cb;
+      return { remove: jest.fn() } as any;
+    });
+    const onEvent = jest.fn();
+    const onExit = jest.fn();
+    const { getByTestId } = render(
+      <LinkConnectBackup backupConfig={CONFIG} onEvent={onEvent} onExit={onExit} />
+    );
+    await waitFor(() => getByTestId('webview'));
+    act(() => loaded(getByTestId('webview')));
+
+    // Renderer dies while backgrounded: the reload waits for the foreground…
+    (AppState as any).currentState = 'background';
+    act(() => getByTestId('webview').props.onRenderProcessGone());
+    expect(mockReload).not.toHaveBeenCalled();
+    onEvent.mockClear();
+
+    // …but the dead document is already invalidated: its queued events do nothing.
+    act(() => {
+      const webview = getByTestId('webview');
+      webview.props.onMessage({ nativeEvent: { data: JSON.stringify({ type: 'close' }) } });
+      webview.props.onError({
+        nativeEvent: { url: DEFAULT_BACKUP_WIDGET_ORIGIN, code: -1009, description: 'offline' },
+      });
+    });
+    expect(onExit).not.toHaveBeenCalled();
+    expect(onEvent).not.toHaveBeenCalled();
+    expect(getByTestId('backup-close-button')).toBeTruthy();
+
+    // Back in the foreground the reload runs and the new document is live again.
+    (AppState as any).currentState = 'active';
+    act(() => appStateCb?.('active'));
+    expect(mockReload).toHaveBeenCalledTimes(1);
+    act(() => {
+      getByTestId('webview').props.onError({
+        nativeEvent: { url: DEFAULT_BACKUP_WIDGET_ORIGIN, code: -1009, description: 'offline' },
+      });
+    });
+    expect(onEvent).toHaveBeenCalledWith({
+      type: 'backupTierChanged',
+      payload: { from: 'tier1', to: 'tier2', reason: 'loadError' },
     });
   });
 

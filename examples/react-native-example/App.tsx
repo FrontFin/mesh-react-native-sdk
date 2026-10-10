@@ -4,12 +4,14 @@ import {
   Dimensions,
   SafeAreaView,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Switch,
   Text,
   TextInput,
   TouchableOpacity,
   View,
+  useColorScheme,
 } from 'react-native';
 import {
   AccessTokenPayload,
@@ -23,8 +25,34 @@ import {
   TransferFinishedSuccessPayload,
 } from '@meshconnect/react-native-link-sdk';
 import Reports from './components/reports';
+import {LARGE_DESTINATIONS} from './largeDemoDestinations';
 
 const layout_width = Dimensions.get('window').width;
+
+// The example follows the device appearance (Settings ▸ Display, or ⇧⌘A in the
+// iOS Simulator). The SDK flows get the same via `theme: 'system'`.
+const PALETTE = {
+  light: {
+    bg: '#ffffff',
+    text: '#363636',
+    muted: '#6b6b6b',
+    border: '#363636',
+    placeholder: '#9a9a9a',
+    disabled: '#cfcfcf',
+    primaryBg: '#000000',
+    primaryText: '#ffffff',
+  },
+  dark: {
+    bg: '#111318',
+    text: '#f2f3f5',
+    muted: '#a7adb8',
+    border: '#4a4f5c',
+    placeholder: '#7c8799',
+    disabled: '#353a45',
+    primaryBg: '#ffffff',
+    primaryText: '#000000',
+  },
+};
 
 // --- Backup / outage demo -------------------------------------------------
 // The deposit-only backup flow runs when the primary Mesh API is unavailable.
@@ -57,7 +85,7 @@ const DEAD_BACKUP_WIDGET_ORIGIN = 'https://backup-widget.invalid';
 // EVM chains share the 0x address format, so one demo address is reused for all.
 const EVM_DEMO_ADDRESS = '0x503828976D22510aad0201ac7EC88293211D23Da';
 const DEMO_BACKUP_CONFIG: MeshBackupConfig = {
-  clientId: '26C2621E-2C09-4CCC-DCF7-08DE90525AA1', // CDC (Crypto.com)
+  clientId: '00000000-0000-4000-8000-000000000000', // placeholder client id
   userId: 'rn-example-user',
   destinations: [
     // Both logos bundled (baseline).
@@ -90,10 +118,14 @@ const demoOnAddressInit = (symbol: string, networkId: string) => {
   console.log('onAddressInit', symbol, networkId);
 };
 
-const demoOnStatusPoll = async (
-  symbol: string,
-  networkId: string,
-): Promise<MeshBackupJitStatusResult> => {
+// Built per open from the ACTIVE destination list (demo or large set), so the
+// address returned for a pair is the one that config declares for it.
+const makeDemoOnStatusPoll =
+  (destinations: MeshBackupConfig['destinations']) =>
+  async (
+    symbol: string,
+    networkId: string,
+  ): Promise<MeshBackupJitStatusResult> => {
   const key = `${symbol}:${networkId}`;
   const n = (jitPollCounts.get(key) ?? 0) + 1;
   jitPollCounts.set(key, n);
@@ -102,25 +134,32 @@ const demoOnStatusPoll = async (
   if (n < 3) {
     return {status: 'pending'};
   }
-  // Return the address the static config declared for THIS pair, so each network
-  // gets a correctly-formatted address (e.g. the Tron address for USDC·Tron, an
-  // EVM address for the EVM pairs) — not a one-size EVM address that would fail
-  // the widget's per-network format check.
-  const dest = DEMO_BACKUP_CONFIG.destinations.find(
+  // Return the address the active config declared for THIS pair, so each
+  // network gets a correctly-formatted address (e.g. the Tron address for
+  // USDC·Tron, an EVM address for the EVM pairs) — not a one-size EVM address
+  // that would fail the widget's per-network format check.
+  const dest = destinations.find(
     d => d.symbol === symbol && d.networkId === networkId,
   );
   return {status: 'ready', address: dest?.address ?? EVM_DEMO_ADDRESS};
 };
 
-// The address-less variant of the config used when "Force JIT" is on: same
-// destinations, `address` stripped so each resolves via the callbacks.
-const JIT_BACKUP_CONFIG: MeshBackupConfig = {
+// The large-set variant: ~600 destinations (see largeDemoDestinations.ts) to
+// exercise the widget at a realistic production config size.
+const LARGE_BACKUP_CONFIG: MeshBackupConfig = {
   ...DEMO_BACKUP_CONFIG,
-  destinations: DEMO_BACKUP_CONFIG.destinations.map(({networkId, symbol}) => ({
+  destinations: LARGE_DESTINATIONS,
+};
+
+// The address-less variant used when "Force JIT" is on: same destinations,
+// `address` stripped so each resolves via the callbacks.
+const withoutAddresses = (config: MeshBackupConfig): MeshBackupConfig => ({
+  ...config,
+  destinations: config.destinations.map(({networkId, symbol}) => ({
     networkId,
     symbol,
   })),
-};
+});
 
 export default function App() {
   const [data, setData] = useState<
@@ -144,7 +183,18 @@ export default function App() {
   // the onAddressInit/onStatusPoll callbacks (OR-452). Pair with Force Tier-2 to
   // run JIT end to end against the bundled callback-widget.
   const [forceJit, setForceJit] = useState(false);
+  // Demo toggle: when on, pass a production-sized config (~600 destinations) instead of
+  // the 6 hand-picked ones, to test the widget with a production-sized config.
+  const [largeSet, setLargeSet] = useState(false);
   const connectButtonTitle = 'Connect account';
+  const isDark = useColorScheme() === 'dark';
+  const c = isDark ? PALETTE.dark : PALETTE.light;
+  const statusBar = (
+    <StatusBar
+      barStyle={isDark ? 'light-content' : 'dark-content'}
+      backgroundColor={c.bg}
+    />
+  );
 
   function showIntegrationConnectedAlert(payload: AccessTokenPayload) {
     Alert.alert(
@@ -190,15 +240,17 @@ export default function App() {
     // set, else the SDK's own default that LinkConnect will use.
     const activeOrigin =
       widgetOriginOverride ?? DEFAULT_BACKUP_WIDGET_ORIGIN;
+    const baseConfig = largeSet ? LARGE_BACKUP_CONFIG : DEMO_BACKUP_CONFIG;
     return (
-      <View style={styles.flex}>
+      <View style={[styles.flex, {backgroundColor: c.bg}]}>
+        {statusBar}
         {/* Spec entry point: the same <LinkConnect>, given a backupConfig in
-            place of a linkToken (CDC client spec §3.1). */}
+            place of a linkToken (backup client spec §3.1). */}
         <LinkConnect
           widgetOrigin={widgetOriginOverride}
-          backupConfig={forceJit ? JIT_BACKUP_CONFIG : DEMO_BACKUP_CONFIG}
+          backupConfig={forceJit ? withoutAddresses(baseConfig) : baseConfig}
           onAddressInit={demoOnAddressInit}
-          onStatusPoll={demoOnStatusPoll}
+          onStatusPoll={makeDemoOnStatusPoll(baseConfig.destinations)}
           settings={{language: 'en', theme: 'system'}}
           onTransferFinished={(payload: TransferFinishedPayload) => {
             if (payload.status === 'success') {
@@ -267,13 +319,14 @@ export default function App() {
   if (!view) {
     return (
       <SafeAreaView
-        style={styles.container}
+        style={[styles.container, {backgroundColor: c.bg}]}
         testID={'example-app-link-container'}>
+        {statusBar}
         <ScrollView>
           <View style={styles.headerDivider} />
           <View
             testID={'example-app-link-token-container'}
-            style={styles.inputContainer}>
+            style={[styles.inputContainer, {borderColor: c.border}]}>
             <TextInput
               testID={'example-app-link-token-input'}
               value={linkToken}
@@ -283,9 +336,9 @@ export default function App() {
                   setView(true);
                 }
               }}
-              style={styles.exampleLinkTokenInput}
+              style={[styles.exampleLinkTokenInput, {color: c.text}]}
               placeholder="Enter link token"
-              placeholderTextColor={'#363636'}
+              placeholderTextColor={c.placeholder}
             />
           </View>
 
@@ -302,15 +355,17 @@ export default function App() {
               }
               setView(true);
             }}
-            style={styles.conBtn}
+            style={[styles.conBtn, {backgroundColor: c.primaryBg}]}
             testID={'example-app-connect-btn'}>
-            <Text style={styles.connectButtonText}>{connectButtonTitle}</Text>
+            <Text style={[styles.connectButtonText, {color: c.primaryText}]}>
+              {connectButtonTitle}
+            </Text>
           </TouchableOpacity>
 
           <View
             testID={'example-app-backup-origin-container'}
             style={styles.originField}>
-            <Text style={styles.switchLabel}>Tier-1 widget origin (optional)</Text>
+            <Text style={[styles.switchLabel, {color: c.text}]}>Tier-1 widget origin (optional)</Text>
             <TextInput
               testID={'example-app-backup-origin-input'}
               value={tier1Origin}
@@ -318,11 +373,15 @@ export default function App() {
               editable={!forceTier2}
               autoCapitalize={'none'}
               autoCorrect={false}
-              style={[styles.originInput, forceTier2 && styles.originInputDisabled]}
+              style={[
+                styles.originInput,
+                {borderColor: c.border, color: c.text},
+                forceTier2 && {borderColor: c.disabled, color: c.placeholder},
+              ]}
               placeholder={`${DEFAULT_BACKUP_WIDGET_ORIGIN} (SDK default)`}
-              placeholderTextColor={'#9a9a9a'}
+              placeholderTextColor={c.placeholder}
             />
-            <Text style={styles.switchHint}>
+            <Text style={[styles.switchHint, {color: c.muted}]}>
               Leave blank to use the SDK's built-in production default. Type an
               origin to override it, e.g. a locally-run widget. Ignored when Force
               Tier-2 is on.
@@ -344,8 +403,8 @@ export default function App() {
 
           <View style={styles.switchRow}>
             <View style={styles.switchLabelWrap}>
-              <Text style={styles.switchLabel}>Force Tier-2 fallback</Text>
-              <Text style={styles.switchHint}>
+              <Text style={[styles.switchLabel, {color: c.text}]}>Force Tier-2 fallback</Text>
+              <Text style={[styles.switchHint, {color: c.muted}]}>
                 Points the backup widget at an unreachable origin so it cascades
                 to the bundled offline widget.
               </Text>
@@ -359,8 +418,8 @@ export default function App() {
 
           <View style={styles.switchRow}>
             <View style={styles.switchLabelWrap}>
-              <Text style={styles.switchLabel}>Force JIT (address-less)</Text>
-              <Text style={styles.switchHint}>
+              <Text style={[styles.switchLabel, {color: c.text}]}>Force JIT (address-less)</Text>
+              <Text style={[styles.switchHint, {color: c.muted}]}>
                 Drops static addresses so each destination resolves via the
                 onAddressInit / onStatusPoll callbacks. Pair with Force Tier-2 to
                 run it against the bundled callback-widget.
@@ -370,6 +429,23 @@ export default function App() {
               testID={'example-app-force-jit-switch'}
               value={forceJit}
               onValueChange={setForceJit}
+            />
+          </View>
+
+          <View style={styles.switchRow}>
+            <View style={styles.switchLabelWrap}>
+              <Text style={[styles.switchLabel, {color: c.text}]}>
+                Large destination set ({LARGE_DESTINATIONS.length})
+              </Text>
+              <Text style={[styles.switchHint, {color: c.muted}]}>
+                Passes a production-sized set of pairs instead of the 6 demo
+                destinations. Addresses are demo addresses — never send funds.
+              </Text>
+            </View>
+            <Switch
+              testID={'example-app-large-set-switch'}
+              value={largeSet}
+              onValueChange={setLargeSet}
             />
           </View>
 
@@ -441,10 +517,6 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     fontSize: 14,
     color: '#363636',
-  },
-  originInputDisabled: {
-    borderColor: '#cfcfcf',
-    color: '#9a9a9a',
   },
   tierBanner: {
     position: 'absolute',

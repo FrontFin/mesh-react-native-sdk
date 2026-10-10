@@ -3,6 +3,25 @@
 All notable changes to the Mesh Connect React Native SDK are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2.5.3
+
+### Added
+
+- Offline backup fallback: token and network lists now match the main Link flow, with "Popular" and "Others" sections, search, and the selected token shown on the network screen. Network names are clearer (for example "BNB Smart Chain" instead of "BSC").
+
+### Changed
+
+- Offline backup fallback now shows every destination in your config, even ones its bundled catalog doesn't list yet. Only a destination on a network added after this SDK version is hidden, because it can't be named offline.
+- Network ids are never shown to users in the backup flow.
+
+### Fixed
+
+- Offline backup fallback now follows `settings.theme` (`dark` / `light`) instead of the app's own appearance.
+- Backup flow no longer shows two overlapping close (✕) buttons: the SDK's own close shows only until the widget has loaded.
+- Backup flow can be closed while it is still loading: the loading screens now show a close (✕).
+- Backup flow now falls back to the offline version (or exits cleanly) if the widget fails to reload after you change `widgetOrigin`, `theme` or `language` mid-session, instead of staying on a broken screen.
+- Backup flow now accepts Hedera account ids (`0.0.12345`), NEAR named accounts (`alice.near`) and EOS/WAX dotted names; it previously refused to show a QR code for them.
+
 ## 2.5.2
 
 ### Changed

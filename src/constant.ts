@@ -25,7 +25,7 @@ export const DEFAULT_BACKUP_WIDGET_ORIGIN = 'https://backup.meshconnect.com';
 export const BACKUP_CONFIG_MESSAGE_TYPE = 'meshBackupConfig';
 
 /**
- * JIT-over-bridge RPC message types (OR-452 / CDC client spec §5–§6). The widget
+ * JIT-over-bridge RPC message types (OR-452 / backup client spec §5–§6). The widget
  * resolves an address-less destination by sending a `meshBackupJitRequest` to the
  * host, which invokes the host's `onAddressInit`/`onStatusPoll` callback and
  * replies with a `meshBackupJitResponse` correlated by `callId`. No token or
