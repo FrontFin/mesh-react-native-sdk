@@ -7,7 +7,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- Offline backup fallback: search on the token and network lists, most-used tokens and networks listed first, and clearer network names (for example "BNB Smart Chain" instead of "BSC").
+- Offline backup fallback: token and network lists now match the main Link flow, with "Popular" and "Others" sections, search, and the selected token shown on the network screen. Network names are clearer (for example "BNB Smart Chain" instead of "BSC").
 
 ### Changed
 
