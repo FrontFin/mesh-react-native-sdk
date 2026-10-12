@@ -3,6 +3,12 @@
 All notable changes to the Mesh Connect React Native SDK are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2.5.3
+
+### Added
+
+- New `withdrawalRequested` event in `onEvent`, sent when the user confirms a withdrawal in Link, with its `transferId` and `status` (`pending` or `success`).
+
 ## 2.5.2
 
 ### Changed
