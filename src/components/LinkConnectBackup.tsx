@@ -122,7 +122,7 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
     isValidWidgetOrigin,
     tier,
     () => webViewRef.current?.goBack(),
-    () => props.onExit?.()
+    props.onExit
   );
 
   // Deliver the deposit config into the widget once it signals `loaded`,

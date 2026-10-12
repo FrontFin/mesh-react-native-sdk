@@ -575,6 +575,14 @@ describe('LinkConnect Component', () => {
       expect(onExit).toHaveBeenCalledTimes(1);
     });
 
+    it('leaves back to the host app when no onExit is given', async () => {
+      const { getByTestId, pressBack } = renderWithBackHandler();
+      await waitFor(() => getByTestId('webview'));
+
+      expect(pressBack()).toBe(false);
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
     it('does not handle back when the link token is invalid', () => {
       const addListener = jest.spyOn(BackHandler, 'addEventListener');
       render(<LinkConnect linkToken={'invalid=='} onExit={mockOnExit} />);

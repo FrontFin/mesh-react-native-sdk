@@ -7,6 +7,7 @@ import type { WebViewNavigation } from 'react-native-webview';
  * Android SDK: step back in the WebView's history, or exit when there is
  * nothing to go back to. Only listens while `enabled` (the WebView is shown).
  * `resetKey` should change whenever the WebView remounts with a new session.
+ * Without `onExit` the press is left to the host app instead of swallowed.
  *
  * Returns a handler to call from the WebView's `onNavigationStateChange`.
  */
@@ -14,7 +15,7 @@ export function useAndroidBackHandler(
   enabled: boolean,
   resetKey: unknown,
   goBack: () => void,
-  onExit: () => void
+  onExit?: () => void
 ) {
   const canGoBack = useRef(false);
   const goBackRef = useRef(goBack);
@@ -33,10 +34,13 @@ export function useAndroidBackHandler(
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
       if (canGoBack.current) {
         goBackRef.current();
-      } else {
-        onExitRef.current();
+        return true;
       }
-      return true;
+      if (onExitRef.current) {
+        onExitRef.current();
+        return true;
+      }
+      return false;
     });
     return () => subscription.remove();
   }, [enabled]);

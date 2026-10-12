@@ -110,10 +110,11 @@ const LinkConnectPrimary = (props: LinkConnectTokenConfiguration) => {
     showWebView && !!linkUrl,
     linkUrl,
     goBack,
-    () => {
-      isOAuthInProgress.current = false;
-      props.onExit?.();
-    }
+    props.onExit &&
+      (() => {
+        isOAuthInProgress.current = false;
+        props.onExit?.();
+      })
   );
   const onNavigationStateChange = (navState: WebViewNavigation) => {
     trackBackNavigation(navState);
