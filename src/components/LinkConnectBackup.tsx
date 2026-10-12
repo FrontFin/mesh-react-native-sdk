@@ -11,6 +11,7 @@ import type {
 } from '../types';
 import { useBackupCallbacks } from '../hooks/useBackupCallbacks';
 import { useWebViewRecovery } from '../hooks/useWebViewRecovery';
+import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler';
 import { useBackupTier } from '../hooks/useBackupTier';
 import type { BackupTierFallbackReason } from '../hooks/useBackupTier';
 import { sdkSpecs } from '../utils/sdkConfig';
@@ -117,6 +118,11 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
   }|${props.settings?.language ?? ''}|${tier}`;
   const { webViewRef, recoverFromRendererDeath } =
     useWebViewRecovery(recoveryResetKey);
+  const trackBackNavigation = useAndroidBackHandler(
+    isValidWidgetOrigin,
+    () => webViewRef.current?.goBack(),
+    () => props.onExit?.()
+  );
 
   // Deliver the deposit config into the widget once it signals `loaded`,
   // mirroring the web SDK's post-on-loaded handshake. The widget's bridge
@@ -368,6 +374,7 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
           req.url === 'about:blank' ||
           extractOrigin(req.url) === widgetOrigin
         }
+        onNavigationStateChange={trackBackNavigation}
         domStorageEnabled={true}
         onError={({ nativeEvent }) => {
           props.onEvent?.({

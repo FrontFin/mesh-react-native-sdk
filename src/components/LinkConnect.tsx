@@ -1,7 +1,7 @@
-import { BackHandler, Linking, View } from 'react-native';
+import { Linking, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 import type { WebViewNavigation } from 'react-native-webview';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { NavBar } from './NavBar';
 import { SDKContainer } from './SDKContainer';
@@ -14,6 +14,7 @@ import type {
 } from '../types';
 import { useSDKCallbacks } from '../hooks/useSDKCallbacks';
 import { useWebViewRecovery } from '../hooks/useWebViewRecovery';
+import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler';
 import { sdkSpecs } from '../utils/sdkConfig';
 import { isAppLaunchScheme, isExternallyOpenedOrigin } from '../utils';
 import {
@@ -105,24 +106,16 @@ const LinkConnectPrimary = (props: LinkConnectTokenConfiguration) => {
     useWebViewRecovery(linkUrl);
   const goBack = () => webViewRef?.current?.goBack();
 
-  // Android hardware back / back gesture, matching the Android SDK: step back
-  // in Link's history, or exit Link when there is nothing to go back to.
-  const canGoBackRef = useRef(false);
-  const onExitRef = useRef(props.onExit);
-  onExitRef.current = props.onExit;
-  useEffect(() => {
-    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (canGoBackRef.current) {
-        webViewRef.current?.goBack();
-      } else {
-        onExitRef.current?.();
-      }
-      return true;
-    });
-    return () => subscription.remove();
-  }, [webViewRef]);
+  const trackBackNavigation = useAndroidBackHandler(
+    showWebView && !!linkUrl,
+    goBack,
+    () => {
+      isOAuthInProgress.current = false;
+      props.onExit?.();
+    }
+  );
   const onNavigationStateChange = (navState: WebViewNavigation) => {
-    canGoBackRef.current = navState.canGoBack;
+    trackBackNavigation(navState);
     handleNavState(navState);
   };
 
@@ -177,6 +170,9 @@ const LinkConnectPrimary = (props: LinkConnectTokenConfiguration) => {
               ? DARK_THEME_COLOR_BOTTOM
               : LIGHT_THEME_COLOR_BOTTOM,
           }}
+          // A new session gets a fresh WebView, so back never returns to the
+          // previous session's pages.
+          key={linkUrl}
           testID={'webview'}
           ref={webViewRef}
           source={{ uri: linkUrl }}

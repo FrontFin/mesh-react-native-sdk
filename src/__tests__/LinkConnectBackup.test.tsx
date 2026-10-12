@@ -1,6 +1,6 @@
 /* eslint-disable */
 import React from 'react';
-import { Alert, Appearance, AppState } from 'react-native';
+import { Alert, Appearance, AppState, BackHandler } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { LinkConnectBackup } from '../components/LinkConnectBackup';
 import {
@@ -19,6 +19,7 @@ jest.mock('react-native/Libraries/Utilities/useColorScheme', () => ({
 // var avoids TDZ — the closure inside forwardRef reads these after module init
 var mockReload = jest.fn();
 var mockInject = jest.fn();
+var mockGoBack = jest.fn();
 
 jest.mock('react-native-webview', () => {
   const React = require('react');
@@ -28,7 +29,7 @@ jest.mock('react-native-webview', () => {
       React.useImperativeHandle(ref, () => ({
         reload: mockReload,
         injectJavaScript: mockInject,
-        goBack: jest.fn(),
+        goBack: mockGoBack,
       }));
       return React.createElement(View, props);
     }),
@@ -787,4 +788,46 @@ describe('LinkConnectBackup', () => {
       jest.useRealTimers();
     }
   }, 15000);
+  describe('Android hardware back', () => {
+    const renderWithBackHandler = (onExit: () => void) => {
+      let onBack: () => boolean = () => false;
+      jest
+        .spyOn(BackHandler, 'addEventListener')
+        .mockImplementation((_event, handler) => {
+          onBack = handler as () => boolean;
+          return { remove: jest.fn() };
+        });
+      const utils = render(
+        <LinkConnectBackup backupConfig={CONFIG} onExit={onExit} />
+      );
+      return { ...utils, pressBack: () => onBack() };
+    };
+
+    beforeEach(() => {
+      mockGoBack.mockClear();
+    });
+
+    it('goes back in the widget history when the WebView can go back', async () => {
+      const onExit = jest.fn();
+      const { getByTestId, pressBack } = renderWithBackHandler(onExit);
+      await waitFor(() => getByTestId('webview'));
+      act(() => {
+        getByTestId('webview').props.onNavigationStateChange({ canGoBack: true });
+      });
+
+      expect(pressBack()).toBe(true);
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(onExit).not.toHaveBeenCalled();
+    });
+
+    it('exits the backup flow when there is nothing to go back to', async () => {
+      const onExit = jest.fn();
+      const { getByTestId, pressBack } = renderWithBackHandler(onExit);
+      await waitFor(() => getByTestId('webview'));
+
+      expect(pressBack()).toBe(true);
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(onExit).toHaveBeenCalledTimes(1);
+    });
+  });
 });

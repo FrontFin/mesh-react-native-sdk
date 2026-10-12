@@ -553,6 +553,12 @@ describe('LinkConnect Component', () => {
       expect(alertSpy).not.toHaveBeenCalled();
     });
 
+    it('does not handle back when the link token is invalid', () => {
+      const addListener = jest.spyOn(BackHandler, 'addEventListener');
+      render(<LinkConnect linkToken={'invalid=='} onExit={mockOnExit} />);
+      expect(addListener).not.toHaveBeenCalled();
+    });
+
     it('stops handling back once Link is unmounted', async () => {
       const { getByTestId, unmount, remove } = renderWithBackHandler();
       await waitFor(() => getByTestId('webview'));
