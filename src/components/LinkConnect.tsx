@@ -1,6 +1,7 @@
-import { Linking, View } from 'react-native';
+import { BackHandler, Linking, View } from 'react-native';
 import { WebView } from 'react-native-webview';
-import React, { useMemo, useState } from 'react';
+import type { WebViewNavigation } from 'react-native-webview';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { NavBar } from './NavBar';
 import { SDKContainer } from './SDKContainer';
@@ -104,6 +105,27 @@ const LinkConnectPrimary = (props: LinkConnectTokenConfiguration) => {
     useWebViewRecovery(linkUrl);
   const goBack = () => webViewRef?.current?.goBack();
 
+  // Android hardware back / back gesture, matching the Android SDK: step back
+  // in Link's history, or exit Link when there is nothing to go back to.
+  const canGoBackRef = useRef(false);
+  const onExitRef = useRef(props.onExit);
+  onExitRef.current = props.onExit;
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (canGoBackRef.current) {
+        webViewRef.current?.goBack();
+      } else {
+        onExitRef.current?.();
+      }
+      return true;
+    });
+    return () => subscription.remove();
+  }, [webViewRef]);
+  const onNavigationStateChange = (navState: WebViewNavigation) => {
+    canGoBackRef.current = navState.canGoBack;
+    handleNavState(navState);
+  };
+
   const injectedScript = useMemo(() => {
     let sdkTypeScript = `
     window.meshSdkPlatform='${sdkSpecs.platform}';
@@ -167,7 +189,7 @@ const LinkConnectPrimary = (props: LinkConnectTokenConfiguration) => {
           javaScriptEnabled={true}
           injectedJavaScript={injectedScript}
           {...whiteListProps}
-          onNavigationStateChange={handleNavState}
+          onNavigationStateChange={onNavigationStateChange}
           // Android popup routing. PRG-3107 set this false so Binance app auth
           // reached a handler the SDK controls; at the time onOpenWindow did not
           // exist, so onShouldStartLoadWithRequest was the only one. It is back to

@@ -1,6 +1,6 @@
 /* eslint-disable */
 import React from 'react';
-import { AppState, Linking } from 'react-native';
+import { Alert, AppState, BackHandler, Linking } from 'react-native';
 import { act, render, waitFor } from '@testing-library/react-native';
 import { LinkConnect } from '../components/LinkConnect';
 import { DEFAULT_BACKUP_WIDGET_ORIGIN } from '../constant';
@@ -16,6 +16,7 @@ jest.mock('react-native/Libraries/Utilities/useColorScheme', () => {
 // var avoids TDZ — the closure inside forwardRef reads this after module init
 var mockReload = jest.fn();
 var mockInject = jest.fn();
+var mockGoBack = jest.fn();
 
 jest.mock('react-native-webview', () => {
   const React = require('react');
@@ -25,6 +26,7 @@ jest.mock('react-native-webview', () => {
       React.useImperativeHandle(ref, () => ({
         reload: mockReload,
         injectJavaScript: mockInject,
+        goBack: mockGoBack,
       }));
       return React.createElement(View, props);
     }),
@@ -496,5 +498,66 @@ describe('LinkConnect Component', () => {
     // A later, unrelated foreground must not fire a spurious reload.
     appStateCb?.('active');
     expect(mockReload).toHaveBeenCalledTimes(1);
+  });
+  describe('Android hardware back', () => {
+    const renderWithBackHandler = (onExit?: () => void) => {
+      const remove = jest.fn();
+      let onBack: () => boolean = () => false;
+      jest
+        .spyOn(BackHandler, 'addEventListener')
+        .mockImplementation((_event, handler) => {
+          onBack = handler as () => boolean;
+          return { remove };
+        });
+      const utils = render(
+        <LinkConnect linkToken={SAMPLE_LINK_TOKEN} onExit={onExit} />
+      );
+      return { ...utils, remove, pressBack: () => onBack() };
+    };
+
+    beforeEach(() => {
+      mockGoBack.mockClear();
+    });
+
+    it('goes back in Link history when the WebView can go back', async () => {
+      const onExit = jest.fn();
+      const { getByTestId, pressBack } = renderWithBackHandler(onExit);
+      await waitFor(() => getByTestId('webview'));
+      act(() => {
+        getByTestId('webview').props.onNavigationStateChange({
+          url: 'https://link.meshconnect.com/binance-direct/deposit',
+          canGoBack: true,
+        });
+      });
+
+      expect(pressBack()).toBe(true);
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(onExit).not.toHaveBeenCalled();
+    });
+
+    it('exits Link when there is no Link history to go back to', async () => {
+      const alertSpy = jest.spyOn(Alert, 'alert');
+      const onExit = jest.fn();
+      const { getByTestId, pressBack } = renderWithBackHandler(onExit);
+      await waitFor(() => getByTestId('webview'));
+      act(() => {
+        getByTestId('webview').props.onNavigationStateChange({
+          url: 'https://link.meshconnect.com/catalog',
+          canGoBack: false,
+        });
+      });
+
+      expect(pressBack()).toBe(true);
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(onExit).toHaveBeenCalledTimes(1);
+      expect(alertSpy).not.toHaveBeenCalled();
+    });
+
+    it('stops handling back once Link is unmounted', async () => {
+      const { getByTestId, unmount, remove } = renderWithBackHandler();
+      await waitFor(() => getByTestId('webview'));
+      unmount();
+      expect(remove).toHaveBeenCalled();
+    });
   });
 });
