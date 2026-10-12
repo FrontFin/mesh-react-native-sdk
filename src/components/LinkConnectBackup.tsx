@@ -120,6 +120,7 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
     useWebViewRecovery(recoveryResetKey);
   const trackBackNavigation = useAndroidBackHandler(
     isValidWidgetOrigin,
+    tier,
     () => webViewRef.current?.goBack(),
     () => props.onExit?.()
   );

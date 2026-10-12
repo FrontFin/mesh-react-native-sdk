@@ -6,11 +6,13 @@ import type { WebViewNavigation } from 'react-native-webview';
  * Android hardware back / back gesture for the SDK's WebViews, matching the
  * Android SDK: step back in the WebView's history, or exit when there is
  * nothing to go back to. Only listens while `enabled` (the WebView is shown).
+ * `resetKey` should change whenever the WebView remounts with a new session.
  *
  * Returns a handler to call from the WebView's `onNavigationStateChange`.
  */
 export function useAndroidBackHandler(
   enabled: boolean,
+  resetKey: unknown,
   goBack: () => void,
   onExit: () => void
 ) {
@@ -19,6 +21,10 @@ export function useAndroidBackHandler(
   const onExitRef = useRef(onExit);
   goBackRef.current = goBack;
   onExitRef.current = onExit;
+
+  useEffect(() => {
+    canGoBack.current = false;
+  }, [resetKey]);
 
   useEffect(() => {
     if (!enabled) {

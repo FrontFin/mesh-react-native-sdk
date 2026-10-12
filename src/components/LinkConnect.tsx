@@ -108,6 +108,7 @@ const LinkConnectPrimary = (props: LinkConnectTokenConfiguration) => {
 
   const trackBackNavigation = useAndroidBackHandler(
     showWebView && !!linkUrl,
+    linkUrl,
     goBack,
     () => {
       isOAuthInProgress.current = false;

@@ -553,6 +553,28 @@ describe('LinkConnect Component', () => {
       expect(alertSpy).not.toHaveBeenCalled();
     });
 
+    it('forgets the previous session history when the link token changes', async () => {
+      const onExit = jest.fn();
+      const { getByTestId, pressBack, rerender } = renderWithBackHandler(onExit);
+      await waitFor(() => getByTestId('webview'));
+      act(() => {
+        getByTestId('webview').props.onNavigationStateChange({
+          url: 'https://link.meshconnect.com/binance-direct/deposit',
+          canGoBack: true,
+        });
+      });
+
+      const nextToken = Buffer.from('https://link.meshconnect.com/next-session').toString('base64');
+      rerender(<LinkConnect linkToken={nextToken} onExit={onExit} />);
+      await waitFor(() =>
+        expect(getByTestId('webview').props.source.uri).toContain('next-session')
+      );
+
+      expect(pressBack()).toBe(true);
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(onExit).toHaveBeenCalledTimes(1);
+    });
+
     it('does not handle back when the link token is invalid', () => {
       const addListener = jest.spyOn(BackHandler, 'addEventListener');
       render(<LinkConnect linkToken={'invalid=='} onExit={mockOnExit} />);
