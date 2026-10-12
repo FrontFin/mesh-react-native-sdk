@@ -112,30 +112,15 @@ export default App;
 
 #### `LinkConnect` component arguments
 
-| key                      | type                                         | Required/Optional | description                                                 |
-| ------------------------ | -------------------------------------------- | ----------------- | ----------------------------------------------------------- |
-| `linkToken`              | `string`                                     | required          | Link token                                                  |
-| `settings`               | `LinkSettings`                               | optional          | Settings object                                             |
-| `disableDomainWhiteList` | `boolean`                                    | optional          | Disable origin whitelisting[1]                              |
-| `onIntegrationConnected` | `(payload: LinkPayload) => void`             | optional          | Callback called when users connects their accounts          |
-| `onTransferFinished`     | `(payload: TransferFinishedPayload) => void` | optional          | Callback called when a crypto transfer is executed          |
-| `onExit`                 | `(err: string) => void)`                     | optional          | Called if connection not happened. Returns an error message |
-| `onEvent`                | `(event: LinkEventType) => void`             | optional          | Callback called when an event is triggered                  |
-
-#### Withdrawal events
-
-When a user confirms a withdrawal, `onEvent` receives a `withdrawalRequested` event, then Link calls `onExit`.
-Link does not hide itself: unmount `LinkConnect` in `onExit`, then continue the withdrawal with the `transferId` from the event, for example with your own 2FA prompt.
-Treat the event, not `onExit`, as confirmation of the withdrawal.
-The payload carries no address or amount: read the transfer details from the webhook or the transfer API.
-
-```tsx
-onEvent={(event: LinkEventType) => {
-  if (event.type === 'withdrawalRequested') {
-    const { transferId, status } = event.payload; // 'pending' or 'success'; treat any other value as pending
-  }
-}}
-```
+| key                      | type                                         | Required/Optional | description                                        |
+| ------------------------ | -------------------------------------------- | ----------------- | -------------------------------------------------- |
+| `linkToken`              | `string`                                     | required          | Link token                                         |
+| `settings`               | `LinkSettings`                               | optional          | Settings object                                    |
+| `disableDomainWhiteList` | `boolean`                                    | optional          | Disable origin whitelisting[1]                     |
+| `onIntegrationConnected` | `(payload: LinkPayload) => void`             | optional          | Callback called when users connects their accounts |
+| `onTransferFinished`     | `(payload: TransferFinishedPayload) => void` | optional          | Callback called when a crypto transfer is executed |
+| `onExit`                 | `(err?: string) => void`                     | optional          | Called when Link closes                            |
+| `onEvent`                | `(event: LinkEventType) => void`             | optional          | Callback called when an event is triggered         |
 
 The `LinkSettings` option allows to configure the Link behaviour:
 
@@ -177,6 +162,21 @@ The `LinkSettings` option allows to configure the Link behaviour:
   - `https://js.stripe.com`
   - `https://app.usercentrics.eu`
   - `robinhood://`
+
+#### Withdrawal events
+
+When a user confirms a withdrawal, `onEvent` receives a `withdrawalRequested` event, then Link calls `onExit`.
+Link does not hide itself: unmount `LinkConnect` in `onExit`, then continue the withdrawal with the `transferId` from the event, for example with your own 2FA prompt.
+Treat the event, not `onExit`, as confirmation of the withdrawal.
+The payload carries no address or amount: read the transfer details from the webhook or the transfer API.
+
+```tsx
+onEvent={(event: LinkEventType) => {
+  if (event.type === 'withdrawalRequested') {
+    const { transferId, status } = event.payload; // 'pending' or 'success'; treat any other value as pending
+  }
+}}
+```
 
 ## V1 -> V2 migration guide
 
