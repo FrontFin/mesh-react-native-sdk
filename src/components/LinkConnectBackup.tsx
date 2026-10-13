@@ -168,13 +168,26 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
   // a ref for event handlers, and state so the native close re-renders.
   const activeTokenRef = useRef<DocumentToken | null>(null);
   const [activeToken, setActiveToken] = useState<DocumentToken | null>(null);
+  // Runs in the new document's layout effect (commit phase), before any of its
+  // native events can be handled.
   const activateDocument = (token: DocumentToken) => {
+    const previous = activeTokenRef.current;
+    if (previous === token) return; // re-activation (e.g. dev double effects)
     activeTokenRef.current = token;
     setActiveToken(token);
+    // A same-tier replacement (host changed origin/theme/language, or a
+    // renderer-death recovery) starts the ready handshake over, so a failed or
+    // silent reload still falls back / fails closed. Done HERE rather than in a
+    // passive effect: the new document (an inline Tier-2 page especially) can
+    // send `loaded` before a passive effect runs, and resetting after that
+    // would make a healthy document fall back. A tier change is the cascade
+    // itself, which arms its own timer.
+    if (previous && tierOf(previous) === tierOf(token)) restartHandshake();
   };
   // The document whose renderer died, until a recovery reload replaces it
   // (the reload — and its new document — may wait for the next foreground).
   const deadTokenRef = useRef<DocumentToken | null>(null);
+  const tierOf = (token: DocumentToken) => token.source.split('|')[0];
   // Whether events from `token`'s document may still act on the flow.
   const isLiveDocument = (token: DocumentToken | null) =>
     token !== null &&
@@ -347,20 +360,6 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
     isTier2 ? `tier2|${widgetTheme}` : `tier1|${linkUrl}`
   }|r${recoveryGeneration}`;
   const widgetReady = readyToken !== null && readyToken === activeToken;
-  // A same-tier reload (host changed origin/theme/language mid-session, or a
-  // renderer-death recovery) starts the ready handshake over, so a failed or
-  // silent reload still falls back / fails closed. A tier change is the cascade
-  // itself, which arms its own timer. (The ref is only written here, in an effect.)
-  const previousDocumentSource = useRef(documentSource);
-  useEffect(() => {
-    const previous = previousDocumentSource.current;
-    previousDocumentSource.current = documentSource;
-    if (previous === documentSource) return;
-    if (previous.split('|')[0] !== documentSource.split('|')[0]) return;
-    restartHandshake();
-    // Re-run solely on a new document (restartHandshake reads refs only).
-  }, [documentSource]);
-
   const injectedScript = useMemo(
     () => `
     window.meshSdkPlatform='${sdkSpecs.platform}';
