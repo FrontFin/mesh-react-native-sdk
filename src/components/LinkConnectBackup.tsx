@@ -1,6 +1,6 @@
 import { Image, TouchableOpacity, View } from 'react-native';
 import { WebView } from 'react-native-webview';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { SDKContainer } from './SDKContainer';
 import { SDKViewContainer } from './SDKViewContainer';
@@ -27,6 +27,38 @@ import {
 /** Best-effort message from an unknown thrown value, for JIT failure reporting. */
 const errorMessage = (e: unknown): string =>
   e instanceof Error ? e.message : typeof e === 'string' ? e : 'JIT callback failed';
+
+/**
+ * Identity of one mounted WebView document. Created once per mount (a render
+ * that React abandons never mounts, so its token is simply discarded) and
+ * compared by reference, so it is never reused — not even when the host cycles
+ * settings A → B → A, where the second A is a fresh mount with a fresh token.
+ */
+type DocumentToken = { readonly source: string };
+
+/**
+ * Mount boundary for one WebView document. Keyed by the document source, so a
+ * source change (tier transition, origin/theme/language change, recovery
+ * reload) remounts it with a new token. The token becomes the active document
+ * in the commit phase (layout effect), never during render, so an interrupted
+ * or abandoned concurrent render cannot invalidate the committed document.
+ */
+const DocumentScope = ({
+  source,
+  onActivate,
+  children,
+}: {
+  source: string;
+  onActivate: (token: DocumentToken) => void;
+  children: (token: DocumentToken) => React.ReactElement;
+}) => {
+  const [token] = useState<DocumentToken>(() => ({ source }));
+  useLayoutEffect(() => {
+    onActivate(token);
+    // Activate once per mount; onActivate only writes the parent's refs/state.
+  }, [token]);
+  return children(token);
+};
 
 const LoadingComponentWebview = ({ darkTheme }: { darkTheme: boolean }) => {
   return (
@@ -115,7 +147,7 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
   const recoveryResetKey = `${props.widgetOrigin ?? ''}|${
     props.settings?.theme ?? ''
   }|${props.settings?.language ?? ''}|${tier}`;
-  // Bumped on every recovery reload. It is part of `surfaceKey` (below) but NOT
+  // Bumped on every recovery reload. It is part of `documentSource` (below) but NOT
   // of `recoveryResetKey`: the reload is a new document — remounted, with its
   // own handlers, so events still queued by the dying one are dropped, and its
   // handshake restarts like any same-tier reload — while the once-only
@@ -123,25 +155,38 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
   const [recoveryGeneration, setRecoveryGeneration] = useState(0);
   const { webViewRef, recoverFromRendererDeath: recoverWebView } =
     useWebViewRecovery(recoveryResetKey, () => {
-      setReadySurface(null);
+      setReadyToken(null);
       setRecoveryGeneration((generation) => generation + 1);
     });
-  // The document (see `surfaceKey` below) whose widget has completed its ready
+  // The document (see `DocumentScope`) whose widget has completed its ready
   // handshake. Once the current document's widget is up it draws its own close
   // (✕) in the same corner, so the native one is shown only until then
   // (spinner, a hanging Tier 1, Tier 2 mounting, or a reload after the host
   // changes origin/theme/language) — otherwise the two overlap as a double ✕.
-  const [readySurface, setReadySurface] = useState<string | null>(null);
+  const [readyToken, setReadyToken] = useState<DocumentToken | null>(null);
+  // The committed (mounted) document, set in the commit phase by DocumentScope:
+  // a ref for event handlers, and state so the native close re-renders.
+  const activeTokenRef = useRef<DocumentToken | null>(null);
+  const [activeToken, setActiveToken] = useState<DocumentToken | null>(null);
+  const activateDocument = (token: DocumentToken) => {
+    activeTokenRef.current = token;
+    setActiveToken(token);
+  };
   // The document whose renderer died, until a recovery reload replaces it
-  // (the reload — and its new `surfaceKey` — may wait for the next foreground).
-  const deadSurfaceRef = useRef<string | null>(null);
+  // (the reload — and its new document — may wait for the next foreground).
+  const deadTokenRef = useRef<DocumentToken | null>(null);
+  // Whether events from `token`'s document may still act on the flow.
+  const isLiveDocument = (token: DocumentToken | null) =>
+    token !== null &&
+    token === activeTokenRef.current &&
+    token !== deadTokenRef.current;
   // A dead renderer leaves a blank surface: invalidate it at once, so nothing it
   // queued (close, loaded, JIT, errors) is acted on even while the reload waits
   // for the foreground, and bring the native close back. The reload — now or on
   // return to foreground — remounts and restarts the handshake.
-  const recoverFromRendererDeath = () => {
-    deadSurfaceRef.current = currentSurfaceRef.current;
-    setReadySurface(null);
+  const recoverFromRendererDeath = (token: DocumentToken) => {
+    deadTokenRef.current = token;
+    setReadyToken(null);
     recoverWebView();
   };
 
@@ -220,16 +265,14 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
     // calls afresh, so a late reply could resolve an unrelated request with an
     // address for a different pair. Dropped replies are re-requested by the
     // current document's own poll loop.
-    const requestSurface = currentSurfaceRef.current;
+    // (onMessage only dispatches requests from the live document, so this is it.)
+    const requestToken = activeTokenRef.current;
     const respond = (
       ok: boolean,
       result?: MeshBackupJitStatusResult,
       error?: string
     ) => {
-      if (
-        requestSurface !== currentSurfaceRef.current ||
-        requestSurface === deadSurfaceRef.current
-      ) {
+      if (!isLiveDocument(requestToken)) {
         return;
       }
       dispatchToWidget({
@@ -288,55 +331,35 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
       // torn-down document never get here (onMessage drops them, see the
       // WebView below); markReady(tier) re-checks the tier as well.
       if (markReady(tier)) {
-        setReadySurface(surfaceKey);
+        setReadyToken(activeTokenRef.current);
         deliverConfig();
       }
     },
     onJitRequest: handleJitRequest,
   });
 
-  // Identity of the document the WebView is actually showing: Tier 1 loads the
-  // widget URL (origin + theme + language); Tier 2 loads the bundled HTML, which
-  // only changes with the theme (origin/language don't reload it). Each
-  // renderer-death recovery reload is a new document too (`recoveryGeneration`),
-  // and every source change gets a fresh generation (below). The tier is always
-  // the first `|` segment.
+  // What the WebView is showing: Tier 1 loads the widget URL (origin + theme +
+  // language); Tier 2 loads the bundled HTML, which only changes with the theme
+  // (origin/language don't reload it). Each renderer-death recovery reload is a
+  // new document too (`recoveryGeneration`). The tier is the first `|` segment.
+  // It keys DocumentScope, so any change remounts with a fresh DocumentToken.
   const documentSource = `${
     isTier2 ? `tier2|${widgetTheme}` : `tier1|${linkUrl}`
   }|r${recoveryGeneration}`;
-  // A monotonic generation per source change, so a key is never reused: if the
-  // host cycles settings A → B → A, the second A document must not match
-  // handlers or ready state left over from the first. Advanced only when the
-  // source actually changes (not useMemo, whose cache React may drop — that
-  // would remount the WebView and reset the session for no reason).
-  const lastDocumentSource = useRef(documentSource);
-  const documentGeneration = useRef(1);
-  if (lastDocumentSource.current !== documentSource) {
-    lastDocumentSource.current = documentSource;
-    documentGeneration.current += 1;
-  }
-  const surfaceKey = `${documentSource}|d${documentGeneration.current}`;
-  const widgetReady = readySurface === surfaceKey;
-  // The latest document key, so handlers captured by an earlier (torn-down)
-  // WebView instance can tell their events are stale.
-  const currentSurfaceRef = useRef(surfaceKey);
-  currentSurfaceRef.current = surfaceKey;
-  const isCurrentSurface = () =>
-    surfaceKey === currentSurfaceRef.current &&
-    surfaceKey !== deadSurfaceRef.current;
+  const widgetReady = readyToken !== null && readyToken === activeToken;
   // A same-tier reload (host changed origin/theme/language mid-session, or a
   // renderer-death recovery) starts the ready handshake over, so a failed or
   // silent reload still falls back / fails closed. A tier change is the cascade
-  // itself, which arms its own timer.
-  const previousSurfaceKey = useRef(surfaceKey);
+  // itself, which arms its own timer. (The ref is only written here, in an effect.)
+  const previousDocumentSource = useRef(documentSource);
   useEffect(() => {
-    const previous = previousSurfaceKey.current;
-    previousSurfaceKey.current = surfaceKey;
-    if (previous === surfaceKey) return;
-    if (previous.split('|')[0] !== surfaceKey.split('|')[0]) return;
+    const previous = previousDocumentSource.current;
+    previousDocumentSource.current = documentSource;
+    if (previous === documentSource) return;
+    if (previous.split('|')[0] !== documentSource.split('|')[0]) return;
     restartHandshake();
     // Re-run solely on a new document (restartHandshake reads refs only).
-  }, [surfaceKey]);
+  }, [documentSource]);
 
   const injectedScript = useMemo(
     () => `
@@ -419,12 +442,17 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
           />
         </TouchableOpacity>
       )}
+      <DocumentScope
+        // Remount per document — on the tier transition, a same-tier reload
+        // (origin/theme/language change) and a recovery reload — so the old
+        // source is torn down and the new document mounts fresh with its own
+        // handshake, handlers and DocumentToken (letting stale events be ignored).
+        key={documentSource}
+        source={documentSource}
+        onActivate={activateDocument}
+      >
+        {(token) => (
       <WebView
-        // Remount per document — on the tier transition and on a same-tier
-        // reload (origin/theme/language change) — so the old source is torn down
-        // and the new document mounts fresh with its own handshake and handlers
-        // (which carry its `surfaceKey`, letting stale events be ignored).
-        key={surfaceKey}
         bounces={false}
         style={{
           backgroundColor: isDark
@@ -437,13 +465,13 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
         // offline widget from an inline HTML string (no network).
         source={isTier2 ? { html: offlineHtml } : { uri: linkUrl }}
         cacheMode={'LOAD_DEFAULT'}
-        // The WebView is keyed by document (`surfaceKey`), so a torn-down one —
-        // the Tier-1 surface after the cascade, or the previous document after a
-        // same-tier reload — can still deliver queued messages. Drop them all
-        // (loaded, close, JIT requests, transfer events…) before any host
-        // callback runs: only the current document speaks for the flow.
+        // Each document is its own WebView instance, so a torn-down one — the
+        // Tier-1 surface after the cascade, or the previous document after a
+        // reload — can still deliver queued messages. Drop them all (loaded,
+        // close, JIT requests, transfer events…) before any host callback runs:
+        // only the live document speaks for the flow.
         onMessage={(event) => {
-          if (isCurrentSurface()) handleMessage(event);
+          if (isLiveDocument(token)) handleMessage(event);
         }}
         onLoadEnd={() => {
           setInitialLoading(false);
@@ -472,7 +500,7 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
         onError={({ nativeEvent }) => {
           // A stale error from a torn-down document is not this flow's failure:
           // report nothing to the host and don't cascade.
-          if (!isCurrentSurface()) return;
+          if (!isLiveDocument(token)) return;
           props.onEvent?.({
             type: 'webViewLoadFailed',
             payload: {
@@ -486,7 +514,7 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
           reportLoadError(tier);
         }}
         onHttpError={({ nativeEvent }) => {
-          if (!isCurrentSurface()) return;
+          if (!isLiveDocument(token)) return;
           props.onEvent?.({
             type: 'webViewLoadFailed',
             payload: {
@@ -503,14 +531,16 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
         }}
         // Renderer death is reported per WebView instance: a queued callback from
         // a torn-down document must not reload the current (healthy) one or
-        // bring back the native close, so it is surface-gated like the rest.
+        // bring back the native close, so it is gated like the rest.
         onContentProcessDidTerminate={() => {
-          if (isCurrentSurface()) recoverFromRendererDeath();
+          if (isLiveDocument(token)) recoverFromRendererDeath(token);
         }}
         onRenderProcessGone={() => {
-          if (isCurrentSurface()) recoverFromRendererDeath();
+          if (isLiveDocument(token)) recoverFromRendererDeath(token);
         }}
       />
+        )}
+      </DocumentScope>
     </SDKWrapperComponent>
   );
 };

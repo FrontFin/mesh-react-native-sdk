@@ -788,6 +788,24 @@ describe('LinkConnectBackup', () => {
     });
   });
 
+  it('keeps the same WebView (no remount, still ready) across re-renders that do not change the document', async () => {
+    const { getByTestId, queryByTestId, rerender } = render(
+      <LinkConnectBackup backupConfig={CONFIG} settings={{ theme: 'light' }} onEvent={jest.fn()} />
+    );
+    await waitFor(() => getByTestId('webview'));
+    act(() => loaded(getByTestId('webview')));
+    await waitFor(() => expect(queryByTestId('backup-close-button')).toBeNull());
+    const before = getByTestId('webview');
+
+    // New callback identities and an unrelated prop: same document.
+    rerender(
+      <LinkConnectBackup backupConfig={CONFIG} settings={{ theme: 'light' }} onEvent={jest.fn()} onExit={jest.fn()} />
+    );
+    expect(getByTestId('webview')).toBe(before);
+    expect(queryByTestId('backup-close-button')).toBeNull();
+    expect(mockReload).not.toHaveBeenCalled();
+  });
+
   it('never reuses a document key when settings cycle A → B → A', async () => {
     const onExit = jest.fn();
     const { getByTestId, queryByTestId, rerender } = render(
