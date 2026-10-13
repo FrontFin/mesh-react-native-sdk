@@ -284,11 +284,24 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
   // Identity of the document the WebView is actually showing: Tier 1 loads the
   // widget URL (origin + theme + language); Tier 2 loads the bundled HTML, which
   // only changes with the theme (origin/language don't reload it). Each
-  // renderer-death recovery reload is a new document too (`recoveryGeneration`).
-  // The tier is always the first `|` segment.
-  const surfaceKey = `${
+  // renderer-death recovery reload is a new document too (`recoveryGeneration`),
+  // and every source change gets a fresh generation (below). The tier is always
+  // the first `|` segment.
+  const documentSource = `${
     isTier2 ? `tier2|${widgetTheme}` : `tier1|${linkUrl}`
   }|r${recoveryGeneration}`;
+  // A monotonic generation per source change, so a key is never reused: if the
+  // host cycles settings A → B → A, the second A document must not match
+  // handlers or ready state left over from the first. Advanced only when the
+  // source actually changes (not useMemo, whose cache React may drop — that
+  // would remount the WebView and reset the session for no reason).
+  const lastDocumentSource = useRef(documentSource);
+  const documentGeneration = useRef(1);
+  if (lastDocumentSource.current !== documentSource) {
+    lastDocumentSource.current = documentSource;
+    documentGeneration.current += 1;
+  }
+  const surfaceKey = `${documentSource}|d${documentGeneration.current}`;
   const widgetReady = readySurface === surfaceKey;
   // The latest document key, so handlers captured by an earlier (torn-down)
   // WebView instance can tell their events are stale.

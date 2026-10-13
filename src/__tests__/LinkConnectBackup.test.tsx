@@ -759,6 +759,34 @@ describe('LinkConnectBackup', () => {
     });
   });
 
+  it('never reuses a document key when settings cycle A → B → A', async () => {
+    const onExit = jest.fn();
+    const { getByTestId, queryByTestId, rerender } = render(
+      <LinkConnectBackup backupConfig={CONFIG} settings={{ theme: 'light' }} onExit={onExit} />
+    );
+    await waitFor(() => getByTestId('webview'));
+    act(() => loaded(getByTestId('webview')));
+    await waitFor(() => expect(queryByTestId('backup-close-button')).toBeNull());
+    // Handlers of the FIRST light document.
+    const { onMessage: firstLightOnMessage } = getByTestId('webview').props;
+
+    // B (dark) never becomes ready; then back to A (light).
+    rerender(<LinkConnectBackup backupConfig={CONFIG} settings={{ theme: 'dark' }} onExit={onExit} />);
+    await waitFor(() => expect(getByTestId('webview').props.source.uri).toContain('theme=dark'));
+    rerender(<LinkConnectBackup backupConfig={CONFIG} settings={{ theme: 'light' }} onExit={onExit} />);
+    await waitFor(() => expect(getByTestId('webview').props.source.uri).toContain('theme=light'));
+
+    // The new light document has not handshaken: the native close must show…
+    expect(getByTestId('backup-close-button')).toBeTruthy();
+    // …and nothing queued by the first light document may act on it.
+    act(() => {
+      firstLightOnMessage({ nativeEvent: { data: JSON.stringify({ type: 'loaded' }) } });
+      firstLightOnMessage({ nativeEvent: { data: JSON.stringify({ type: 'close' }) } });
+    });
+    expect(getByTestId('backup-close-button')).toBeTruthy();
+    expect(onExit).not.toHaveBeenCalled();
+  });
+
   describe('Tier 2 after ready', () => {
     // Timer behaviour of a restarted handshake is covered in useBackupTier tests;
     // here the load-error path (immediate, no timers) proves the wiring: after a
