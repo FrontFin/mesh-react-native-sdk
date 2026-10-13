@@ -63,6 +63,7 @@ const DocumentScope = ({
 const LoadingComponentWebview = ({ darkTheme }: { darkTheme: boolean }) => {
   return (
     <View
+      testID={'backup-loading-overlay'}
       style={{
         position: 'absolute',
         zIndex: 10,
@@ -472,8 +473,11 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
         onMessage={(event) => {
           if (isLiveDocument(token)) handleMessage(event);
         }}
+        // Gated like the other callbacks: a queued onLoadEnd from a torn-down
+        // document (the Tier-1 surface after the cascade) must not clear the
+        // overlay that onFallback restored for the still-loading replacement.
         onLoadEnd={() => {
-          setInitialLoading(false);
+          if (isLiveDocument(token)) setInitialLoading(false);
         }}
         startInLoadingState={true}
         javaScriptEnabled={true}

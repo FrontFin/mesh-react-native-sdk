@@ -723,6 +723,30 @@ describe('LinkConnectBackup', () => {
     await waitFor(() => expect(typeof getByTestId('webview').props.source.html).toBe('string'));
   });
 
+  it('a stale onLoadEnd from the torn-down Tier-1 document keeps the Tier-2 loading overlay', async () => {
+    const { getByTestId, queryByTestId } = render(<LinkConnectBackup backupConfig={CONFIG} />);
+    await waitFor(() => getByTestId('webview'));
+    // Tier 1's handler, captured before the cascade tears its WebView down.
+    const { onLoadEnd: tier1OnLoadEnd, onError: tier1OnError } = getByTestId('webview').props;
+
+    act(() => {
+      tier1OnError({
+        nativeEvent: { url: DEFAULT_BACKUP_WIDGET_ORIGIN, code: -1009, description: 'offline' },
+      });
+    });
+    await waitFor(() => expect(typeof getByTestId('webview').props.source.html).toBe('string'));
+    // onFallback restored the overlay for the still-loading Tier-2 document…
+    expect(getByTestId('backup-loading-overlay')).toBeTruthy();
+
+    // …and a queued onLoadEnd from the dead Tier-1 surface must not clear it.
+    act(() => tier1OnLoadEnd());
+    expect(getByTestId('backup-loading-overlay')).toBeTruthy();
+
+    // Tier 2's own onLoadEnd does.
+    act(() => getByTestId('webview').props.onLoadEnd());
+    expect(queryByTestId('backup-loading-overlay')).toBeNull();
+  });
+
   it('ignores everything from the previous document after a same-tier reload', async () => {
     const onEvent = jest.fn();
     const onExit = jest.fn();
