@@ -820,6 +820,30 @@ describe('LinkConnectBackup', () => {
       expect(onExit).not.toHaveBeenCalled();
     });
 
+    it('forgets the previous page history when the widget URL changes', async () => {
+      const onExit = jest.fn();
+      const { getByTestId, pressBack, rerender } = renderWithBackHandler(onExit);
+      await waitFor(() => getByTestId('webview'));
+      act(() => {
+        getByTestId('webview').props.onNavigationStateChange({ canGoBack: true });
+      });
+
+      rerender(
+        <LinkConnectBackup
+          backupConfig={CONFIG}
+          settings={{ language: 'de' }}
+          onExit={onExit}
+        />
+      );
+      await waitFor(() =>
+        expect(getByTestId('webview').props.source.uri).toContain('lng=de')
+      );
+
+      expect(pressBack()).toBe(true);
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(onExit).toHaveBeenCalledTimes(1);
+    });
+
     it('exits the backup flow when there is nothing to go back to', async () => {
       const onExit = jest.fn();
       const { getByTestId, pressBack } = renderWithBackHandler(onExit);

@@ -120,7 +120,7 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
     useWebViewRecovery(recoveryResetKey);
   const trackBackNavigation = useAndroidBackHandler(
     isValidWidgetOrigin,
-    tier,
+    recoveryResetKey,
     () => webViewRef.current?.goBack(),
     props.onExit
   );
@@ -338,7 +338,8 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
       <WebView
         // Remount cleanly on the tier transition so the remote source is torn
         // down and the bundled document mounts fresh with its own handshake.
-        key={tier}
+        // Any other surface change also starts with empty history for back.
+        key={recoveryResetKey}
         bounces={false}
         style={{
           backgroundColor: isDark
