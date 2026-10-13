@@ -18,7 +18,10 @@ export const SDKContainer = ({ children, isDarkTheme }: Props) => {
     <View style={{ flex: 1 }} testID={'link-connect-component'}>
       <SafeAreaView style={{ flex: 0, backgroundColor: topColor }} />
       <SafeAreaView style={{ flex: 1, backgroundColor: bottomColor }}>
-        <StatusBar backgroundColor={statusBarStyle.backgroundColor} />
+        <StatusBar
+          backgroundColor={statusBarStyle.backgroundColor}
+          barStyle={statusBarStyle.barStyle}
+        />
         <View style={{ flex: 1 }}>
           {children}
         </View>

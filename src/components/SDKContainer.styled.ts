@@ -35,7 +35,8 @@ const backgroundColor = isDarkTheme ? DARK_THEME_COLOR_TOP : LIGHT_THEME_COLOR_T
 
   const statusBarStyle = {
     backgroundColor: isDarkTheme ? DARK_THEME_COLOR_TOP : LIGHT_THEME_COLOR_TOP,
-  };
+    barStyle: isDarkTheme ? 'light-content' : 'dark-content',
+  } as const;
 
   const navBarStyles = createNavBarStyles(backgroundColor);
 
