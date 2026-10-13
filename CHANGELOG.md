@@ -3,6 +3,12 @@
 All notable changes to the Mesh Connect React Native SDK are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2.5.4
+
+### Fixed
+
+- In dark mode, the status bar now shows light icons over the SDK's dark header instead of keeping the host app's style.
+
 ## 2.5.3
 
 ### Added
