@@ -3,7 +3,7 @@
 All notable changes to the Mesh Connect React Native SDK are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## 2.5.3
+## 2.5.4
 
 ### Added
 
@@ -21,6 +21,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Backup flow can be closed while it is still loading: the loading screens now show a close (✕).
 - Backup flow now falls back to the offline version (or exits cleanly) if the widget fails to reload after you change `widgetOrigin`, `theme` or `language` mid-session, instead of staying on a broken screen.
 - Backup flow now accepts Hedera account ids (`0.0.12345`), NEAR named accounts (`alice.near`) and EOS/WAX dotted names; it previously refused to show a QR code for them.
+
+## 2.5.3
+
+### Added
+
+- New `withdrawalRequested` event in `onEvent`, sent when the user confirms a withdrawal in Link, with its `transferId` and `status` (`pending` or `success`).
 
 ## 2.5.2
 

@@ -222,6 +222,106 @@ describe('useSDKCallbacks', () => {
   });
 });
 
+describe('useSDKCallbacks: withdrawalRequested', () => {
+  const onEvent = jest.fn();
+  const onExit = jest.fn();
+  const onTransferFinished = jest.fn();
+  const props = {
+    linkToken: TOKEN_BASE_ONLY,
+    onEvent,
+    onExit,
+    onTransferFinished,
+  };
+
+  const send = (
+    handleMessage: (event: WebViewMessageEvent) => void,
+    message: object
+  ) =>
+    act(() => {
+      handleMessage({
+        nativeEvent: { data: JSON.stringify(message) },
+      } as WebViewMessageEvent);
+    });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test.each(['pending', 'success'])(
+    'forwards status "%s" to onEvent unrenamed',
+    (status) => {
+      const { result } = renderHook(() => useSDKCallbacks(props));
+      const message = {
+        type: 'withdrawalRequested',
+        payload: { transferId: 'transfer-1', status },
+      };
+
+      send(result.current.handleMessage, message);
+
+      expect(onEvent).toHaveBeenCalledTimes(1);
+      expect(onEvent).toHaveBeenCalledWith(message);
+      expect(onTransferFinished).not.toHaveBeenCalled();
+    }
+  );
+
+  test('passes an unknown status through unchanged', () => {
+    const { result } = renderHook(() => useSDKCallbacks(props));
+    const message = {
+      type: 'withdrawalRequested',
+      payload: { transferId: 'transfer-1', status: 'failed' },
+    };
+
+    send(result.current.handleMessage, message);
+
+    expect(onEvent).toHaveBeenCalledWith(message);
+  });
+
+  test('calls onEvent before onExit when Link closes after it', () => {
+    const { result } = renderHook(() => useSDKCallbacks(props));
+
+    send(result.current.handleMessage, {
+      type: 'withdrawalRequested',
+      payload: { transferId: 'transfer-1', status: 'pending' },
+    });
+    send(result.current.handleMessage, { type: 'close' });
+
+    expect(onEvent).toHaveBeenCalledTimes(1);
+    expect(onExit).toHaveBeenCalledTimes(1);
+    expect(onEvent.mock.invocationCallOrder[0]).toBeLessThan(
+      onExit.mock.invocationCallOrder[0]
+    );
+  });
+
+  test('keeps renaming transferFinished and calling onTransferFinished', () => {
+    const { result } = renderHook(() => useSDKCallbacks(props));
+    const payload = {
+      status: 'success',
+      txId: 'tx-1',
+      fromAddress: 'from',
+      toAddress: 'to',
+      symbol: 'ETH',
+      amount: 1,
+      networkId: 'network-1',
+    };
+
+    send(result.current.handleMessage, { type: 'transferFinished', payload });
+
+    expect(onEvent).toHaveBeenCalledWith({
+      type: 'transferCompleted',
+      payload,
+    });
+    expect(onTransferFinished).toHaveBeenCalledWith(payload);
+  });
+
+  test('still drops an unknown event type', () => {
+    const { result } = renderHook(() => useSDKCallbacks(props));
+
+    send(result.current.handleMessage, { type: 'somethingNew', payload: {} });
+
+    expect(onEvent).not.toHaveBeenCalled();
+  });
+});
+
 describe('useSDKCallbacks – theme behaviour', () => {
   afterEach(() => {
     jest.restoreAllMocks();
