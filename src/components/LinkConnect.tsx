@@ -1,5 +1,6 @@
 import { Linking, View } from 'react-native';
 import { WebView } from 'react-native-webview';
+import type { WebViewNavigation } from 'react-native-webview';
 import React, { useMemo, useState } from 'react';
 
 import { NavBar } from './NavBar';
@@ -13,6 +14,7 @@ import type {
 } from '../types';
 import { useSDKCallbacks } from '../hooks/useSDKCallbacks';
 import { useWebViewRecovery } from '../hooks/useWebViewRecovery';
+import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler';
 import { sdkSpecs } from '../utils/sdkConfig';
 import { isAppLaunchScheme, isExternallyOpenedOrigin } from '../utils';
 import {
@@ -104,6 +106,21 @@ const LinkConnectPrimary = (props: LinkConnectTokenConfiguration) => {
     useWebViewRecovery(linkUrl);
   const goBack = () => webViewRef?.current?.goBack();
 
+  const trackBackNavigation = useAndroidBackHandler(
+    showWebView && !!linkUrl,
+    linkUrl,
+    goBack,
+    props.onExit &&
+      (() => {
+        isOAuthInProgress.current = false;
+        props.onExit?.();
+      })
+  );
+  const onNavigationStateChange = (navState: WebViewNavigation) => {
+    trackBackNavigation(navState);
+    handleNavState(navState);
+  };
+
   const injectedScript = useMemo(() => {
     let sdkTypeScript = `
     window.meshSdkPlatform='${sdkSpecs.platform}';
@@ -155,6 +172,9 @@ const LinkConnectPrimary = (props: LinkConnectTokenConfiguration) => {
               ? DARK_THEME_COLOR_BOTTOM
               : LIGHT_THEME_COLOR_BOTTOM,
           }}
+          // A new session gets a fresh WebView, so back never returns to the
+          // previous session's pages.
+          key={linkUrl}
           testID={'webview'}
           ref={webViewRef}
           source={{ uri: linkUrl }}
@@ -167,7 +187,7 @@ const LinkConnectPrimary = (props: LinkConnectTokenConfiguration) => {
           javaScriptEnabled={true}
           injectedJavaScript={injectedScript}
           {...whiteListProps}
-          onNavigationStateChange={handleNavState}
+          onNavigationStateChange={onNavigationStateChange}
           // Android popup routing. PRG-3107 set this false so Binance app auth
           // reached a handler the SDK controls; at the time onOpenWindow did not
           // exist, so onShouldStartLoadWithRequest was the only one. It is back to

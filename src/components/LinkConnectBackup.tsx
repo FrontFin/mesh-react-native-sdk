@@ -11,6 +11,7 @@ import type {
 } from '../types';
 import { useBackupCallbacks } from '../hooks/useBackupCallbacks';
 import { useWebViewRecovery } from '../hooks/useWebViewRecovery';
+import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler';
 import { useBackupTier } from '../hooks/useBackupTier';
 import type { BackupTierFallbackReason } from '../hooks/useBackupTier';
 import { sdkSpecs } from '../utils/sdkConfig';
@@ -361,6 +362,16 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
     isTier2 ? `tier2|${widgetTheme}` : `tier1|${linkUrl}`
   }|r${recoveryGeneration}`;
   const widgetReady = readyToken !== null && readyToken === activeToken;
+  // Android hardware back / back gesture: step back in the widget's history,
+  // or exit on its first screen. Keyed to the document, so the tracked history
+  // resets exactly when the WebView remounts (a new document starts with none) —
+  // and survives a change that doesn't reload it (e.g. language in Tier 2).
+  const trackBackNavigation = useAndroidBackHandler(
+    isValidWidgetOrigin,
+    documentSource,
+    () => webViewRef.current?.goBack(),
+    props.onExit
+  );
   const injectedScript = useMemo(
     () => `
     window.meshSdkPlatform='${sdkSpecs.platform}';
@@ -446,7 +457,8 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
         // Remount per document — on the tier transition, a same-tier reload
         // (origin/theme/language change) and a recovery reload — so the old
         // source is torn down and the new document mounts fresh with its own
-        // handshake, handlers and DocumentToken (letting stale events be ignored).
+        // handshake, handlers, DocumentToken (letting stale events be ignored)
+        // and empty back-navigation history.
         key={documentSource}
         source={documentSource}
         onActivate={activateDocument}
@@ -499,6 +511,11 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
           req.url === 'about:blank' ||
           extractOrigin(req.url) === widgetOrigin
         }
+        // Gated like the other callbacks: a torn-down document's history state
+        // must not decide what back does in the current one.
+        onNavigationStateChange={(navState) => {
+          if (isLiveDocument(token)) trackBackNavigation(navState);
+        }}
         domStorageEnabled={true}
         onError={({ nativeEvent }) => {
           // A stale error from a torn-down document is not this flow's failure:

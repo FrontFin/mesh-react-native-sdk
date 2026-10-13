@@ -3,7 +3,7 @@
 All notable changes to the Mesh Connect React Native SDK are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## 2.5.4
+## 2.5.6
 
 ### Added
 
@@ -21,6 +21,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Backup flow can be closed while it is still loading: the loading screens now show a close (✕).
 - Backup flow now falls back to the offline version (or exits cleanly) if the widget fails to reload after you change `widgetOrigin`, `theme` or `language` mid-session, instead of staying on a broken screen.
 - Backup flow now accepts Hedera account ids (`0.0.12345`), NEAR named accounts (`alice.near`) and EOS/WAX dotted names; it previously refused to show a QR code for them.
+- Backup flow: the Android back button and gesture now step back through the deposit screens (QR → network → token) instead of closing the flow.
+
+## 2.5.5
+
+### Fixed
+
+- Android back button and gesture now go back inside Link and the backup flow, or close it on the first screen.
+
+## 2.5.4
+
+### Fixed
+
+- In dark mode, the status bar now shows light icons over the SDK's dark header instead of keeping the host app's style.
 
 ## 2.5.3
 

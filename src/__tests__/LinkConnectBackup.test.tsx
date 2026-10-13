@@ -1,6 +1,6 @@
 /* eslint-disable */
 import React from 'react';
-import { Alert, Appearance, AppState } from 'react-native';
+import { Alert, Appearance, AppState, BackHandler } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { LinkConnectBackup } from '../components/LinkConnectBackup';
 import {
@@ -19,6 +19,7 @@ jest.mock('react-native/Libraries/Utilities/useColorScheme', () => ({
 // var avoids TDZ — the closure inside forwardRef reads these after module init
 var mockReload = jest.fn();
 var mockInject = jest.fn();
+var mockGoBack = jest.fn();
 
 jest.mock('react-native-webview', () => {
   const React = require('react');
@@ -28,7 +29,7 @@ jest.mock('react-native-webview', () => {
       React.useImperativeHandle(ref, () => ({
         reload: mockReload,
         injectJavaScript: mockInject,
-        goBack: jest.fn(),
+        goBack: mockGoBack,
       }));
       return React.createElement(View, props);
     }),
@@ -42,9 +43,14 @@ const CONFIG: MeshBackupConfig = {
   preselectedSymbol: 'USDC',
 };
 
+// Always in act: `loaded` updates state (the ready document). Outside act —
+// e.g. in the synchronous fake-timer tests — the update stays queued and can hang
+// a later test's cleanup. act nests safely where callers already wrap it.
 const loaded = (webview: any) =>
-  webview.props.onMessage({
-    nativeEvent: { data: JSON.stringify({ type: 'loaded' }) },
+  act(() => {
+    webview.props.onMessage({
+      nativeEvent: { data: JSON.stringify({ type: 'loaded' }) },
+    });
   });
 
 describe('LinkConnectBackup', () => {
@@ -914,10 +920,11 @@ describe('LinkConnectBackup', () => {
 
   it('recovers a dead renderer while foregrounded (renderer-death recovery)', async () => {
     const { getByTestId } = render(<LinkConnectBackup backupConfig={CONFIG} />);
-    await waitFor(() => {
-      getByTestId('webview').props.onRenderProcessGone();
-      expect(mockReload).toHaveBeenCalledTimes(1);
-    });
+    await waitFor(() => getByTestId('webview'));
+    // In act: the recovery updates state (remount); left outside act they stay
+    // queued and can hang a later test's cleanup once fake timers are installed.
+    act(() => getByTestId('webview').props.onRenderProcessGone());
+    expect(mockReload).toHaveBeenCalledTimes(1);
   });
 
   it.each([
@@ -1077,16 +1084,88 @@ describe('LinkConnectBackup', () => {
     await waitFor(() => getByTestId('webview'));
 
     (AppState as any).currentState = 'background';
-    getByTestId('webview').props.onContentProcessDidTerminate();
+    // State updates in act (see the foreground recovery test above).
+    act(() => getByTestId('webview').props.onContentProcessDidTerminate());
     expect(mockReload).toHaveBeenCalledTimes(0);
 
     (AppState as any).currentState = 'active';
-    appStateCb?.('active');
+    act(() => appStateCb?.('active'));
     expect(mockReload).toHaveBeenCalledTimes(1);
     // Flag cleared: a later foreground does nothing.
-    appStateCb?.('active');
+    act(() => appStateCb?.('active'));
     expect(mockReload).toHaveBeenCalledTimes(1);
   });
+
+  describe('Android hardware back', () => {
+    const renderWithBackHandler = (onExit: () => void) => {
+      let onBack: () => boolean = () => false;
+      jest
+        .spyOn(BackHandler, 'addEventListener')
+        .mockImplementation((_event, handler) => {
+          onBack = handler as () => boolean;
+          return { remove: jest.fn() };
+        });
+      const utils = render(
+        <LinkConnectBackup backupConfig={CONFIG} onExit={onExit} />
+      );
+      return { ...utils, pressBack: () => onBack() };
+    };
+
+    beforeEach(() => {
+      mockGoBack.mockClear();
+    });
+
+    it('goes back in the widget history when the WebView can go back', async () => {
+      const onExit = jest.fn();
+      const { getByTestId, pressBack } = renderWithBackHandler(onExit);
+      await waitFor(() => getByTestId('webview'));
+      act(() => {
+        getByTestId('webview').props.onNavigationStateChange({ canGoBack: true });
+      });
+
+      expect(pressBack()).toBe(true);
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(onExit).not.toHaveBeenCalled();
+    });
+
+    it('forgets the previous page history when the widget URL changes', async () => {
+      const onExit = jest.fn();
+      const { getByTestId, pressBack, rerender } = renderWithBackHandler(onExit);
+      await waitFor(() => getByTestId('webview'));
+      act(() => {
+        getByTestId('webview').props.onNavigationStateChange({ canGoBack: true });
+      });
+
+      rerender(
+        <LinkConnectBackup
+          backupConfig={CONFIG}
+          settings={{ language: 'de' }}
+          onExit={onExit}
+        />
+      );
+      await waitFor(() =>
+        expect(getByTestId('webview').props.source.uri).toContain('lng=de')
+      );
+
+      expect(pressBack()).toBe(true);
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(onExit).toHaveBeenCalledTimes(1);
+    });
+
+    it('exits the backup flow when there is nothing to go back to', async () => {
+      const onExit = jest.fn();
+      const { getByTestId, pressBack } = renderWithBackHandler(onExit);
+      await waitFor(() => getByTestId('webview'));
+
+      expect(pressBack()).toBe(true);
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(onExit).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  // Async tests go ABOVE the synchronous fake-timer cascade section below: an
+  // async test placed after it can hang in RTL's cleanup once earlier tests have
+  // left React work queued, so that section is kept last in this file.
 
   // ---- Tier-2 super-redundancy cascade (OR-474 / design §5H) ----------------
 
@@ -1251,4 +1330,5 @@ describe('LinkConnectBackup', () => {
       jest.useRealTimers();
     }
   }, 15000);
+
 });
