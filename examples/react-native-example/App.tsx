@@ -411,6 +411,8 @@ export default function App() {
             </View>
             <Switch
               testID={'example-app-force-tier2-switch'}
+              accessibilityLabel={'Force Tier-2 fallback'}
+              accessibilityHint={'Points the backup widget at an unreachable origin so it falls back to the bundled offline widget'}
               value={forceTier2}
               onValueChange={setForceTier2}
             />
@@ -427,6 +429,8 @@ export default function App() {
             </View>
             <Switch
               testID={'example-app-force-jit-switch'}
+              accessibilityLabel={'Force JIT (address-less)'}
+              accessibilityHint={'Resolves each destination address through the onAddressInit and onStatusPoll callbacks'}
               value={forceJit}
               onValueChange={setForceJit}
             />
@@ -444,6 +448,8 @@ export default function App() {
             </View>
             <Switch
               testID={'example-app-large-set-switch'}
+              accessibilityLabel={'Large destination set'}
+              accessibilityHint={'Passes a production-sized set of pairs instead of the 6 demo destinations'}
               value={largeSet}
               onValueChange={setLargeSet}
             />
