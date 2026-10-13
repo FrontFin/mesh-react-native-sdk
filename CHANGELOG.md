@@ -3,6 +3,12 @@
 All notable changes to the Mesh Connect React Native SDK are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2.5.5
+
+### Fixed
+
+- Android back button and gesture now go back inside Link and the backup flow, or close it on the first screen.
+
 ## 2.5.4
 
 ### Fixed
