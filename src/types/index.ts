@@ -400,12 +400,12 @@ export interface LinkConnectBackupModeConfiguration extends LinkConnectCommon {
   /** Hide the native close (✕) button overlaid on the flow. */
   hideCloseButton?: boolean;
   /**
-   * JIT kick-off (CDC client spec §6.1). Required only if any backup destination
+   * JIT kick-off (backup client spec §6.1). Required only if any backup destination
    * omits `address`. See {@link LinkConnectBackupConfiguration.onAddressInit}.
    */
   onAddressInit?: (symbol: string, networkId: string) => void | Promise<unknown>;
   /**
-   * JIT status poll (CDC client spec §6.2). Required only if any backup
+   * JIT status poll (backup client spec §6.2). Required only if any backup
    * destination omits `address`. See {@link LinkConnectBackupConfiguration.onStatusPoll}.
    */
   onStatusPoll?: (
@@ -416,7 +416,7 @@ export interface LinkConnectBackupModeConfiguration extends LinkConnectCommon {
 
 /**
  * Props for {@link LinkConnect}. Exactly one entry-point credential is required:
- * a `linkToken` (normal path) **or** a `backupConfig` (outage path — CDC client
+ * a `linkToken` (normal path) **or** a `backupConfig` (outage path — backup client
  * spec §3.1) — the two are mutually exclusive, enforced at the type level.
  */
 export type LinkConfiguration =
@@ -648,7 +648,7 @@ export interface WithdrawalRequested extends LinkEventBase {
 // A deposit-only funnel served from Mesh's independent backup infrastructure,
 // used when the primary Mesh API is unavailable. It takes its configuration
 // directly from the client (assembled server-side) and never calls the core
-// Mesh API. See the CDC backup integration spec for the client-facing contract.
+// Mesh API. See the backup client integration spec for the client-facing contract.
 // ---------------------------------------------------------------------------
 
 /**
@@ -679,7 +679,7 @@ export interface MeshBackupDestination {
 
 /**
  * Result the host's {@link LinkConnectBackupConfiguration.onStatusPoll} callback
- * resolves to (CDC client spec §6.2). A discriminated union on `status` so a
+ * resolves to (backup client spec §6.2). A discriminated union on `status` so a
  * `ready` result must carry an `address` at the type level (the bridge contract
  * requires it and the widget rejects a `ready` without one):
  * - `pending` ⇒ the widget polls again;
@@ -696,7 +696,7 @@ export type MeshBackupJitStatusResult =
  * Configuration handed to the backup deposit widget. Assemble this server-side
  * (destinations should not be built in untrusted client code) and pass it to
  * {@link LinkConnectBackup} via the `backupConfig` prop; it is delivered to the
- * widget over the SDK message bridge. Canonical shape: OR-446 / CDC client spec §3.
+ * widget over the SDK message bridge. Canonical shape: OR-446 / backup client spec §3.
  *
  * There is no JIT endpoint/token block: address-less destinations are resolved
  * entirely through the {@link LinkConnectBackupConfiguration.onAddressInit} /
@@ -747,7 +747,7 @@ export interface LinkConnectBackupConfiguration {
    */
   hideCloseButton?: boolean;
   /**
-   * JIT kick-off callback (CDC client spec §6.1). Required only if any destination
+   * JIT kick-off callback (backup client spec §6.1). Required only if any destination
    * omits `address`. Called **once** in the host app when the user confirms a
    * `(symbol, networkId)` — kick off address generation against your own backend
    * with your own session. The return value is **ignored** (return a promise if
@@ -755,7 +755,7 @@ export interface LinkConnectBackupConfiguration {
    */
   onAddressInit?: (symbol: string, networkId: string) => void | Promise<unknown>;
   /**
-   * JIT status poll (CDC client spec §6.2). Required only if any destination omits
+   * JIT status poll (backup client spec §6.2). Required only if any destination omits
    * `address`. Polled ~every 2–3s (~3-min deadline) with the same
    * `(symbol, networkId)` until it resolves `ready` or `failed`. Return the same
    * address for a given `(symbol, networkId)` every time (idempotent) — a repeat

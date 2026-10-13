@@ -7,11 +7,11 @@
 > `catalog.snapshot.json` from the current `all.json` (the Phase 6a / OR-472
 > build step), then run `yarn bundle:embed` and commit the refreshed files
 > (including `generated.ts`). `yarn bundle:check` (also run in CI) enforces the
-> size budget and that the generated module is in sync. Drift is **not**
-> display-only: Tier 2 offers only destinations present in the bundled catalog,
-> so a pair added since the last refresh is **not offered** in Tier 2 (and if no
-> configured destination is in it, Tier 2 shows an error) until a release ships
-> a newer snapshot.
+> size budget and that the generated module is in sync. Tier 2 offers every
+> configured destination, but it can only **name** networks that are in the
+> bundled snapshot: a destination on a network added since the last refresh is
+> **not offered** in Tier 2 until a release ships a newer snapshot. Newer pairs on
+> known networks still show, with placeholder logos.
 
 ## ✨ With Claude Code (recommended)
 

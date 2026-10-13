@@ -1,5 +1,9 @@
 import { createHash } from 'crypto';
-import { OFFLINE_WIDGET_HTML, getBundledOfflineWidget } from '../backup-bundle';
+import {
+  OFFLINE_WIDGET_HTML,
+  getBundledOfflineWidget,
+  withWidgetTheme,
+} from '../backup-bundle';
 
 describe('Tier-2 backup bundle', () => {
   it('exposes the self-contained offline widget HTML', () => {
@@ -60,5 +64,22 @@ describe('Tier-2 backup bundle', () => {
     // envelope the SDK delivers — the same contract as Tier 1.
     expect(OFFLINE_WIDGET_HTML).toContain('ReactNativeWebView');
     expect(OFFLINE_WIDGET_HTML).toContain('meshBackupConfig');
+  });
+
+  it.each([['dark'], ['light']] as const)(
+    'withWidgetTheme stamps data-theme="%s" on the root tag only',
+    (theme) => {
+      const html = withWidgetTheme(OFFLINE_WIDGET_HTML, theme);
+      expect(html).toContain(`<html data-theme="${theme}" lang="en">`);
+      // Everything else — including every CSP-hashed inline script/style — is
+      // byte-identical, so the hash-only CSP still admits it.
+      expect(html.replace(` data-theme="${theme}"`, '')).toBe(OFFLINE_WIDGET_HTML);
+    }
+  );
+
+  it('withWidgetTheme leaves HTML without a root tag unchanged', () => {
+    expect(withWidgetTheme('<body>x</body>', 'dark')).toBe('<body>x</body>');
+    // <head> / <header> must not be mistaken for <html>.
+    expect(withWidgetTheme('<htmlx><header>', 'dark')).toBe('<htmlx><header>');
   });
 });

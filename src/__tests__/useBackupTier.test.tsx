@@ -130,4 +130,78 @@ describe('useBackupTier (Tier-1 → Tier-2 cascade)', () => {
     });
     expect(onFallback).not.toHaveBeenCalled();
   });
+
+  describe('restartHandshake (same-tier reload after ready)', () => {
+    const readyInTier1 = () => {
+      const utils = setup();
+      act(() => {
+        utils.result.current.markReady('tier1');
+      });
+      return utils;
+    };
+
+    it.each([
+      ['a load error', 'loadError'],
+      ['no `loaded` within the timeout', 'readyTimeout'],
+    ] as const)('Tier 1: a reload that fails with %s still cascades', (_, reason) => {
+      const { result, onFallback } = readyInTier1();
+      // Before the restart a Tier-1 error after ready is ignored (mid-session blip).
+      act(() => result.current.reportLoadError('tier1'));
+      expect(onFallback).not.toHaveBeenCalled();
+
+      act(() => result.current.restartHandshake());
+      act(() => {
+        if (reason === 'loadError') result.current.reportLoadError('tier1');
+        else jest.advanceTimersByTime(TIER1_READY_TIMEOUT_MS);
+      });
+      expect(onFallback).toHaveBeenCalledWith(reason);
+      expect(result.current.tier).toBe('tier2');
+    });
+
+    it('Tier 1: a reload that handshakes in time does not cascade', () => {
+      const { result, onFallback } = readyInTier1();
+      act(() => result.current.restartHandshake());
+      act(() => {
+        result.current.markReady('tier1');
+        jest.advanceTimersByTime(TIER1_READY_TIMEOUT_MS * 2);
+      });
+      expect(onFallback).not.toHaveBeenCalled();
+      expect(result.current.tier).toBe('tier1');
+    });
+
+    it('Tier 2: a reload that never handshakes fails closed; Tier 1 is never re-entered', () => {
+      const { result, onFallback, onTier2Unavailable } = setup();
+      act(() => result.current.reportLoadError('tier1')); // cascade
+      act(() => {
+        result.current.markReady('tier2');
+      });
+      act(() => result.current.restartHandshake());
+      act(() => {
+        jest.advanceTimersByTime(TIER2_READY_TIMEOUT_MS);
+      });
+      expect(onTier2Unavailable).toHaveBeenCalledTimes(1);
+      expect(onFallback).toHaveBeenCalledTimes(1);
+      expect(result.current.tier).toBe('tier2');
+    });
+
+    it('is a no-op while disabled or after failing closed', () => {
+      const disabled = setup({ enabled: false });
+      act(() => disabled.result.current.restartHandshake());
+      act(() => {
+        jest.advanceTimersByTime(TIER1_READY_TIMEOUT_MS * 2);
+      });
+      expect(disabled.onFallback).not.toHaveBeenCalled();
+
+      const { result, onTier2Unavailable } = setup();
+      act(() => result.current.reportLoadError('tier1'));
+      act(() => {
+        jest.advanceTimersByTime(TIER2_READY_TIMEOUT_MS); // fails closed once
+      });
+      act(() => result.current.restartHandshake());
+      act(() => {
+        jest.advanceTimersByTime(TIER2_READY_TIMEOUT_MS);
+      });
+      expect(onTier2Unavailable).toHaveBeenCalledTimes(1);
+    });
+  });
 });

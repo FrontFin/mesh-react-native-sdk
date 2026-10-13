@@ -52,6 +52,15 @@ export interface BackupTierController {
    * a stale event from a torn-down surface and is ignored.
    */
   reportLoadError: (forTier: BackupTier) => void;
+  /**
+   * Call when the CURRENT tier's WebView starts loading a new document in the
+   * same tier — the host changed `widgetOrigin` / theme / language mid-session.
+   * The handshake starts over for that document: readiness is cleared and the
+   * tier's timer re-armed, so a reload that errors or never sends `loaded` still
+   * cascades (Tier 1) or fails closed (Tier 2) instead of being ignored as
+   * "already ready". The cascade stays single-shot: Tier 1 is never re-entered.
+   */
+  restartHandshake: () => void;
 }
 
 /**
@@ -142,6 +151,23 @@ export function useBackupTier({
     // identity changes would be wrong (the callback refs above stay current).
   }, [enabled]);
 
+  const restartHandshake = () => {
+    if (!enabled || failedClosedRef.current) return;
+    clearTimer();
+    readyRef.current = false;
+    if (tierRef.current === 'tier1') {
+      timerRef.current = setTimeout(() => {
+        timerRef.current = null;
+        cascadeToTier2('readyTimeout');
+      }, TIER1_READY_TIMEOUT_MS);
+    } else {
+      timerRef.current = setTimeout(() => {
+        timerRef.current = null;
+        if (!readyRef.current) failClosed();
+      }, TIER2_READY_TIMEOUT_MS);
+    }
+  };
+
   const markReady = (forTier: BackupTier): boolean => {
     // The WebView is keyed by tier, so a Tier-1 surface torn down by the cascade
     // can still deliver a queued `loaded`. Ignoring it is critical: accepting it
@@ -168,5 +194,5 @@ export function useBackupTier({
     }
   };
 
-  return { tier, markReady, reportLoadError };
+  return { tier, markReady, reportLoadError, restartHandshake };
 }

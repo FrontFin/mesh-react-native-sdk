@@ -13,12 +13,19 @@ import type { WebView } from 'react-native-webview';
  * `resetKey` (the loaded URL) resets the once-only auto-reload guard whenever the
  * WebView navigates to a new session.
  *
+ * `onReload` (optional) runs whenever the hook actually reloads the WebView —
+ * immediately, or deferred to the next foreground — so a caller tracking a
+ * ready handshake can restart it for the reloaded document.
+ *
  * Returns the `webViewRef` to attach, the `hasAutoReloaded` guard (read/set by
  * the caller's onError/onHttpError handlers), and `recoverFromRendererDeath` for
  * the onRenderProcessGone / onContentProcessDidTerminate handlers.
  */
-export function useWebViewRecovery(resetKey: unknown) {
+export function useWebViewRecovery(resetKey: unknown, onReload?: () => void) {
   const webViewRef = useRef<WebView>(null);
+  // Latest callback, so the long-lived AppState listener never calls a stale one.
+  const onReloadRef = useRef(onReload);
+  onReloadRef.current = onReload;
   const hasAutoReloaded = useRef(false);
   // Set when the WebView render process dies (e.g. Android reclaims memory while
   // the app is backgrounded). Used to recover the dead WebView on foreground.
@@ -38,6 +45,7 @@ export function useWebViewRecovery(resetKey: unknown) {
       if (state === 'active' && rendererGone.current && webViewRef.current) {
         rendererGone.current = false;
         webViewRef.current.reload();
+        onReloadRef.current?.();
       }
     };
     const sub = AppState.addEventListener('change', handler);
@@ -65,9 +73,10 @@ export function useWebViewRecovery(resetKey: unknown) {
   // fire a spurious reload that would restart the session.
   const recoverFromRendererDeath = () => {
     if (AppState.currentState === 'active') {
-      if (!hasAutoReloaded.current) {
+      if (!hasAutoReloaded.current && webViewRef.current) {
         hasAutoReloaded.current = true;
-        webViewRef.current?.reload();
+        webViewRef.current.reload();
+        onReloadRef.current?.();
       }
     } else {
       rendererGone.current = true;

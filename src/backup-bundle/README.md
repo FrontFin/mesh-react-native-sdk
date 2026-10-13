@@ -15,23 +15,28 @@ callbacks run in the host app and are identical in both tiers.
 
 The widget is **compile-time Tier-2 aware** (`IS_TIER2_OFFLINE`): it reads the
 inlined snapshot in place of a live manifest fetch and makes no Mesh-owned network
-call. The SDK injects **nothing** into it — it only loads the HTML, then delivers
-`MeshBackupConfig` over the same message bridge the widget uses in Tier 1, and the
-widget signals readiness with its usual `loaded` handshake.
+call. The SDK loads the HTML, then delivers `MeshBackupConfig` over the same
+message bridge the widget uses in Tier 1, and the widget signals readiness with its
+usual `loaded` handshake. The only change the SDK makes to the HTML is the theme:
+an inline-HTML source can't carry Tier 1's `?theme=`, so `withWidgetTheme()`
+(`index.ts`) adds `data-theme="dark|light"` to the root `<html>` tag. That
+attribute is outside every CSP hash; the rest of the document is unchanged.
 
 ## Drift / refresh (release checklist)
 
-The snapshot **drifts** between releases — a pair added after a client's installed
-SDK version isn't in it. Drift is **not** display-only: the widget offers only
-destinations present in its loaded catalog (the client spec requires every
-`destinations[]` pair to be in the manifest), so in Tier 2 a configured destination
-missing from the bundled snapshot is **not offered** until an SDK release ships a
-newer snapshot. If none of the configured destinations are in the snapshot, Tier 2
-shows an error. (An invalid/corrupt snapshot is treated as "no catalog": every
-configured destination is kept, with initials placeholders.) The snapshot only ever
-filters destinations and supplies names/logos — the address always comes from
-`MeshBackupConfig` or the client's JIT callback, never the snapshot. Pairs inside
-the snapshot but outside the curated top-N logo set render an initials placeholder.
+The snapshot **drifts** between releases: a pair added after a client's installed
+SDK version isn't in it. Tier 2 does **not** filter by pair. Every configured
+destination is offered, and one whose pair is missing from the snapshot takes its
+network's name (and any bundled token/network logo) from the rest of the snapshot.
+The one case drift hides is a destination on a **network** the snapshot doesn't
+contain at all (a chain added after this SDK build): the widget can't name that
+network offline, so it isn't offered until a release ships a newer snapshot. If no
+configured destination can be offered, Tier 2 shows an error. (An invalid/corrupt
+snapshot is treated as "no catalog": only destinations on the widget's built-in top
+networks remain.) The snapshot only supplies names/logos and decides which networks
+can be named. The address always comes from `MeshBackupConfig` or the client's JIT
+callback, never the snapshot. Tokens and networks outside the curated top-N logo
+set render an initials placeholder.
 
 **On every SDK release**, re-vendor both files from `mesh-backup-widget` (rebuild
 its Phase 6a snapshot from the current `all.json`, then its Phase 6b offline
