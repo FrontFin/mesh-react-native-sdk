@@ -46,12 +46,20 @@ const CONFIG: MeshBackupConfig = {
 // Always in act: `loaded` updates state (the ready document). Outside act —
 // e.g. in the synchronous fake-timer tests — the update stays queued and can hang
 // a later test's cleanup. act nests safely where callers already wrap it.
-const loaded = (webview: any) =>
+// A real document fires onLoadEnd (clears the loading overlay) and the widget
+// posts `loaded`; tests that need only the message use `loadedMessage`.
+const loadedMessage = (webview: any) =>
   act(() => {
     webview.props.onMessage({
       nativeEvent: { data: JSON.stringify({ type: 'loaded' }) },
     });
   });
+const loaded = (webview: any) => {
+  act(() => {
+    webview.props.onLoadEnd?.();
+  });
+  loadedMessage(webview);
+};
 
 describe('LinkConnectBackup', () => {
   beforeEach(() => {
@@ -672,6 +680,22 @@ describe('LinkConnectBackup', () => {
     await waitFor(() => getByTestId('backup-close-button'));
     act(() => loaded(getByTestId('webview')));
     await waitFor(() => expect(queryByTestId('backup-close-button')).toBeNull());
+  });
+
+  it('keeps the native close while the loading overlay still covers a ready widget', async () => {
+    const { getByTestId, queryByTestId } = render(
+      <LinkConnectBackup backupConfig={CONFIG} />
+    );
+    await waitFor(() => getByTestId('webview'));
+    // `loaded` can arrive before onLoadEnd: the overlay still hides the
+    // widget's own ✕, so the native one must stay.
+    loadedMessage(getByTestId('webview'));
+    expect(getByTestId('backup-loading-overlay')).toBeTruthy();
+    expect(getByTestId('backup-close-button')).toBeTruthy();
+
+    act(() => getByTestId('webview').props.onLoadEnd());
+    await waitFor(() => expect(queryByTestId('backup-close-button')).toBeNull());
+    expect(queryByTestId('backup-loading-overlay')).toBeNull();
   });
 
   it('brings the native close back when origin/theme/language reloads the widget', async () => {

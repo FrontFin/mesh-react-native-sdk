@@ -7,12 +7,15 @@ import {
 
 const Reports = (props: {
   data: AccessTokenPayload | TransferFinishedSuccessPayload;
+  // Follows the app's light/dark palette; RN's default text color is black.
+  textColor?: string;
 }) => {
+  const textStyle = {color: props.textColor};
   const data = props.data as AccessTokenPayload;
   if (data.accountTokens !== undefined) {
     return (
       <View style={styles.container}>
-        <Text>
+        <Text style={textStyle}>
           <Text style={styles.textBold}>Broker:</Text> {data?.brokerName}
           {'\n'}
           <Text style={styles.textBold}>Token:</Text>{' '}
@@ -43,7 +46,7 @@ const Reports = (props: {
   if (transferData.txId !== undefined) {
     return (
       <View style={styles.container}>
-        <Text>
+        <Text style={textStyle}>
           <Text style={styles.textBold}>Transaction Id:</Text>{' '}
           {transferData?.txId}
           {'\n'}

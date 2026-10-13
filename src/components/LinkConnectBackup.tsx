@@ -425,10 +425,12 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
     <SDKWrapperComponent isDarkTheme={isDark}>
       {/* Deposit-only: the widget owns its own in-funnel navigation, so there is
           no native NavBar. The native close (✕) below is the exit affordance
-          until the widget is ready; after that the widget's own ✕ (which exits
-          through the same onExit) takes over. */}
+          until the widget is ready and the loading overlay has cleared (the
+          overlay covers the widget's ✕, and `loaded` can arrive before
+          onLoadEnd); after that the widget's own ✕ (which exits through the
+          same onExit) takes over. */}
       {initialLoading && <LoadingComponentWebview darkTheme={isDark} />}
-      {!props.hideCloseButton && !widgetReady && (
+      {!props.hideCloseButton && (!widgetReady || initialLoading) && (
         <TouchableOpacity
           testID={'backup-close-button'}
           accessibilityRole={'button'}

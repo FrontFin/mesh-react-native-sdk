@@ -459,7 +459,7 @@ export default function App() {
             <View
               style={styles.reportsContainer}
               testID={'example-app-reports-container'}>
-              <Reports data={data} />
+              <Reports data={data} textColor={c.text} />
             </View>
           )}
 
