@@ -231,6 +231,35 @@ describe('LinkConnectBackup', () => {
     });
   });
 
+  it('drops a JIT reply that settles after its document was replaced', async () => {
+    let settle: (r: { status: 'ready'; address: string }) => void = () => {};
+    const onStatusPoll = jest.fn(
+      () => new Promise<{ status: 'ready'; address: string }>((res) => (settle = res))
+    );
+    const { getByTestId, rerender } = render(
+      <LinkConnectBackup backupConfig={CONFIG} onStatusPoll={onStatusPoll} settings={{ theme: 'light' }} />
+    );
+    await waitFor(() => getByTestId('webview'));
+    await act(async () => {
+      jitRequest(getByTestId('webview'), 'statusPoll'); // asked by the light document
+    });
+    expect(onStatusPoll).toHaveBeenCalledWith('USDC', 'net-guid');
+
+    // The document is replaced before the host's backend answers.
+    rerender(
+      <LinkConnectBackup backupConfig={CONFIG} onStatusPoll={onStatusPoll} settings={{ theme: 'dark' }} />
+    );
+    await waitFor(() => expect(getByTestId('webview').props.source.uri).toContain('theme=dark'));
+    mockInject.mockClear();
+    await act(async () => {
+      settle({ status: 'ready', address: '0xlate' });
+      await Promise.resolve();
+    });
+    // Nothing injected into the new document for the old request.
+    const injected = mockInject.mock.calls.map(([script]) => String(script));
+    expect(injected.some((script) => script.includes('meshBackupJitResponse'))).toBe(false);
+  });
+
   it('replies ok:false when a statusPoll arrives with no onStatusPoll handler', async () => {
     const { getByTestId } = render(<LinkConnectBackup backupConfig={CONFIG} />);
     await waitFor(() => getByTestId('webview'));

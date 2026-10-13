@@ -214,15 +214,29 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
       return;
     }
 
+    // The document that asked. The host callbacks are async: if that document is
+    // replaced (reload, tier change, renderer death) before they settle, the
+    // reply must not be injected into its successor — a new widget numbers its
+    // calls afresh, so a late reply could resolve an unrelated request with an
+    // address for a different pair. Dropped replies are re-requested by the
+    // current document's own poll loop.
+    const requestSurface = currentSurfaceRef.current;
     const respond = (
       ok: boolean,
       result?: MeshBackupJitStatusResult,
       error?: string
-    ) =>
+    ) => {
+      if (
+        requestSurface !== currentSurfaceRef.current ||
+        requestSurface === deadSurfaceRef.current
+      ) {
+        return;
+      }
       dispatchToWidget({
         type: BACKUP_JIT_RESPONSE_MESSAGE_TYPE,
         payload: { callId, ok, ...(result ? { result } : {}), ...(error ? { error } : {}) },
       });
+    };
 
     // Defense-in-depth before crossing into the client's backend: only resolve a
     // (symbol, networkId) the client actually declared as an ADDRESS-LESS JIT
