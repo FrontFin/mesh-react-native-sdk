@@ -26,7 +26,7 @@ describe('WHITELISTED_ORIGINS', () => {
 
   beforeEach(() => {
     jest.spyOn(Linking, 'canOpenURL').mockResolvedValue(false);
-    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    jest.spyOn(console, 'warn').mockImplementation(() => undefined);
   });
 
   afterEach(() => {
