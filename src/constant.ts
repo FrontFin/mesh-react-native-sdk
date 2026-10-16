@@ -76,6 +76,7 @@ export const TIER2_READY_TIMEOUT_MS = 8000;
 
 export const WHITELISTED_ORIGINS = [
   '*.meshconnect.com',
+  '*.meshpay.com',
   '*.getfront.com',
   '*.walletconnect.com',
   '*.walletconnect.org',
