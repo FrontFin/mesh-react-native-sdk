@@ -3,6 +3,12 @@
 All notable changes to the Mesh Connect React Native SDK are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2.5.7
+
+### Added
+
+- Added `*.meshpay.com` to the whitelisted domains.
+
 ## 2.5.6
 
 ### Added
