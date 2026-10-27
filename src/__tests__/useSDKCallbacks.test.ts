@@ -455,6 +455,24 @@ describe('useSDKCallbacks – MFS theme', () => {
     }
   });
 
+  test('a settings change that reloads Link re-reads the device theme', () => {
+    mockedResolveLanguage.mockImplementation((language?: string) => language);
+    const scheme = jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('light');
+    const noThemeToken = Buffer.from(mfsUrl.replace('&th=dark', '')).toString('base64');
+    const { result, rerender } = renderHook(
+      (p: { language: string }) =>
+        useSDKCallbacks({ linkToken: noThemeToken, settings: { language: p.language } }),
+      { initialProps: { language: 'en' } }
+    );
+    expect(result.current.darkTheme).toBe(false);
+
+    scheme.mockReturnValue('dark');
+    rerender({ language: 'de' });
+
+    expect(result.current.linkUrl).toContain('lng=de');
+    expect(result.current.darkTheme).toBe(true);
+  });
+
   test('an MFS link without any theme takes the device theme when it opens', () => {
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
     const noThemeUrl = mfsUrl.replace('&th=dark', '');

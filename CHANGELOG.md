@@ -7,9 +7,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
-- The status bar and the area around Link now match Link's theme, including on MFS (no light strips around a dark page).
-- The `theme` you pass in `settings` is now applied on MFS. Before, MFS always opened dark.
-- `theme: 'system'` is now sent as the device's light or dark, which MFS understands.
+- The area around Link now matches Link's theme. No more light strips around a dark page.
+- The `theme` setting now applies on the latest Link, and `'system'` follows the device.
 
 ## 2.5.7
 

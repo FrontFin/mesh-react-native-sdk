@@ -31,7 +31,7 @@ const decodeBase64Url = (value: string) => {
   return decode64(base64 + '='.repeat((4 - (base64.length % 4)) % 4));
 };
 
-// The MFS `token` param, validated the way MFS Link does; undefined for legacy links.
+// The latest Link's `token` param, validated the way Link does; undefined for older links.
 const getMfsTokenEnvelope = (url: string) => {
   const token = getFirstURLParam(url, 'token');
   if (!token) return undefined;
@@ -54,7 +54,7 @@ export const isMfsLinkUrl = (url: string) => getMfsTokenEnvelope(url) !== undefi
 /**
  * Whether Link will render dark, resolved the way the page does so the native
  * background matches it: the first `th` param wins, then legacy `link_style`,
- * then the MFS token's theme. An MFS token without a theme follows the device;
+ * then the latest Link token's theme. Such a token without a theme follows the device;
  * legacy links default to light.
  */
 export const isDarkLinkTheme = (url: string, systemIsDark: boolean) => {
@@ -72,7 +72,7 @@ export const isDarkLinkTheme = (url: string, systemIsDark: boolean) => {
   return systemIsDark;
 };
 
-// MFS Link canvas colors (--color-bg-canvas-dark/light in FrontFin/link
+// Latest Link canvas colors (--color-bg-canvas-dark/light in FrontFin/link
 // packages/ui/src/styles/tailwind.css), so the native background has no seam with the page.
 export const getThemeColors = (isDarkTheme: boolean, isMfs = false) => {
   if (isMfs) {

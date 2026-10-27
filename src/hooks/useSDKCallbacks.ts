@@ -27,11 +27,11 @@ const useSDKCallbacks = (props: LinkConnectTokenConfiguration) => {
   const [linkUrl, setLinkUrl] = useState<string | null>(null);
   const [showWebView, setShowWebView] = useState(false);
   const [showNativeNavbar, setShowNativeNavbar] = useState(false);
-  // Read once per link token, like the page: Link doesn't follow a device switch
-  // mid-session. Reusing it keeps reruns (e.g. a new onExit) from changing the URL,
-  // which would remount the WebView, or the native colors.
+  // Read once per Link page, like the page itself: Link doesn't follow a device switch
+  // mid-session. Re-read only when the URL inputs change (the WebView remounts then
+  // anyway), so a rerun from a new onExit can't change the URL or the native colors.
   const [systemIsDark, setSystemIsDark] = useState(false);
-  const appearanceSnapshot = useRef<{ linkToken: string; isDark: boolean }>();
+  const appearanceSnapshot = useRef<{ pageKey: string; isDark: boolean }>();
   const isOAuthInProgress = useRef(false);
 
   useEffect(() => {
@@ -43,15 +43,21 @@ const useSDKCallbacks = (props: LinkConnectTokenConfiguration) => {
           throw new Error('Invalid link token provided');
         }
 
-        if (appearanceSnapshot.current?.linkToken !== props.linkToken) {
+        const pageKey = [
+          props.linkToken,
+          props.settings?.theme,
+          props.settings?.language,
+          props.settings?.displayFiatCurrency,
+        ].join('|');
+        if (appearanceSnapshot.current?.pageKey !== pageKey) {
           appearanceSnapshot.current = {
-            linkToken: props.linkToken,
+            pageKey,
             isDark: Appearance.getColorScheme() === 'dark',
           };
         }
         const deviceIsDark = appearanceSnapshot.current.isDark;
 
-        // The token can already carry a th (MFS silent migration adds th=dark);
+        // The token can already carry a th (some backends add th=dark);
         // the app's theme replaces it. 'system' is sent as the device's light/dark.
         const settingsTheme = props.settings?.theme;
         if (settingsTheme) {
