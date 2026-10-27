@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Appearance } from 'react-native';
 import { WebViewMessageEvent } from 'react-native-webview';
 import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes';
@@ -7,7 +7,9 @@ import {
   decode64,
   isValidUrl,
   addURLParam,
-  extractThemeFromToken,
+  removeURLParam,
+  isDarkLinkTheme,
+  isMfsLinkUrl,
   resolveLanguage,
 } from '../utils';
 import { sdkSpecs } from '../utils/sdkConfig';
@@ -25,7 +27,8 @@ const useSDKCallbacks = (props: LinkConnectTokenConfiguration) => {
   const [linkUrl, setLinkUrl] = useState<string | null>(null);
   const [showWebView, setShowWebView] = useState(false);
   const [showNativeNavbar, setShowNativeNavbar] = useState(false);
-  const [darkTheme, setDarkTheme] = useState<boolean>();
+  // Read once per link, like the page: Link doesn't follow a device switch mid-session.
+  const [systemIsDark, setSystemIsDark] = useState(false);
   const isOAuthInProgress = useRef(false);
 
   useEffect(() => {
@@ -37,10 +40,17 @@ const useSDKCallbacks = (props: LinkConnectTokenConfiguration) => {
           throw new Error('Invalid link token provided');
         }
 
-        // Add the `theme` to the URL as a `th` query parameter
+        // The token can already carry a th (MFS silent migration adds th=dark);
+        // the app's theme replaces it. 'system' is sent as the device's light/dark.
         const settingsTheme = props.settings?.theme;
         if (settingsTheme) {
-          decodedUrl = addURLParam(decodedUrl, 'th', settingsTheme);
+          const th =
+            settingsTheme === 'system'
+              ? Appearance.getColorScheme() === 'dark'
+                ? 'dark'
+                : 'light'
+              : settingsTheme;
+          decodedUrl = addURLParam(removeURLParam(decodedUrl, 'th'), 'th', th);
         }
 
         // Add the `language` to the URL as a `lng` query parameter.
@@ -56,20 +66,12 @@ const useSDKCallbacks = (props: LinkConnectTokenConfiguration) => {
           decodedUrl = addURLParam(decodedUrl, 'fiatCur', settingsFiatCurrency);
         }
 
-        // The settings theme takes precedence over the URL theme,
-        // and if neither is provided, the effective theme will be undefined
-        const theme = settingsTheme ?? extractThemeFromToken(decodedUrl);
-        if (theme === 'system') {
-          setDarkTheme(Appearance.getColorScheme() === 'dark');
-        } else {
-          setDarkTheme(theme === 'dark');
-        }
-
         if (!/[?&]platform=/.test(decodedUrl)) {
           decodedUrl = addURLParam(decodedUrl, 'platform', sdkSpecs.platform);
         }
 
         // Save the decoded URL to state to load in the WebView
+        setSystemIsDark(Appearance.getColorScheme() === 'dark');
         setLinkUrl(decodedUrl);
         setShowWebView(true);
       }
@@ -92,6 +94,15 @@ const useSDKCallbacks = (props: LinkConnectTokenConfiguration) => {
     props.settings?.theme,
     props.settings?.displayFiatCurrency,
   ]);
+
+  const darkTheme = useMemo(
+    () => (linkUrl ? isDarkLinkTheme(linkUrl, systemIsDark) : undefined),
+    [linkUrl, systemIsDark]
+  );
+  const isMfs = useMemo(
+    () => (linkUrl ? isMfsLinkUrl(linkUrl) : false),
+    [linkUrl]
+  );
 
   // istanbul ignore next
   const showCloseAlert = () =>
@@ -203,6 +214,7 @@ const useSDKCallbacks = (props: LinkConnectTokenConfiguration) => {
     showWebView,
     showNativeNavbar,
     darkTheme,
+    isMfs,
     isOAuthInProgress, // MutableRefObject<boolean> — read .current in callbacks
     handleMessage,
     handleNavState,

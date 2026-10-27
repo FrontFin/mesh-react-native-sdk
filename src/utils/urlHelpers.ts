@@ -46,12 +46,51 @@ export const urlSearchParams = (url?: string) => {
   return params;
 };
 
+const splitFragment = (url: string) => {
+  const hash = url.indexOf('#');
+  return hash === -1
+    ? { beforeFragment: url, fragment: '' }
+    : { beforeFragment: url.slice(0, hash), fragment: url.slice(hash) };
+};
+
+// Inserted before any fragment, so Link still sees the param.
 export const addURLParam = (url: string, param: string, value: string) => {
   if (!param.length) {
     return url;
   }
-  if (!value.length) {
-    return `${url}${url.includes('?') ? '&' : '?'}${param}`;
-  }
-  return `${url}${url.includes('?') ? '&' : '?'}${param}=${value}`;
+  const { beforeFragment, fragment } = splitFragment(url);
+  const separator = beforeFragment.includes('?') ? '&' : '?';
+  const pair = value.length ? `${param}=${value}` : param;
+  return `${beforeFragment}${separator}${pair}${fragment}`;
+};
+
+const queryPairs = (url: string) => {
+  const { beforeFragment } = splitFragment(url);
+  const queryStart = beforeFragment.indexOf('?');
+  return queryStart === -1
+    ? []
+    : beforeFragment.slice(queryStart + 1).split('&');
+};
+
+const pairKey = (pair: string) => {
+  const separator = pair.indexOf('=');
+  return decodeQueryComponent(separator === -1 ? pair : pair.slice(0, separator));
+};
+
+// First value of `param`, like URLSearchParams.get (urlSearchParams skips repeated keys).
+export const getFirstURLParam = (url: string, param: string) => {
+  const pair = queryPairs(url).find((p) => pairKey(p) === param);
+  if (pair === undefined) return undefined;
+  const separator = pair.indexOf('=');
+  return separator === -1 ? '' : decodeQueryComponent(pair.slice(separator + 1));
+};
+
+// Removes every `param`, leaving the rest of the URL byte for byte.
+export const removeURLParam = (url: string, param: string) => {
+  const { beforeFragment, fragment } = splitFragment(url);
+  const queryStart = beforeFragment.indexOf('?');
+  if (queryStart === -1) return url;
+  const kept = queryPairs(url).filter((p) => pairKey(p) !== param);
+  const base = beforeFragment.slice(0, queryStart);
+  return `${base}${kept.length ? `?${kept.join('&')}` : ''}${fragment}`;
 };

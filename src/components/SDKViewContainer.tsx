@@ -1,16 +1,17 @@
 import React from 'react';
 import type { ReactNode } from 'react';
 import { View } from 'react-native';
-import { DARK_THEME_COLOR_BOTTOM, LIGHT_THEME_COLOR_BOTTOM } from '../constant';
+import { getThemeColors } from '../utils/theme';
 
 type Props = {
   children: ReactNode
   isDarkTheme?: boolean
+  isMfs?: boolean
 };
 
-export const SDKViewContainer = ({ children, isDarkTheme }: Props) => {
+export const SDKViewContainer = ({ children, isDarkTheme, isMfs }: Props) => {
   return (
-    <View style={{ flex: 1, backgroundColor: isDarkTheme ? DARK_THEME_COLOR_BOTTOM : LIGHT_THEME_COLOR_BOTTOM }} testID={'link-connect-view-component'}>
+    <View style={{ flex: 1, backgroundColor: getThemeColors(isDarkTheme ?? false, isMfs).bottom }} testID={'link-connect-view-component'}>
       {children}
     </View>
   );

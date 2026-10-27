@@ -3,6 +3,14 @@
 All notable changes to the Mesh Connect React Native SDK are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2.5.8
+
+### Fixed
+
+- The status bar and the area around Link now match Link's theme, including on MFS (no light strips around a dark page).
+- The `theme` you pass in `settings` is now applied on MFS. Before, MFS always opened dark.
+- `theme: 'system'` is now sent as the device's light or dark, which MFS understands.
+
 ## 2.5.7
 
 ### Added

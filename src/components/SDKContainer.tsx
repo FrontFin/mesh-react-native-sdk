@@ -2,17 +2,17 @@ import React from 'react';
 import type { ReactNode } from 'react';
 import { SafeAreaView, StatusBar, View } from 'react-native';
 import { useSDKStyles } from './SDKContainer.styled';
-import { DARK_THEME_COLOR_TOP, LIGHT_THEME_COLOR_TOP, DARK_THEME_COLOR_BOTTOM, LIGHT_THEME_COLOR_BOTTOM } from '../constant';
+import { getThemeColors } from '../utils/theme';
 
 type Props = {
   children: ReactNode
   isDarkTheme: boolean
+  isMfs?: boolean
 }
 
-export const SDKContainer = ({ children, isDarkTheme }: Props) => {
-  const { statusBarStyle } = useSDKStyles(isDarkTheme);
-  const topColor = isDarkTheme ? DARK_THEME_COLOR_TOP : LIGHT_THEME_COLOR_TOP;
-  const bottomColor = isDarkTheme ? DARK_THEME_COLOR_BOTTOM : LIGHT_THEME_COLOR_BOTTOM;
+export const SDKContainer = ({ children, isDarkTheme, isMfs }: Props) => {
+  const { statusBarStyle } = useSDKStyles(isDarkTheme, isMfs);
+  const { top: topColor, bottom: bottomColor } = getThemeColors(isDarkTheme, isMfs);
 
   return (
     <View style={{ flex: 1 }} testID={'link-connect-component'}>

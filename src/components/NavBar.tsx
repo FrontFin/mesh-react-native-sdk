@@ -6,10 +6,11 @@ type NavBarProps = {
   goBack: () => void;
   showCloseAlert: () => void;
   isDarkTheme: boolean
+  isMfs?: boolean
 }
 
-export const NavBar = ({goBack, showCloseAlert, isDarkTheme}: NavBarProps) => {
-  const {navBarStyles: styles} = useSDKStyles(isDarkTheme || false);
+export const NavBar = ({goBack, showCloseAlert, isDarkTheme, isMfs}: NavBarProps) => {
+  const {navBarStyles: styles} = useSDKStyles(isDarkTheme || false, isMfs);
 
   return (
     <View testID={'native-navbar'} style={styles.navBarContainer}>

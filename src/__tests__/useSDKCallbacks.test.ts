@@ -345,7 +345,7 @@ describe('useSDKCallbacks – theme behaviour', () => {
     expect(result.current.linkUrl).toContain('th=light');
   });
 
-  test('darkTheme follows device scheme and th=system in URL when settings.theme is "system" on a dark device', () => {
+  test('settings.theme "system" is sent as th=dark on a dark device', () => {
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
 
     const { result } = renderHook(() =>
@@ -353,10 +353,11 @@ describe('useSDKCallbacks – theme behaviour', () => {
     );
 
     expect(result.current.darkTheme).toBe(true);
-    expect(result.current.linkUrl).toContain('th=system');
+    expect(result.current.linkUrl).toContain('th=dark');
+    expect(result.current.linkUrl).not.toContain('th=system');
   });
 
-  test('darkTheme follows device scheme and th=system in URL when settings.theme is "system" on a light device', () => {
+  test('settings.theme "system" is sent as th=light on a light device', () => {
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('light');
 
     const { result } = renderHook(() =>
@@ -364,7 +365,8 @@ describe('useSDKCallbacks – theme behaviour', () => {
     );
 
     expect(result.current.darkTheme).toBe(false);
-    expect(result.current.linkUrl).toContain('th=system');
+    expect(result.current.linkUrl).toContain('th=light');
+    expect(result.current.linkUrl).not.toContain('th=system');
   });
 
   test('settings.theme overrides dark theme encoded in the link token', () => {
@@ -398,6 +400,46 @@ describe('useSDKCallbacks – theme behaviour', () => {
     // No theme in token and no settings.theme → darkTheme defaults to false
     expect(result.current.darkTheme).toBe(false);
     expect(result.current.linkUrl).not.toContain('th=');
+  });
+});
+
+describe('useSDKCallbacks – MFS theme', () => {
+  const base64Url = (json: string) =>
+    Buffer.from(json).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  // Silent migration shape: MFS token envelope without a theme, then the backend's th=dark.
+  const mfsUrl = `https://link.meshpay.com/?token=${base64Url('{"v":1,"c":"client"}')}&flow=%7B%22flow%22%3A%22login%22%7D&th=dark`;
+  const mfsToken = Buffer.from(mfsUrl).toString('base64');
+
+  afterEach(() => jest.restoreAllMocks());
+
+  test("the app's theme replaces the token's th and leaves the rest of the URL as is", () => {
+    const { result } = renderHook(() =>
+      useSDKCallbacks({ linkToken: mfsToken, settings: { theme: 'light' } })
+    );
+
+    expect(result.current.linkUrl?.match(/[?&]th=/g)).toHaveLength(1);
+    expect(result.current.linkUrl).toContain('&th=light');
+    expect(result.current.linkUrl?.startsWith(mfsUrl.replace('&th=dark', ''))).toBe(true);
+    expect(result.current.darkTheme).toBe(false);
+    expect(result.current.isMfs).toBe(true);
+  });
+
+  test("without an app theme the token's th=dark stays and the native side is dark", () => {
+    const { result } = renderHook(() => useSDKCallbacks({ linkToken: mfsToken }));
+
+    expect(result.current.linkUrl).toContain('th=dark');
+    expect(result.current.darkTheme).toBe(true);
+  });
+
+  test('an MFS link without any theme takes the device theme when it opens', () => {
+    jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
+    const noThemeUrl = mfsUrl.replace('&th=dark', '');
+    const { result } = renderHook(() =>
+      useSDKCallbacks({ linkToken: Buffer.from(noThemeUrl).toString('base64') })
+    );
+
+    expect(result.current.darkTheme).toBe(true);
+    expect(result.current.linkUrl?.startsWith(noThemeUrl)).toBe(true);
   });
 });
 
