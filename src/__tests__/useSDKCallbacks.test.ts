@@ -431,6 +431,30 @@ describe('useSDKCallbacks – MFS theme', () => {
     expect(result.current.darkTheme).toBe(true);
   });
 
+  test('a callback-only rerender keeps the URL and colors after a device switch', () => {
+    const scheme = jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('light');
+    const noThemeUrl = mfsUrl.replace('&th=dark', '');
+    const cases = [
+      { linkToken: mfsToken, settings: { theme: 'system' as const } },
+      { linkToken: Buffer.from(noThemeUrl).toString('base64') },
+    ];
+    for (const props of cases) {
+      scheme.mockReturnValue('light');
+      const { result, rerender } = renderHook(
+        (p: typeof props & { onExit: () => void }) => useSDKCallbacks(p),
+        { initialProps: { ...props, onExit: jest.fn() } }
+      );
+      const { linkUrl, darkTheme } = result.current;
+
+      scheme.mockReturnValue('dark');
+      rerender({ ...props, onExit: jest.fn() });
+
+      expect(result.current.linkUrl).toBe(linkUrl);
+      expect(result.current.darkTheme).toBe(darkTheme);
+      expect(darkTheme).toBe(false);
+    }
+  });
+
   test('an MFS link without any theme takes the device theme when it opens', () => {
     jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('dark');
     const noThemeUrl = mfsUrl.replace('&th=dark', '');

@@ -27,8 +27,11 @@ const useSDKCallbacks = (props: LinkConnectTokenConfiguration) => {
   const [linkUrl, setLinkUrl] = useState<string | null>(null);
   const [showWebView, setShowWebView] = useState(false);
   const [showNativeNavbar, setShowNativeNavbar] = useState(false);
-  // Read once per link, like the page: Link doesn't follow a device switch mid-session.
+  // Read once per link token, like the page: Link doesn't follow a device switch
+  // mid-session. Reusing it keeps reruns (e.g. a new onExit) from changing the URL,
+  // which would remount the WebView, or the native colors.
   const [systemIsDark, setSystemIsDark] = useState(false);
+  const appearanceSnapshot = useRef<{ linkToken: string; isDark: boolean }>();
   const isOAuthInProgress = useRef(false);
 
   useEffect(() => {
@@ -40,13 +43,21 @@ const useSDKCallbacks = (props: LinkConnectTokenConfiguration) => {
           throw new Error('Invalid link token provided');
         }
 
+        if (appearanceSnapshot.current?.linkToken !== props.linkToken) {
+          appearanceSnapshot.current = {
+            linkToken: props.linkToken,
+            isDark: Appearance.getColorScheme() === 'dark',
+          };
+        }
+        const deviceIsDark = appearanceSnapshot.current.isDark;
+
         // The token can already carry a th (MFS silent migration adds th=dark);
         // the app's theme replaces it. 'system' is sent as the device's light/dark.
         const settingsTheme = props.settings?.theme;
         if (settingsTheme) {
           const th =
             settingsTheme === 'system'
-              ? Appearance.getColorScheme() === 'dark'
+              ? deviceIsDark
                 ? 'dark'
                 : 'light'
               : settingsTheme;
@@ -71,7 +82,7 @@ const useSDKCallbacks = (props: LinkConnectTokenConfiguration) => {
         }
 
         // Save the decoded URL to state to load in the WebView
-        setSystemIsDark(Appearance.getColorScheme() === 'dark');
+        setSystemIsDark(deviceIsDark);
         setLinkUrl(decodedUrl);
         setShowWebView(true);
       }
