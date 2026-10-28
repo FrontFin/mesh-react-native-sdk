@@ -17,9 +17,8 @@ import { useWebViewRecovery } from '../hooks/useWebViewRecovery';
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler';
 import { sdkSpecs } from '../utils/sdkConfig';
 import { isAppLaunchScheme, isExternallyOpenedOrigin } from '../utils';
+import { getThemeColors } from '../utils/theme';
 import {
-  DARK_THEME_COLOR_BOTTOM,
-  LIGHT_THEME_COLOR_BOTTOM,
   WHITELISTED_ORIGINS,
 } from '../constant';
 
@@ -42,7 +41,7 @@ const openExternally = (url: string): void => {
   });
 };
 
-const LoadingComponentWebview = ({ darkTheme }: { darkTheme: boolean }) => {
+const LoadingComponentWebview = ({ backgroundColor }: { backgroundColor: string }) => {
   return (
     <View
       style={{
@@ -52,9 +51,7 @@ const LoadingComponentWebview = ({ darkTheme }: { darkTheme: boolean }) => {
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: darkTheme
-          ? DARK_THEME_COLOR_BOTTOM
-          : LIGHT_THEME_COLOR_BOTTOM,
+        backgroundColor,
       }}
     />
   );
@@ -94,6 +91,7 @@ const LinkConnectPrimary = (props: LinkConnectTokenConfiguration) => {
     showWebView,
     linkUrl,
     darkTheme,
+    isMfs,
     isOAuthInProgress,
     handleMessage,
     handleNavState,
@@ -148,6 +146,8 @@ const LinkConnectPrimary = (props: LinkConnectTokenConfiguration) => {
     return null;
   }
 
+  const bottomColor = getThemeColors(darkTheme, isMfs).bottom;
+
   // by default disableDomainWhiteList is false
   const { disableDomainWhiteList = false } = props;
   const whiteListProps = disableDomainWhiteList
@@ -155,23 +155,20 @@ const LinkConnectPrimary = (props: LinkConnectTokenConfiguration) => {
     : { originWhitelist: WHITELISTED_ORIGINS };
 
   return (
-    <SDKWrapperComponent isDarkTheme={darkTheme}>
+    <SDKWrapperComponent isDarkTheme={darkTheme} isMfs={isMfs}>
       {showNativeNavbar && (
         <NavBar
           goBack={goBack}
           showCloseAlert={showCloseAlert}
           isDarkTheme={darkTheme}
+          isMfs={isMfs}
         />
       )}
-      {initialLoading && <LoadingComponentWebview darkTheme={darkTheme} />}
+      {initialLoading && <LoadingComponentWebview backgroundColor={bottomColor} />}
       {showWebView && linkUrl && (
         <WebView
           bounces={false}
-          style={{
-            backgroundColor: darkTheme
-              ? DARK_THEME_COLOR_BOTTOM
-              : LIGHT_THEME_COLOR_BOTTOM,
-          }}
+          style={{ backgroundColor: bottomColor }}
           // A new session gets a fresh WebView, so back never returns to the
           // previous session's pages.
           key={linkUrl}

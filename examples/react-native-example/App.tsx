@@ -251,7 +251,7 @@ export default function App() {
           backupConfig={forceJit ? withoutAddresses(baseConfig) : baseConfig}
           onAddressInit={demoOnAddressInit}
           onStatusPoll={makeDemoOnStatusPoll(baseConfig.destinations)}
-          settings={{language: 'en', theme: 'system'}}
+          settings={{language: 'system', theme: 'system'}}
           onTransferFinished={(payload: TransferFinishedPayload) => {
             if (payload.status === 'success') {
               showTransferFinishedAlert(payload);
@@ -288,7 +288,7 @@ export default function App() {
       <LinkConnect
         linkToken={linkToken}
         settings={{
-          language: 'en',
+          language: 'system',
           displayFiatCurrency: 'USD',
           theme: 'system',
         }}

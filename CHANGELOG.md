@@ -3,6 +3,13 @@
 All notable changes to the Mesh Connect React Native SDK are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2.5.8
+
+### Fixed
+
+- The area around Link now matches Link's theme. No more light strips around a dark page.
+- The `theme` setting now applies on the latest Link, and `'system'` follows the device.
+
 ## 2.5.7
 
 ### Added
