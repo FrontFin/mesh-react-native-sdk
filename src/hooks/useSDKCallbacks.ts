@@ -43,10 +43,12 @@ const useSDKCallbacks = (props: LinkConnectTokenConfiguration) => {
           throw new Error('Invalid link token provided');
         }
 
+        // Resolved, so 'system' and the same device tag share a page.
+        const settingsLanguage = resolveLanguage(props.settings?.language);
         const pageKey = [
           props.linkToken,
           props.settings?.theme,
-          props.settings?.language,
+          settingsLanguage,
           props.settings?.displayFiatCurrency,
         ].join('|');
         if (appearanceSnapshot.current?.pageKey !== pageKey) {
@@ -72,7 +74,6 @@ const useSDKCallbacks = (props: LinkConnectTokenConfiguration) => {
 
         // Add the `language` to the URL as a `lng` query parameter.
         // `'system'` resolves to the device locale (see resolveLanguage).
-        const settingsLanguage = resolveLanguage(props.settings?.language);
         if (settingsLanguage) {
           decodedUrl = addURLParam(decodedUrl, 'lng', settingsLanguage);
         }
