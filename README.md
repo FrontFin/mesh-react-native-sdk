@@ -126,7 +126,7 @@ The `LinkSettings` option allows to configure the Link behaviour:
 
 - `language` - Link UI language as a BCP-47 tag (e.g. 'en', 'en-US'). Accepts 'system' to follow the device language.
 - `displayFiatCurrency` - a preferred display fiat currency
-- `theme` - Link UI colour theme. Accepts: 'light', 'dark', 'system'.
+- `theme` - Link UI colour theme. Accepts: 'light', 'dark', 'system'. The status bar and the page follow it. With 'system', Link follows the device. If you leave it out, Link uses the theme set for your client, and then the device.
 - `accessTokens` - an array of `IntegrationAccessToken` objects that is used as an origin for crypto transfer flow.
 - `disableDomainWhiteList` - a boolean flag that allows to disable origin whitelisting. By default, the origin is whitelisted, with the following domains set:
   - `*.meshconnect.com`
@@ -162,6 +162,17 @@ The `LinkSettings` option allows to configure the Link behaviour:
   - `https://js.stripe.com`
   - `https://app.usercentrics.eu`
   - `robinhood://`
+
+#### Android navigation bar
+
+The bar at the bottom of the screen (the buttons or the gesture line) belongs to your app, not to the SDK. It keeps the color of your Android theme while Link is open. If it stays dark on a light theme, set its color in your theme (`android/app/src/main/res/values/styles.xml`):
+
+```xml
+<item name="android:navigationBarColor">#F9F9F9</item>
+<item name="android:windowLightNavigationBar">true</item>
+```
+
+Use a dark color and `false` for a dark theme. iOS needs no change.
 
 #### Withdrawal events
 
