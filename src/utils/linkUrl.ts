@@ -16,9 +16,10 @@ const APP_THEMES = ['light', 'dark', 'system'];
 /**
  * Builds the Link URL in one pass, the same way as the other mobile SDKs: the params the app set
  * (`th`, `lng`, `fiatCur`, plus `platform`) replace any already in the token URL, and the rest
- * of the URL stays byte for byte. `th` is only written when the app sets a theme, and `system`
- * is sent as `system`, so Link decides. Also returns the theme and color Link opens with; see
- * resolveLinkAppearance.
+ * of the URL stays byte for byte. `th` is written when the app sets a theme (`system` is sent as
+ * `system`, so Link decides), and, on a legacy link, when the device decides: then the resolved
+ * theme is written, so Link and the bars read the device the same way. Also returns the theme and
+ * color Link opens with; see resolveLinkAppearance.
  */
 export const buildLinkUrl = (
   linkUrl: string,
@@ -37,5 +38,9 @@ export const buildLinkUrl = (
   params.platform = sdkSpecs.platform;
 
   const url = setURLParams(linkUrl, params);
-  return { url, ...resolveLinkAppearance(url, systemIsDark) };
+  const { themeToWrite, ...appearance } = resolveLinkAppearance(url, systemIsDark);
+  return {
+    url: themeToWrite ? setURLParams(url, { th: themeToWrite }) : url,
+    ...appearance,
+  };
 };

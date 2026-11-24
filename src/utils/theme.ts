@@ -33,12 +33,12 @@ const readSessionToken = (url: string): PageStyle | undefined => {
     : undefined;
 };
 
-/** `light` and `dark` as they are, `system` read from the device, undefined for anything else. */
-const toTheme = (value: unknown, systemIsDark: boolean): Theme | undefined => {
-  if (value === 'light' || value === 'dark') return value;
-  if (value === 'system') return systemIsDark ? 'dark' : 'light';
-  return undefined;
-};
+/** `light` and `dark` as they are, undefined for anything else (`system` included). */
+const toFixedTheme = (value: unknown): Theme | undefined =>
+  value === 'light' || value === 'dark' ? value : undefined;
+
+/** Marks a choice that is left to the device. */
+const DEVICE = 'device';
 
 /** `#RRGGBB` from a valid hex color, alpha dropped; undefined for anything else. */
 const toOpaqueHex = (value: unknown): string | undefined => {
@@ -75,11 +75,15 @@ export const getThemeColor = (
  *
  * Color: the page's own `bgd` (dark) or `bgl` (light) from the session token or `link_style`,
  * otherwise the fallback pair of that Link version (a link with a session token, or a legacy link).
+ *
+ * `themeToWrite` is set for a legacy link whose theme comes from the device. The WebView can read
+ * the device differently from the app (a host app with a dark-only Android theme), so the caller
+ * writes this resolved theme into the URL and Link follows the same reading as the bars.
  */
 export const resolveLinkAppearance = (
   url: string,
   systemIsDark: boolean
-): { isDarkTheme: boolean; backgroundColor: string } => {
+): { isDarkTheme: boolean; backgroundColor: string; themeToWrite?: Theme } => {
   const sessionToken = readSessionToken(url);
   const linkStyle = sessionToken
     ? undefined
@@ -88,12 +92,15 @@ export const resolveLinkAppearance = (
         | undefined);
   const urlTheme = getFirstURLParam(url, 'th');
 
-  const theme: Theme =
-    toTheme(urlTheme === 'system' ? undefined : urlTheme, systemIsDark) ??
+  const choice: Theme | typeof DEVICE =
+    toFixedTheme(urlTheme) ??
     toSessionTheme(sessionToken?.th) ??
-    toTheme(urlTheme, systemIsDark) ??
-    toTheme(linkStyle?.th, systemIsDark) ??
-    (sessionToken ? (systemIsDark ? 'dark' : 'light') : DEFAULT_THEME);
+    (urlTheme === 'system' ? DEVICE : undefined) ??
+    toFixedTheme(linkStyle?.th) ??
+    (linkStyle?.th === 'system' ? DEVICE : undefined) ??
+    (sessionToken ? DEVICE : DEFAULT_THEME);
+  const deviceTheme: Theme = systemIsDark ? 'dark' : 'light';
+  const theme = choice === DEVICE ? deviceTheme : choice;
   const isDarkTheme = theme === 'dark';
 
   const pageStyle = sessionToken ?? linkStyle;
@@ -103,5 +110,6 @@ export const resolveLinkAppearance = (
     backgroundColor:
       toOpaqueHex(isDarkTheme ? pageStyle?.bgd : pageStyle?.bgl) ??
       getThemeColor(isDarkTheme, colors),
+    ...(choice === DEVICE && !sessionToken ? { themeToWrite: theme } : {}),
   };
 };

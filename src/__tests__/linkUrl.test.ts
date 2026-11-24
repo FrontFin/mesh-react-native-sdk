@@ -58,6 +58,32 @@ describe('buildLinkUrl', () => {
     }
   });
 
+  test('on a legacy link, a theme the device decides is written as light or dark', () => {
+    const systemStyle = `https://link.meshconnect.com/?link_style=${encodeURIComponent(
+      Buffer.from('{"th":"system"}').toString('base64')
+    )}`;
+    // app system, link_style system, th=system in the token: all follow the device
+    for (const [link, settings] of [
+      [LEGACY_URL, { theme: 'system' as const }],
+      [systemStyle, undefined],
+      [`${LEGACY_URL}&th=system`, undefined],
+    ] as const) {
+      expect(buildLinkUrl(link, settings, true)).toMatchObject({ isDarkTheme: true });
+      expect(buildLinkUrl(link, settings, true).url).toMatch(/[?&]th=dark(&|$)/);
+      expect(buildLinkUrl(link, settings, false).url).toMatch(/[?&]th=light(&|$)/);
+    }
+  });
+
+  test('on a legacy link, a theme the device does not decide is not written', () => {
+    expect(buildLinkUrl(LEGACY_URL, undefined, true).url).not.toContain('th=');
+    expect(buildLinkUrl('https://link.meshconnect.com/', undefined, false).url).not.toContain('th=');
+  });
+
+  test('on a link with a session token, system stays system', () => {
+    expect(buildLinkUrl(MFS_URL, { theme: 'system' }, true).url).toContain('&th=system&');
+    expect(buildLinkUrl(MFS_URL, undefined, true).url).not.toContain('th=');
+  });
+
   test('system replaces the th=dark the backend adds on silent migration', () => {
     const { url } = buildLinkUrl(`${MFS_URL}&th=dark`, { theme: 'system' }, true);
     expect(url).toBe(`${MFS_URL}&th=system&platform=reactNative`);

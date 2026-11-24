@@ -266,6 +266,6 @@ When creating PRs (via `gh pr create` or the GitHub UI), always use the repo tem
   3. Add it to the `LinkEventType` union
   4. Add tests in `src/__tests__/`
 - **Adding a new `LinkSettings` field:** Add the optional field to `LinkSettings` in `src/types/index.ts`, update `buildLinkUrl` in `linkUrl.ts` to pass it as a URL query parameter, and add tests.
-- **Theme values:** Use `'light'`, `'dark'`, or `'system'`. `'system'` is sent to Link as `th=system`, so Link decides. `theme.ts` (`resolveLinkAppearance`) reads the URL the way the page does, so the native status bar, nav bar and background match.
-- **URL query parameters set by SDK:** `th` (theme, only when the app sets one), `lng` (language), `fiatCur` (display fiat currency) and `platform`. They replace any value already in the token; see `src/utils/linkUrl.ts`.
+- **Theme values:** Use `'light'`, `'dark'`, or `'system'`. On a link with a session token, `'system'` is sent to Link as `th=system`, so Link decides. On a legacy link, whenever the device decides, the SDK writes the resolved `th=light` or `th=dark`, so Link and the bars read the device the same way. `theme.ts` (`resolveLinkAppearance`) reads the URL the way the page does, so the native status bar, nav bar and background match.
+- **URL query parameters set by SDK:** `th` (theme, when the app sets one, or when the device decides on a legacy link), `lng` (language), `fiatCur` (display fiat currency) and `platform`. They replace any value already in the token; see `src/utils/linkUrl.ts`.
 - **Domain whitelist:** When `disableDomainWhiteList` is `false` (default), only Mesh-approved domains load in the WebView. Set it to `true` for testing with custom environments.
