@@ -45,4 +45,11 @@ describe('NavBar', () => {
 
     expect(showCloseAlertMock).toHaveBeenCalledTimes(1);
   });
+
+  test("uses the page's own color when given", () => {
+    const { getByTestId } = render(
+      <NavBar goBack={jest.fn()} showCloseAlert={jest.fn()} isDarkTheme backgroundColor="#445566" />
+    );
+    expect(getByTestId('native-navbar').props.style.backgroundColor).toBe('#445566');
+  });
 });

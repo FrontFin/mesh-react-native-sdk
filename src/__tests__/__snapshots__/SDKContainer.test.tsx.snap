@@ -12,7 +12,7 @@ exports[`SDKContainer renders correctly 1`] = `
   <RCTSafeAreaView
     style={
       {
-        "backgroundColor": "#F3F4F5",
+        "backgroundColor": "#F9F9F9",
         "flex": 0,
       }
     }
@@ -20,7 +20,7 @@ exports[`SDKContainer renders correctly 1`] = `
   <RCTSafeAreaView
     style={
       {
-        "backgroundColor": "#FBFBFB",
+        "backgroundColor": "#F9F9F9",
         "flex": 1,
       }
     }
@@ -38,7 +38,7 @@ exports[`SDKContainer renders correctly 1`] = `
   <RCTSafeAreaView
     style={
       {
-        "backgroundColor": "#FBFBFB",
+        "backgroundColor": "#F9F9F9",
         "flex": 0,
       }
     }

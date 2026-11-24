@@ -1,6 +1,6 @@
 /* istanbul ignore file */
 import { StyleSheet } from 'react-native';
-import { getThemeColors } from '../utils/theme';
+import { getThemeColor } from '../utils/theme';
 
 const createNavBarStyles = (backgroundColor: string) => StyleSheet.create({
   navBarContainer: {
@@ -30,8 +30,9 @@ const createNavBarStyles = (backgroundColor: string) => StyleSheet.create({
   },
 });
 
-export const useSDKStyles = (isDarkTheme: boolean, isMfs = false) => {
-const backgroundColor = getThemeColors(isDarkTheme, isMfs).top;
+// `color` is the page's own color from the token; without it, the fallback for the theme.
+export const useSDKStyles = (isDarkTheme: boolean, color?: string) => {
+  const backgroundColor = color ?? getThemeColor(isDarkTheme);
 
   const statusBarStyle = {
     backgroundColor,

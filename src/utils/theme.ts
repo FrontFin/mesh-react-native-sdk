@@ -1,86 +1,104 @@
-import { decode64 } from './base64';
-import { decodeLinkStyle } from './styleHelpers';
-import { getFirstURLParam, urlSearchParams } from './urlHelpers';
-import {
-  DARK_THEME_COLOR_BOTTOM,
-  DARK_THEME_COLOR_TOP,
-  LIGHT_THEME_COLOR_BOTTOM,
-  LIGHT_THEME_COLOR_TOP,
-  MFS_DARK_THEME_COLOR,
-  MFS_LIGHT_THEME_COLOR,
-} from '../constant';
-import { LinkTheme } from '../types';
+import { decodeJsonParam } from './styleHelpers';
+import { getFirstURLParam } from './urlHelpers';
+import { LINK_BACKGROUND_FALLBACK } from '../constant';
 
-// Type guard to check if a string is a valid LinkTheme
-function isLinkTheme(theme: string | undefined): theme is LinkTheme {
-  return theme === 'light' || theme === 'dark' || theme === 'system';
-}
+type Theme = 'light' | 'dark';
 
-// Extracts the theme from the link token's `link_style` query parameter, if present.
-export function extractThemeFromToken(
-  decodedUrl: string
-): LinkTheme | undefined {
-  const queryParams = urlSearchParams(decodedUrl);
-  const styleParam = queryParams['link_style'];
-  const style = decodeLinkStyle(styleParam);
-  return isLinkTheme(style?.th) ? style.th : undefined;
-}
+// What link-v2 shows when nothing sets a theme.
+const DEFAULT_THEME: Theme = 'dark';
 
-const decodeBase64Url = (value: string) => {
-  const base64 = value.replace(/-/g, '+').replace(/_/g, '/');
-  return decode64(base64 + '='.repeat((4 - (base64.length % 4)) % 4));
-};
+// Same shape Link accepts for a page color: #RGB, #RGBA, #RRGGBB or #RRGGBBAA.
+const HEX_COLOR = /^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
 
-// The latest Link's `token` param, validated the way Link does; undefined for older links.
-const getMfsTokenEnvelope = (url: string) => {
-  const token = getFirstURLParam(url, 'token');
-  if (!token) return undefined;
-  try {
-    const envelope = JSON.parse(decodeBase64Url(token));
-    const isEnvelope =
-      envelope !== null &&
-      typeof envelope === 'object' &&
-      typeof envelope.v === 'number' &&
-      typeof envelope.c === 'string' &&
-      envelope.c.length > 0;
-    return isEnvelope ? (envelope as { th?: unknown }) : undefined;
-  } catch {
-    return undefined;
-  }
-};
+/** The theme a session token names; undefined for "match the device" or anything unknown. */
+const toSessionTheme = (value: unknown): Theme | undefined =>
+  value === 'LINK_THEME_DARK'
+    ? 'dark'
+    : value === 'LINK_THEME_LIGHT'
+      ? 'light'
+      : undefined;
 
-export const isMfsLinkUrl = (url: string) => getMfsTokenEnvelope(url) !== undefined;
+type PageStyle = { th?: unknown; bgl?: unknown; bgd?: unknown };
 
 /**
- * Whether Link will render dark, resolved the way the page does so the native
- * background matches it: the first `th` param wins, then legacy `link_style`,
- * then the latest Link token's theme. Such a token without a theme follows the device;
- * legacy links default to light.
+ * The session token's content (`token` param), checked the way Link checks it. Undefined for a
+ * legacy link, which has no such token. The token is not signed, so nothing in it is trusted.
  */
-export const isDarkLinkTheme = (url: string, systemIsDark: boolean) => {
-  const th = getFirstURLParam(url, 'th');
-  if (th === 'dark' || th === 'light') return th === 'dark';
-
-  const linkStyleTheme = extractThemeFromToken(url);
-  if (linkStyleTheme === 'system') return systemIsDark;
-  if (linkStyleTheme) return linkStyleTheme === 'dark';
-
-  const envelope = getMfsTokenEnvelope(url);
-  if (!envelope) return false;
-  if (envelope.th === 'LINK_THEME_DARK') return true;
-  if (envelope.th === 'LINK_THEME_LIGHT') return false;
-  return systemIsDark;
+const readSessionToken = (url: string): PageStyle | undefined => {
+  const token = decodeJsonParam(getFirstURLParam(url, 'token'));
+  return typeof token?.v === 'number' &&
+    typeof token.c === 'string' &&
+    token.c.length > 0
+    ? token
+    : undefined;
 };
 
-// Latest Link canvas colors (--color-bg-canvas-dark/light in FrontFin/link
-// packages/ui/src/styles/tailwind.css), so the native background has no seam with the page.
-export const getThemeColors = (isDarkTheme: boolean, isMfs = false) => {
-  if (isMfs) {
-    const color = isDarkTheme ? MFS_DARK_THEME_COLOR : MFS_LIGHT_THEME_COLOR;
-    return { top: color, bottom: color };
-  }
+/** `light` and `dark` as they are, `system` read from the device, undefined for anything else. */
+const toTheme = (value: unknown, systemIsDark: boolean): Theme | undefined => {
+  if (value === 'light' || value === 'dark') return value;
+  if (value === 'system') return systemIsDark ? 'dark' : 'light';
+  return undefined;
+};
+
+/** `#RRGGBB` from a valid hex color, alpha dropped; undefined for anything else. */
+const toOpaqueHex = (value: unknown): string | undefined => {
+  if (typeof value !== 'string' || !HEX_COLOR.test(value)) return undefined;
+  const digits = value.slice(1);
+  const full =
+    digits.length <= 4
+      ? digits
+          .split('')
+          .map((digit) => digit + digit)
+          .join('')
+      : digits;
+  return `#${full.slice(0, 6)}`;
+};
+
+/** The color around Link when the token has no valid page color for the theme. */
+export const getThemeColor = (isDarkTheme: boolean) =>
+  isDarkTheme
+    ? LINK_BACKGROUND_FALLBACK.dark
+    : LINK_BACKGROUND_FALLBACK.light;
+
+/**
+ * The theme Link opens in and the color around it, read from the URL the way the page reads it,
+ * so the status bar, nav bar and background match with no visible seam.
+ *
+ * Theme, first one set wins:
+ * 1. `th=light` or `th=dark` in the URL (the app's choice, or the one the token came with)
+ * 2. the theme in the session token, for a link that has one
+ * 3. `th=system` in the URL means the device on any link
+ * 4. `link_style.th` (legacy links only), `system` meaning the device
+ * 5. the device for a link with a session token, otherwise the default (dark, like link-v2)
+ *
+ * Color: the page's own `bgd` (dark) or `bgl` (light) from the session token or `link_style`,
+ * otherwise the fallback pair.
+ */
+export const resolveLinkAppearance = (
+  url: string,
+  systemIsDark: boolean
+): { isDarkTheme: boolean; backgroundColor: string } => {
+  const sessionToken = readSessionToken(url);
+  const linkStyle = sessionToken
+    ? undefined
+    : (decodeJsonParam(getFirstURLParam(url, 'link_style')) as
+        | PageStyle
+        | undefined);
+  const urlTheme = getFirstURLParam(url, 'th');
+
+  const theme: Theme =
+    toTheme(urlTheme === 'system' ? undefined : urlTheme, systemIsDark) ??
+    toSessionTheme(sessionToken?.th) ??
+    toTheme(urlTheme, systemIsDark) ??
+    toTheme(linkStyle?.th, systemIsDark) ??
+    (sessionToken ? (systemIsDark ? 'dark' : 'light') : DEFAULT_THEME);
+  const isDarkTheme = theme === 'dark';
+
+  const pageStyle = sessionToken ?? linkStyle;
   return {
-    top: isDarkTheme ? DARK_THEME_COLOR_TOP : LIGHT_THEME_COLOR_TOP,
-    bottom: isDarkTheme ? DARK_THEME_COLOR_BOTTOM : LIGHT_THEME_COLOR_BOTTOM,
+    isDarkTheme,
+    backgroundColor:
+      toOpaqueHex(isDarkTheme ? pageStyle?.bgd : pageStyle?.bgl) ??
+      getThemeColor(isDarkTheme),
   };
 };
