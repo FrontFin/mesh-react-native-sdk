@@ -31,7 +31,7 @@ describe('SDKContainer', () => {
     );
     const statusBar = UNSAFE_getByType(StatusBar);
     expect(statusBar.props.barStyle).toBe('light-content');
-    expect(statusBar.props.backgroundColor).toBe('#151515');
+    expect(statusBar.props.backgroundColor).toBe('#1C1C1C');
   });
 
   test('uses dark status bar content on light theme', () => {

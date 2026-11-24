@@ -1,3 +1,4 @@
+import { LEGACY_LINK_COLORS } from '../constant';
 import { getThemeColor, resolveLinkAppearance } from '../utils/theme';
 
 const base64Url = (json: string) =>
@@ -136,20 +137,23 @@ describe('resolveLinkAppearance: background color', () => {
   test('a missing or invalid color falls back, for each theme on its own', () => {
     for (const bad of ['red', 'rgb(1,2,3)', '#12', '#12345', '#ggg', '', 123, null]) {
       const envelope = { v: 1, c: 'client', bgd: bad };
-      expect(background(sessionUrl(envelope, '&th=dark'), false)).toBe('#151515');
+      expect(background(sessionUrl(envelope, '&th=dark'), false)).toBe('#1C1C1C');
     }
     // only the other theme has a color
     const onlyLight = { v: 1, c: 'client', bgl: '#123456' };
-    expect(background(sessionUrl(onlyLight, '&th=dark'), false)).toBe('#151515');
+    expect(background(sessionUrl(onlyLight, '&th=dark'), false)).toBe('#1C1C1C');
     expect(background(sessionUrl(onlyLight, '&th=light'), true)).toBe('#123456');
-    expect(background(legacyUrl(), false)).toBe('#151515');
-    expect(background(legacyUrl({ th: 'light' }), true)).toBe('#F9F9F9');
+    // a legacy link has its own pair
+    expect(background(legacyUrl(), false)).toBe('#0E0D0D');
+    expect(background(legacyUrl({ th: 'light' }), true)).toBe('#FBFBFB');
   });
 });
 
 describe('getThemeColor', () => {
   test('the fallback color per theme', () => {
-    expect(getThemeColor(true)).toBe('#151515');
+    expect(getThemeColor(true)).toBe('#1C1C1C');
     expect(getThemeColor(false)).toBe('#F9F9F9');
+    expect(getThemeColor(true, LEGACY_LINK_COLORS)).toBe('#0E0D0D');
+    expect(getThemeColor(false, LEGACY_LINK_COLORS)).toBe('#FBFBFB');
   });
 });

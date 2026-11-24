@@ -1,6 +1,6 @@
 import { decodeJsonParam } from './styleHelpers';
 import { getFirstURLParam } from './urlHelpers';
-import { LINK_BACKGROUND_FALLBACK } from '../constant';
+import { LEGACY_LINK_COLORS, LINK_COLORS } from '../constant';
 
 type Theme = 'light' | 'dark';
 
@@ -54,11 +54,13 @@ const toOpaqueHex = (value: unknown): string | undefined => {
   return `#${full.slice(0, 6)}`;
 };
 
+type ColorPair = { readonly dark: string; readonly light: string };
+
 /** The color around Link when the token has no valid page color for the theme. */
-export const getThemeColor = (isDarkTheme: boolean) =>
-  isDarkTheme
-    ? LINK_BACKGROUND_FALLBACK.dark
-    : LINK_BACKGROUND_FALLBACK.light;
+export const getThemeColor = (
+  isDarkTheme: boolean,
+  colors: ColorPair = LINK_COLORS
+) => (isDarkTheme ? colors.dark : colors.light);
 
 /**
  * The theme Link opens in and the color around it, read from the URL the way the page reads it,
@@ -72,7 +74,7 @@ export const getThemeColor = (isDarkTheme: boolean) =>
  * 5. the device for a link with a session token, otherwise the default (dark, like link-v2)
  *
  * Color: the page's own `bgd` (dark) or `bgl` (light) from the session token or `link_style`,
- * otherwise the fallback pair.
+ * otherwise the fallback pair of that Link version (a link with a session token, or a legacy link).
  */
 export const resolveLinkAppearance = (
   url: string,
@@ -95,10 +97,11 @@ export const resolveLinkAppearance = (
   const isDarkTheme = theme === 'dark';
 
   const pageStyle = sessionToken ?? linkStyle;
+  const colors = sessionToken ? LINK_COLORS : LEGACY_LINK_COLORS;
   return {
     isDarkTheme,
     backgroundColor:
       toOpaqueHex(isDarkTheme ? pageStyle?.bgd : pageStyle?.bgl) ??
-      getThemeColor(isDarkTheme),
+      getThemeColor(isDarkTheme, colors),
   };
 };

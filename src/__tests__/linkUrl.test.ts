@@ -32,12 +32,12 @@ describe('buildLinkUrl', () => {
     expect(buildLinkUrl(`${MFS_URL}&th=dark`, undefined, false)).toEqual({
       url: `${MFS_URL}&th=dark&platform=reactNative`,
       isDarkTheme: true,
-      backgroundColor: '#151515',
+      backgroundColor: '#1C1C1C',
     });
     expect(buildLinkUrl(LEGACY_URL, {}, true)).toEqual({
       url: `${LEGACY_URL}&platform=reactNative`,
       isDarkTheme: false,
-      backgroundColor: '#F9F9F9',
+      backgroundColor: '#FBFBFB',
     });
   });
 

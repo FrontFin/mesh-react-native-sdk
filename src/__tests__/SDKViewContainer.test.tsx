@@ -40,6 +40,6 @@ describe('SDKViewContainer', () => {
     expect(given.getByTestId('link-connect-view-component').props.style.backgroundColor).toBe('#445566');
 
     const fallback = render(<SDKViewContainer isDarkTheme>x</SDKViewContainer>);
-    expect(fallback.getByTestId('link-connect-view-component').props.style.backgroundColor).toBe('#151515');
+    expect(fallback.getByTestId('link-connect-view-component').props.style.backgroundColor).toBe('#1C1C1C');
   });
 });
