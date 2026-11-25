@@ -3,6 +3,7 @@ import { Alert, Appearance } from 'react-native';
 import { useSDKCallbacks } from '../hooks/useSDKCallbacks';
 import { WebViewMessageEvent } from 'react-native-webview';
 import { WebViewNativeEvent } from 'react-native-webview/lib/WebViewTypes';
+import { LinkSettings } from '../types';
 
 /** Base64 of `https://link.meshconnect.com` — `decode64(linkToken)` yields that URL. */
 const TOKEN_BASE_ONLY = 'aHR0cHM6Ly9saW5rLm1lc2hjb25uZWN0LmNvbQ==';
@@ -472,6 +473,32 @@ describe('useSDKCallbacks – MFS theme', () => {
 
     expect(result.current.linkUrl).toBe(linkUrl);
     expect(result.current.darkTheme).toBe(darkTheme);
+  });
+
+  test('a setting that already matches the token keeps the URL and colors after a device switch', () => {
+    const scheme = jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('light');
+    const bare = mfsUrl.replace('&th=dark', '');
+    // Each token already ends with the param the app then sets, in the order the SDK writes them.
+    const cases = [
+      { url: `${bare}&th=system&platform=reactNative`, override: { theme: 'system' as const } },
+      { url: `${bare}&fiatCur=USD&platform=reactNative`, override: { displayFiatCurrency: 'USD' } },
+    ];
+    for (const { url, override } of cases) {
+      scheme.mockReturnValue('light');
+      const linkToken = Buffer.from(url).toString('base64');
+      const { result, rerender } = renderHook(
+        (settings?: LinkSettings) => useSDKCallbacks({ linkToken, settings }),
+        { initialProps: undefined as LinkSettings | undefined }
+      );
+      const { linkUrl, darkTheme } = result.current;
+      expect(darkTheme).toBe(false);
+
+      scheme.mockReturnValue('dark');
+      rerender(override);
+
+      expect(result.current.linkUrl).toBe(linkUrl);
+      expect(result.current.darkTheme).toBe(false);
+    }
   });
 
   test('a settings change that reloads Link re-reads the device theme', () => {

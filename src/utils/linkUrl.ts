@@ -14,18 +14,15 @@ export type LinkUrl = {
 const APP_THEMES = ['light', 'dark', 'system'];
 
 /**
- * Builds the Link URL in one pass, the same way as the other mobile SDKs: the params the app set
- * (`th`, `lng`, `fiatCur`, plus `platform`) replace any already in the token URL, and the rest
- * of the URL stays byte for byte. `th` is written when the app sets a theme (`system` is sent as
- * `system`, so Link decides), and, on a legacy link, when the device decides: then the resolved
- * theme is written, so Link and the bars read the device the same way. Also returns the theme and
- * color Link opens with; see resolveLinkAppearance.
+ * The token URL with the params the app set (`th`, `lng`, `fiatCur`, plus `platform`) replacing any
+ * already in it; the rest of the URL stays byte for byte. `system` is sent as `system`, so Link
+ * decides. It does not depend on the device, so it identifies one Link page: when it is the same,
+ * the WebView does not reload.
  */
-export const buildLinkUrl = (
+export const buildPageUrl = (
   linkUrl: string,
-  settings: LinkSettings | undefined,
-  systemIsDark: boolean
-): LinkUrl => {
+  settings: LinkSettings | undefined
+): string => {
   const language = resolveLanguage(settings?.language);
   const fiatCurrency = settings?.displayFiatCurrency?.trim();
 
@@ -37,8 +34,24 @@ export const buildLinkUrl = (
   if (fiatCurrency) params.fiatCur = fiatCurrency;
   params.platform = sdkSpecs.platform;
 
-  const url = setURLParams(linkUrl, params);
-  const { themeToWrite, ...appearance } = resolveLinkAppearance(url, systemIsDark);
+  return setURLParams(linkUrl, params);
+};
+
+/**
+ * Builds the Link URL like the other mobile SDKs (see buildPageUrl). On a legacy link, when the
+ * device decides, the resolved theme is also written, so Link and the bars read the device the
+ * same way. Also returns the theme and color Link opens with; see resolveLinkAppearance.
+ */
+export const buildLinkUrl = (
+  linkUrl: string,
+  settings: LinkSettings | undefined,
+  systemIsDark: boolean
+): LinkUrl => {
+  const url = buildPageUrl(linkUrl, settings);
+  const { themeToWrite, ...appearance } = resolveLinkAppearance(
+    url,
+    systemIsDark
+  );
   return {
     url: themeToWrite ? setURLParams(url, { th: themeToWrite }) : url,
     ...appearance,

@@ -7,8 +7,8 @@ import {
   decode64,
   isValidUrl,
   buildLinkUrl,
+  buildPageUrl,
   LinkUrl,
-  resolveLanguage,
 } from '../utils';
 import {
   AccessTokenPayload,
@@ -39,13 +39,8 @@ const useSDKCallbacks = (props: LinkConnectTokenConfiguration) => {
           throw new Error('Invalid link token provided');
         }
 
-        // Resolved, so 'system' and the same device tag share a page.
-        const pageKey = [
-          props.linkToken,
-          props.settings?.theme,
-          resolveLanguage(props.settings?.language),
-          props.settings?.displayFiatCurrency?.trim(),
-        ].join('|');
+        // The page URL, not the raw settings: settings that leave the URL as is keep the page.
+        const pageKey = buildPageUrl(decodedUrl, props.settings);
         if (appearanceSnapshot.current?.pageKey !== pageKey) {
           appearanceSnapshot.current = {
             pageKey,
