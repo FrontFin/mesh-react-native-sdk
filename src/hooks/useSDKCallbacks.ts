@@ -44,7 +44,7 @@ const useSDKCallbacks = (props: LinkConnectTokenConfiguration) => {
           props.linkToken,
           props.settings?.theme,
           resolveLanguage(props.settings?.language),
-          props.settings?.displayFiatCurrency,
+          props.settings?.displayFiatCurrency?.trim(),
         ].join('|');
         if (appearanceSnapshot.current?.pageKey !== pageKey) {
           appearanceSnapshot.current = {

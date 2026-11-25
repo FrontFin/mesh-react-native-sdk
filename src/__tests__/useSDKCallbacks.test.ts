@@ -455,6 +455,25 @@ describe('useSDKCallbacks – MFS theme', () => {
     }
   });
 
+  test('a currency that only changes by whitespace keeps the URL and colors after a device switch', () => {
+    const scheme = jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('light');
+    const { result, rerender } = renderHook(
+      (currency: string) =>
+        useSDKCallbacks({
+          linkToken: mfsToken,
+          settings: { theme: 'system', displayFiatCurrency: currency },
+        }),
+      { initialProps: ' USD ' }
+    );
+    const { linkUrl, darkTheme } = result.current;
+
+    scheme.mockReturnValue('dark');
+    rerender('USD');
+
+    expect(result.current.linkUrl).toBe(linkUrl);
+    expect(result.current.darkTheme).toBe(darkTheme);
+  });
+
   test('a settings change that reloads Link re-reads the device theme', () => {
     mockedResolveLanguage.mockImplementation((language?: string) => language);
     const scheme = jest.spyOn(Appearance, 'getColorScheme').mockReturnValue('light');
