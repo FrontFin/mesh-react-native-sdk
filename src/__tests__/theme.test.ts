@@ -1,5 +1,5 @@
-import { LEGACY_LINK_COLORS } from '../constant';
-import { getThemeColor, resolveLinkAppearance } from '../utils/theme';
+import { LEGACY_LINK_COLORS, LINK_COLORS } from '../constant';
+import { getThemeColor, isDarkColor, resolveLinkAppearance } from '../utils/theme';
 
 const base64Url = (json: string) =>
   Buffer.from(json)
@@ -155,5 +155,18 @@ describe('getThemeColor', () => {
     expect(getThemeColor(false)).toBe('#F9F9F9');
     expect(getThemeColor(true, LEGACY_LINK_COLORS)).toBe('#0E0D0D');
     expect(getThemeColor(false, LEGACY_LINK_COLORS)).toBe('#FBFBFB');
+  });
+});
+
+describe('isDarkColor', () => {
+  test('tells dark from light, including the fallback colors', () => {
+    expect(isDarkColor('#000000')).toBe(true);
+    expect(isDarkColor('#445566')).toBe(true);
+    expect(isDarkColor('#FFFFFF')).toBe(false);
+    expect(isDarkColor('#DDEEFF')).toBe(false);
+    for (const colors of [LINK_COLORS, LEGACY_LINK_COLORS]) {
+      expect(isDarkColor(colors.dark)).toBe(true);
+      expect(isDarkColor(colors.light)).toBe(false);
+    }
   });
 });

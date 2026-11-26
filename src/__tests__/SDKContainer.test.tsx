@@ -49,4 +49,20 @@ describe('SDKContainer', () => {
     );
     expect(UNSAFE_getByType(StatusBar).props.backgroundColor).toBe('#445566');
   });
+
+  test('picks the status bar content from the page color, not the theme', () => {
+    const cases = [
+      { isDarkTheme: true, color: '#FFFFFF', barStyle: 'dark-content' },
+      { isDarkTheme: false, color: '#000000', barStyle: 'light-content' },
+      { isDarkTheme: true, color: '#445566', barStyle: 'light-content' },
+      { isDarkTheme: false, color: '#DDEEFF', barStyle: 'dark-content' },
+    ];
+    for (const { isDarkTheme, color, barStyle } of cases) {
+      const { UNSAFE_getByType, unmount } = render(
+        <SDKContainer isDarkTheme={isDarkTheme} backgroundColor={color}>Test Content</SDKContainer>
+      );
+      expect(UNSAFE_getByType(StatusBar).props.barStyle).toBe(barStyle);
+      unmount();
+    }
+  });
 });

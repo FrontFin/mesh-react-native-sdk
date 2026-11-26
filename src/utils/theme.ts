@@ -56,6 +56,14 @@ const toOpaqueHex = (value: unknown): string | undefined => {
 
 type ColorPair = { readonly dark: string; readonly light: string };
 
+/** Whether `#RRGGBB` is dark: perceived brightness (ITU-R BT.601) below the middle. */
+export const isDarkColor = (hex: string): boolean => {
+  const [red, green, blue] = [1, 3, 5].map((start) =>
+    parseInt(hex.slice(start, start + 2), 16)
+  );
+  return 0.299 * red + 0.587 * green + 0.114 * blue < 128;
+};
+
 /** The color around Link when the token has no valid page color for the theme. */
 export const getThemeColor = (
   isDarkTheme: boolean,
