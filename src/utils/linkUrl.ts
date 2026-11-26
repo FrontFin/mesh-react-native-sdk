@@ -11,7 +11,7 @@ export type LinkUrl = {
   backgroundColor: string;
 };
 
-const APP_THEMES = ['light', 'dark', 'system'];
+const APP_THEMES = new Set(['light', 'dark', 'system']);
 
 /**
  * The token URL with the params the app set (`th`, `lng`, `fiatCur`, plus `platform`) replacing any
@@ -27,7 +27,7 @@ export const buildPageUrl = (
   const fiatCurrency = settings?.displayFiatCurrency?.trim();
 
   const params: Record<string, string> = {};
-  if (settings?.theme && APP_THEMES.includes(settings.theme)) {
+  if (settings?.theme && APP_THEMES.has(settings.theme)) {
     params.th = settings.theme;
   }
   if (language) params.lng = language;

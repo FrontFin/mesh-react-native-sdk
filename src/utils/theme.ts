@@ -10,13 +10,14 @@ const DEFAULT_THEME: Theme = 'dark';
 // Same shape Link accepts for a page color: #RGB, #RGBA, #RRGGBB or #RRGGBBAA.
 const HEX_COLOR = /^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
 
+const SESSION_THEMES = new Map<unknown, Theme>([
+  ['LINK_THEME_DARK', 'dark'],
+  ['LINK_THEME_LIGHT', 'light'],
+]);
+
 /** The theme a session token names; undefined for "match the device" or anything unknown. */
 const toSessionTheme = (value: unknown): Theme | undefined =>
-  value === 'LINK_THEME_DARK'
-    ? 'dark'
-    : value === 'LINK_THEME_LIGHT'
-      ? 'light'
-      : undefined;
+  SESSION_THEMES.get(value);
 
 type PageStyle = { th?: unknown; bgl?: unknown; bgd?: unknown };
 
@@ -59,7 +60,7 @@ type ColorPair = { readonly dark: string; readonly light: string };
 /** Whether `#RRGGBB` is dark: perceived brightness (ITU-R BT.601) below the middle. */
 export const isDarkColor = (hex: string): boolean => {
   const [red, green, blue] = [1, 3, 5].map((start) =>
-    parseInt(hex.slice(start, start + 2), 16)
+    Number.parseInt(hex.slice(start, start + 2), 16)
   );
   return 0.299 * red + 0.587 * green + 0.114 * blue < 128;
 };

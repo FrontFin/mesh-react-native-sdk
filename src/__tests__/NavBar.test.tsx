@@ -1,4 +1,5 @@
 import React from 'react';
+import { Image } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { NavBar } from '../components/NavBar';
 
@@ -51,5 +52,24 @@ describe('NavBar', () => {
       <NavBar goBack={jest.fn()} showCloseAlert={jest.fn()} isDarkTheme backgroundColor="#445566" />
     );
     expect(getByTestId('native-navbar').props.style.backgroundColor).toBe('#445566');
+  });
+
+  test('picks the icons from the page color, not the theme', () => {
+    const cases = [
+      { isDarkTheme: true, color: '#FFFFFF', icons: 'light' },
+      { isDarkTheme: false, color: '#000000', icons: 'dark' },
+      { isDarkTheme: true, color: '#445566', icons: 'dark' },
+    ];
+    for (const { isDarkTheme, color, icons } of cases) {
+      const { UNSAFE_getAllByType, unmount } = render(
+        <NavBar goBack={jest.fn()} showCloseAlert={jest.fn()} isDarkTheme={isDarkTheme} backgroundColor={color} />
+      );
+      const uris = UNSAFE_getAllByType(Image).map((image) => image.props.source.testUri);
+      expect(uris).toEqual([
+        `../../../src/assets/chevron-left-${icons}.png`,
+        `../../../src/assets/cross-1-small-${icons}.png`,
+      ]);
+      unmount();
+    }
   });
 });
