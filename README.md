@@ -126,7 +126,7 @@ The `LinkSettings` option allows to configure the Link behaviour:
 
 - `language` - Link UI language as a BCP-47 tag (e.g. 'en', 'en-US'). Accepts 'system' to follow the device language.
 - `displayFiatCurrency` - a preferred display fiat currency
-- `theme` - Link UI colour theme. Accepts: 'light', 'dark', 'system'. The status bar and the page follow it. With 'system', Link follows the device. If you leave it out, Link uses the theme set for your client. If none is set, the current Link follows the device and the older Link opens dark.
+- `theme` - Link UI colour theme. Accepts: 'light', 'dark', 'system'. The status bar and the page follow it. With 'system', the current Link uses the theme set for your client first, and follows the device only when your client has no fixed theme. The older Link follows the device. If you leave it out, Link uses the theme set for your client. If none is set, the current Link follows the device and the older Link opens dark.
 - `accessTokens` - an array of `IntegrationAccessToken` objects that is used as an origin for crypto transfer flow.
 - `disableDomainWhiteList` - a boolean flag that allows to disable origin whitelisting. By default, the origin is whitelisted, with the following domains set:
   - `*.meshconnect.com`
