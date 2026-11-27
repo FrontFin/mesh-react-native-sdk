@@ -59,8 +59,9 @@ export function getSystemLanguage(): string | undefined {
 export function resolveLanguage(
   language: string | undefined
 ): string | undefined {
-  if (language === 'system') {
+  const trimmed = language?.trim();
+  if (trimmed === 'system') {
     return getSystemLanguage() || 'en';
   }
-  return language;
+  return trimmed || undefined;
 }

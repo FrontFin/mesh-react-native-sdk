@@ -34,4 +34,12 @@ describe('SDKViewContainer', () => {
     expect(getByTestId('link-connect-view-component')).toBeTruthy();
     expect(getByTestId('child-element')).toBeTruthy();
   });
+
+  test("uses the page's own color when given, otherwise the fallback for the theme", () => {
+    const given = render(<SDKViewContainer isDarkTheme backgroundColor="#445566">x</SDKViewContainer>);
+    expect(given.getByTestId('link-connect-view-component').props.style.backgroundColor).toBe('#445566');
+
+    const fallback = render(<SDKViewContainer isDarkTheme>x</SDKViewContainer>);
+    expect(fallback.getByTestId('link-connect-view-component').props.style.backgroundColor).toBe('#1C1C1C');
+  });
 });

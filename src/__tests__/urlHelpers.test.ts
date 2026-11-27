@@ -1,4 +1,4 @@
-import { addURLParam, getFirstURLParam, removeURLParam, urlSearchParams } from '../utils';
+import { addURLParam, getFirstURLParam, setURLParams, urlSearchParams } from '../utils';
 
 describe('urlSearchParams function', () => {
   test('should parse query parameters for URLs', () => {
@@ -60,11 +60,17 @@ describe('fragment-safe query helpers', () => {
     expect(getFirstURLParam('https://a.com/', 'th')).toBeUndefined();
   });
 
-  test('removeURLParam drops every match and keeps the rest byte for byte', () => {
-    expect(removeURLParam('https://a.com/?th=dark', 'th')).toBe('https://a.com/');
-    expect(removeURLParam('https://a.com/?x=%7B%7D&th=dark&thx=2&th=light#f', 'th')).toBe('https://a.com/?x=%7B%7D&thx=2#f');
-    expect(removeURLParam('https://a.com/?%74h=dark&x=1', 'th')).toBe('https://a.com/?x=1');
-    expect(removeURLParam('https://a.com/#f?th=dark', 'th')).toBe('https://a.com/#f?th=dark');
-    expect(removeURLParam('https://a.com/path', 'th')).toBe('https://a.com/path');
+  test('setURLParams replaces every match, adds before the fragment and keeps the rest byte for byte', () => {
+    expect(setURLParams('https://a.com/?th=dark', { th: 'light' })).toBe('https://a.com/?th=light');
+    expect(setURLParams('https://a.com/?x=%7B%7D&th=dark&thx=2&th=light#f', { th: 'dark' })).toBe('https://a.com/?x=%7B%7D&thx=2&th=dark#f');
+    expect(setURLParams('https://a.com/?%74h=dark&x=1', { th: 'light' })).toBe('https://a.com/?x=1&th=light');
+    expect(setURLParams('https://a.com/#f?th=dark', { th: 'light' })).toBe('https://a.com/?th=light#f?th=dark');
+    expect(setURLParams('https://a.com/path', { th: 'light' })).toBe('https://a.com/path?th=light');
+    expect(setURLParams('https://a.com/?a=1&&b=2', { c: '3' })).toBe('https://a.com/?a=1&&b=2&c=3');
+  });
+
+  test('setURLParams encodes values and ignores inherited keys', () => {
+    expect(setURLParams('https://a.com/', { lng: 'zh Hant&x' })).toBe('https://a.com/?lng=zh%20Hant%26x');
+    expect(setURLParams('https://a.com/?constructor=1', { th: 'dark' })).toBe('https://a.com/?constructor=1&th=dark');
   });
 });

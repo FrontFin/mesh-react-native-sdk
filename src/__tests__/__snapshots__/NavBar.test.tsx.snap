@@ -5,7 +5,7 @@ exports[`NavBar renders correctly 1`] = `
   style={
     {
       "alignItems": "center",
-      "backgroundColor": "#F3F4F5",
+      "backgroundColor": "#F9F9F9",
       "flexDirection": "row",
       "height": 64,
       "justifyContent": "space-between",

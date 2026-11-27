@@ -4,7 +4,7 @@ exports[`SDKViewContainer renders correctly 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#FBFBFB",
+      "backgroundColor": "#F9F9F9",
       "flex": 1,
     }
   }

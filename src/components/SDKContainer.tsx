@@ -2,22 +2,21 @@ import React from 'react';
 import type { ReactNode } from 'react';
 import { SafeAreaView, StatusBar, View } from 'react-native';
 import { useSDKStyles } from './SDKContainer.styled';
-import { getThemeColors } from '../utils/theme';
 
 type Props = {
   children: ReactNode
   isDarkTheme: boolean
-  isMfs?: boolean
+  backgroundColor?: string
 }
 
-export const SDKContainer = ({ children, isDarkTheme, isMfs }: Props) => {
-  const { statusBarStyle } = useSDKStyles(isDarkTheme, isMfs);
-  const { top: topColor, bottom: bottomColor } = getThemeColors(isDarkTheme, isMfs);
+export const SDKContainer = ({ children, isDarkTheme, backgroundColor: color }: Props) => {
+  const { statusBarStyle } = useSDKStyles(isDarkTheme, color);
+  const backgroundColor = statusBarStyle.backgroundColor;
 
   return (
     <View style={{ flex: 1 }} testID={'link-connect-component'}>
-      <SafeAreaView style={{ flex: 0, backgroundColor: topColor }} />
-      <SafeAreaView style={{ flex: 1, backgroundColor: bottomColor }}>
+      <SafeAreaView style={{ flex: 0, backgroundColor }} />
+      <SafeAreaView style={{ flex: 1, backgroundColor }}>
         <StatusBar
           backgroundColor={statusBarStyle.backgroundColor}
           barStyle={statusBarStyle.barStyle}
@@ -26,7 +25,7 @@ export const SDKContainer = ({ children, isDarkTheme, isMfs }: Props) => {
           {children}
         </View>
       </SafeAreaView>
-      <SafeAreaView style={{ flex: 0, backgroundColor: bottomColor }} />
+      <SafeAreaView style={{ flex: 0, backgroundColor }} />
     </View>
   );
 };

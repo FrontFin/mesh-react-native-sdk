@@ -12,7 +12,7 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
   <RCTSafeAreaView
     style={
       {
-        "backgroundColor": "#F3F4F5",
+        "backgroundColor": "#0E0D0D",
         "flex": 0,
       }
     }
@@ -20,7 +20,7 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
   <RCTSafeAreaView
     style={
       {
-        "backgroundColor": "#FBFBFB",
+        "backgroundColor": "#0E0D0D",
         "flex": 1,
       }
     }
@@ -35,7 +35,7 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
       <View
         style={
           {
-            "backgroundColor": "#FBFBFB",
+            "backgroundColor": "#0E0D0D",
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -107,7 +107,7 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
         startInLoadingState={true}
         style={
           {
-            "backgroundColor": "#FBFBFB",
+            "backgroundColor": "#0E0D0D",
           }
         }
         testID="webview"
@@ -117,7 +117,7 @@ exports[`LinkConnect Component renders correctly when linkToken is provided 1`] 
   <RCTSafeAreaView
     style={
       {
-        "backgroundColor": "#FBFBFB",
+        "backgroundColor": "#0E0D0D",
         "flex": 0,
       }
     }

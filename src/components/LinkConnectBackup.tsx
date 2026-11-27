@@ -20,10 +20,10 @@ import { OFFLINE_WIDGET_HTML, withWidgetTheme } from '../backup-bundle';
 import {
   BACKUP_CONFIG_MESSAGE_TYPE,
   BACKUP_JIT_RESPONSE_MESSAGE_TYPE,
-  DARK_THEME_COLOR_BOTTOM,
   DEFAULT_BACKUP_WIDGET_ORIGIN,
-  LIGHT_THEME_COLOR_BOTTOM,
+  LEGACY_LINK_COLORS,
 } from '../constant';
+import { getThemeColor } from '../utils/theme';
 
 /** Best-effort message from an unknown thrown value, for JIT failure reporting. */
 const errorMessage = (e: unknown): string =>
@@ -72,9 +72,7 @@ const LoadingComponentWebview = ({ darkTheme }: { darkTheme: boolean }) => {
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: darkTheme
-          ? DARK_THEME_COLOR_BOTTOM
-          : LIGHT_THEME_COLOR_BOTTOM,
+        backgroundColor: getThemeColor(darkTheme, LEGACY_LINK_COLORS),
       }}
     />
   );
@@ -421,8 +419,11 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
     return null;
   }
 
+  // The backup widget has its own page colors: the wrapper and the WebView use the same pair.
+  const backgroundColor = getThemeColor(isDark, LEGACY_LINK_COLORS);
+
   return (
-    <SDKWrapperComponent isDarkTheme={isDark}>
+    <SDKWrapperComponent isDarkTheme={isDark} backgroundColor={backgroundColor}>
       {/* Deposit-only: the widget owns its own in-funnel navigation, so there is
           no native NavBar. The native close (✕) below is the exit affordance
           until the widget is ready and the loading overlay has cleared (the
@@ -468,11 +469,7 @@ export const LinkConnectBackup = (props: LinkConnectBackupConfiguration) => {
         {(token) => (
       <WebView
         bounces={false}
-        style={{
-          backgroundColor: isDark
-            ? DARK_THEME_COLOR_BOTTOM
-            : LIGHT_THEME_COLOR_BOTTOM,
-        }}
+        style={{ backgroundColor }}
         testID={'webview'}
         ref={webViewRef}
         // Tier 1 loads the widget from its origin; Tier 2 loads the bundled

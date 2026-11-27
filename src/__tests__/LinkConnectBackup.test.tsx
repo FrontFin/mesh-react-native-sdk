@@ -1,11 +1,12 @@
 /* eslint-disable */
 import React from 'react';
-import { Alert, Appearance, AppState, BackHandler } from 'react-native';
+import { Alert, Appearance, AppState, BackHandler, StatusBar } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { LinkConnectBackup } from '../components/LinkConnectBackup';
 import {
   DARK_THEME_COLOR_BOTTOM,
   DEFAULT_BACKUP_WIDGET_ORIGIN,
+  LIGHT_THEME_COLOR_BOTTOM,
   TIER1_READY_TIMEOUT_MS,
   TIER2_READY_TIMEOUT_MS,
 } from '../constant';
@@ -529,6 +530,22 @@ describe('LinkConnectBackup', () => {
       expect(webview.props.style.backgroundColor).toBe(DARK_THEME_COLOR_BOTTOM);
     });
   });
+
+  it.each([
+    ['dark', DARK_THEME_COLOR_BOTTOM],
+    ['light', LIGHT_THEME_COLOR_BOTTOM],
+  ] as const)(
+    'paints the %s safe areas in the same color as the widget WebView',
+    async (theme, color) => {
+      const { getByTestId, UNSAFE_getByType } = render(
+        <LinkConnectBackup backupConfig={CONFIG} settings={{ theme }} />
+      );
+      await waitFor(() => {
+        expect(getByTestId('webview').props.style.backgroundColor).toBe(color);
+        expect(UNSAFE_getByType(StatusBar).props.backgroundColor).toBe(color);
+      });
+    }
+  );
 
   it.each([
     ['dark', 'theme=dark'],

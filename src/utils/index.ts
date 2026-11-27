@@ -8,3 +8,4 @@ export * from './backupUrl';
 export * from './styleHelpers';
 export * from './theme';
 export * from './language';
+export * from './linkUrl';

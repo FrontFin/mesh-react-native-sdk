@@ -1,9 +1,12 @@
-export const DARK_THEME_COLOR_TOP = '#1E1E24';
-export const LIGHT_THEME_COLOR_TOP = '#F3F4F5';
 export const DARK_THEME_COLOR_BOTTOM = '#0E0D0D';
 export const LIGHT_THEME_COLOR_BOTTOM = '#FBFBFB';
-export const MFS_DARK_THEME_COLOR = '#1C1C1C';
-export const MFS_LIGHT_THEME_COLOR = '#F9F9F9';
+// Behind Link when the token has no valid page color of its own (see resolveLinkAppearance).
+// Each pair matches the page background of that Link version.
+export const LINK_COLORS = { dark: '#1C1C1C', light: '#F9F9F9' } as const;
+export const LEGACY_LINK_COLORS = {
+  dark: DARK_THEME_COLOR_BOTTOM,
+  light: LIGHT_THEME_COLOR_BOTTOM,
+} as const;
 
 /**
  * Default origin for the standalone backup deposit widget (OR-449). This is the

@@ -17,7 +17,6 @@ import { useWebViewRecovery } from '../hooks/useWebViewRecovery';
 import { useAndroidBackHandler } from '../hooks/useAndroidBackHandler';
 import { sdkSpecs } from '../utils/sdkConfig';
 import { isAppLaunchScheme, isExternallyOpenedOrigin } from '../utils';
-import { getThemeColors } from '../utils/theme';
 import {
   WHITELISTED_ORIGINS,
 } from '../constant';
@@ -91,7 +90,7 @@ const LinkConnectPrimary = (props: LinkConnectTokenConfiguration) => {
     showWebView,
     linkUrl,
     darkTheme,
-    isMfs,
+    backgroundColor,
     isOAuthInProgress,
     handleMessage,
     handleNavState,
@@ -142,11 +141,9 @@ const LinkConnectPrimary = (props: LinkConnectTokenConfiguration) => {
 
   const [initialLoading, setInitialLoading] = useState(true);
 
-  if (darkTheme === undefined) {
+  if (darkTheme === undefined || backgroundColor === undefined) {
     return null;
   }
-
-  const bottomColor = getThemeColors(darkTheme, isMfs).bottom;
 
   // by default disableDomainWhiteList is false
   const { disableDomainWhiteList = false } = props;
@@ -155,20 +152,20 @@ const LinkConnectPrimary = (props: LinkConnectTokenConfiguration) => {
     : { originWhitelist: WHITELISTED_ORIGINS };
 
   return (
-    <SDKWrapperComponent isDarkTheme={darkTheme} isMfs={isMfs}>
+    <SDKWrapperComponent isDarkTheme={darkTheme} backgroundColor={backgroundColor}>
       {showNativeNavbar && (
         <NavBar
           goBack={goBack}
           showCloseAlert={showCloseAlert}
           isDarkTheme={darkTheme}
-          isMfs={isMfs}
+          backgroundColor={backgroundColor}
         />
       )}
-      {initialLoading && <LoadingComponentWebview backgroundColor={bottomColor} />}
+      {initialLoading && <LoadingComponentWebview backgroundColor={backgroundColor} />}
       {showWebView && linkUrl && (
         <WebView
           bounces={false}
-          style={{ backgroundColor: bottomColor }}
+          style={{ backgroundColor }}
           // A new session gets a fresh WebView, so back never returns to the
           // previous session's pages.
           key={linkUrl}

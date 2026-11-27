@@ -86,6 +86,11 @@ describe('resolveLanguage', () => {
     expect(resolveLanguage(undefined)).toBeUndefined();
   });
 
+  test('trims the language and treats a blank one as not set', () => {
+    expect(resolveLanguage(' de ')).toBe('de');
+    expect(resolveLanguage('  ')).toBeUndefined();
+  });
+
   test('expands "system" to the device locale', () => {
     (Platform as { OS: string }).OS = 'android';
     (NativeModules as Record<string, unknown>).I18nManager = {

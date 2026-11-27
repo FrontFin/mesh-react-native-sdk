@@ -85,12 +85,18 @@ export const getFirstURLParam = (url: string, param: string) => {
   return separator === -1 ? '' : decodeQueryComponent(pair.slice(separator + 1));
 };
 
-// Removes every `param`, leaving the rest of the URL byte for byte.
-export const removeURLParam = (url: string, param: string) => {
+// Replaces every `params` key with its new value, added before any fragment.
+// The rest of the URL stays byte for byte.
+export const setURLParams = (url: string, params: Record<string, string>) => {
   const { beforeFragment, fragment } = splitFragment(url);
   const queryStart = beforeFragment.indexOf('?');
-  if (queryStart === -1) return url;
-  const kept = queryPairs(url).filter((p) => pairKey(p) !== param);
-  const base = beforeFragment.slice(0, queryStart);
-  return `${base}${kept.length ? `?${kept.join('&')}` : ''}${fragment}`;
+  const base =
+    queryStart === -1 ? beforeFragment : beforeFragment.slice(0, queryStart);
+  const kept = queryPairs(url).filter(
+    (p) => !Object.prototype.hasOwnProperty.call(params, pairKey(p))
+  );
+  const added = Object.entries(params).map(
+    ([key, value]) => `${key}=${encodeURIComponent(value)}`
+  );
+  return `${base}?${[...kept, ...added].join('&')}${fragment}`;
 };

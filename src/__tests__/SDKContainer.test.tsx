@@ -31,7 +31,7 @@ describe('SDKContainer', () => {
     );
     const statusBar = UNSAFE_getByType(StatusBar);
     expect(statusBar.props.barStyle).toBe('light-content');
-    expect(statusBar.props.backgroundColor).toBe('#1E1E24');
+    expect(statusBar.props.backgroundColor).toBe('#1C1C1C');
   });
 
   test('uses dark status bar content on light theme', () => {
@@ -40,6 +40,31 @@ describe('SDKContainer', () => {
     );
     const statusBar = UNSAFE_getByType(StatusBar);
     expect(statusBar.props.barStyle).toBe('dark-content');
-    expect(statusBar.props.backgroundColor).toBe('#F3F4F5');
+    expect(statusBar.props.backgroundColor).toBe('#F9F9F9');
+  });
+
+  test("uses the page's own color for the status bar when given", () => {
+    const { UNSAFE_getByType } = render(
+      <SDKContainer isDarkTheme={true} backgroundColor="#445566">Test Content</SDKContainer>
+    );
+    expect(UNSAFE_getByType(StatusBar).props.backgroundColor).toBe('#445566');
+  });
+
+  test('picks the status bar content from the page color, not the theme', () => {
+    const cases = [
+      { isDarkTheme: true, color: '#FFFFFF', barStyle: 'dark-content' },
+      { isDarkTheme: false, color: '#000000', barStyle: 'light-content' },
+      { isDarkTheme: true, color: '#445566', barStyle: 'light-content' },
+      { isDarkTheme: false, color: '#DDEEFF', barStyle: 'dark-content' },
+      // Bright but saturated: black reads better than white (9.6:1 against 2.2:1)
+      { isDarkTheme: true, color: '#00CC00', barStyle: 'dark-content' },
+    ];
+    for (const { isDarkTheme, color, barStyle } of cases) {
+      const { UNSAFE_getByType, unmount } = render(
+        <SDKContainer isDarkTheme={isDarkTheme} backgroundColor={color}>Test Content</SDKContainer>
+      );
+      expect(UNSAFE_getByType(StatusBar).props.barStyle).toBe(barStyle);
+      unmount();
+    }
   });
 });

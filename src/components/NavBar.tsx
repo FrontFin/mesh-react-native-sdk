@@ -6,11 +6,11 @@ type NavBarProps = {
   goBack: () => void;
   showCloseAlert: () => void;
   isDarkTheme: boolean
-  isMfs?: boolean
+  backgroundColor?: string
 }
 
-export const NavBar = ({goBack, showCloseAlert, isDarkTheme, isMfs}: NavBarProps) => {
-  const {navBarStyles: styles} = useSDKStyles(isDarkTheme || false, isMfs);
+export const NavBar = ({goBack, showCloseAlert, isDarkTheme, backgroundColor}: NavBarProps) => {
+  const {navBarStyles: styles, isDarkBackground} = useSDKStyles(isDarkTheme || false, backgroundColor);
 
   return (
     <View testID={'native-navbar'} style={styles.navBarContainer}>
@@ -18,7 +18,7 @@ export const NavBar = ({goBack, showCloseAlert, isDarkTheme, isMfs}: NavBarProps
         testID={'nav-back-button'}
         onPress={goBack} style={styles.navBarImgContainer}>
         <Image
-          source={isDarkTheme 
+          source={isDarkBackground 
             ? require('../assets/chevron-left-dark.png') 
             : require('../assets/chevron-left-light.png')}
           style={styles.navBarImgButton}
@@ -31,7 +31,7 @@ export const NavBar = ({goBack, showCloseAlert, isDarkTheme, isMfs}: NavBarProps
         testID={'close-button'}
       >
         <Image
-          source={isDarkTheme 
+          source={isDarkBackground 
             ? require('../assets/cross-1-small-dark.png') 
             : require('../assets/cross-1-small-light.png')}
           style={styles.navBarImgButton}

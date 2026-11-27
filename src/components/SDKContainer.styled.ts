@@ -1,6 +1,6 @@
 /* istanbul ignore file */
 import { StyleSheet } from 'react-native';
-import { getThemeColors } from '../utils/theme';
+import { getThemeColor, isDarkColor } from '../utils/theme';
 
 const createNavBarStyles = (backgroundColor: string) => StyleSheet.create({
   navBarContainer: {
@@ -30,15 +30,19 @@ const createNavBarStyles = (backgroundColor: string) => StyleSheet.create({
   },
 });
 
-export const useSDKStyles = (isDarkTheme: boolean, isMfs = false) => {
-const backgroundColor = getThemeColors(isDarkTheme, isMfs).top;
+// `color` is the page's own color from the token; without it, the fallback for the theme.
+// The status bar content and the nav icons follow that color, so they stay readable whatever the
+// theme says.
+export const useSDKStyles = (isDarkTheme: boolean, color?: string) => {
+  const backgroundColor = color ?? getThemeColor(isDarkTheme);
 
+  const isDarkBackground = isDarkColor(backgroundColor);
   const statusBarStyle = {
     backgroundColor,
-    barStyle: isDarkTheme ? 'light-content' : 'dark-content',
+    barStyle: isDarkBackground ? 'light-content' : 'dark-content',
   } as const;
 
   const navBarStyles = createNavBarStyles(backgroundColor);
 
-  return { statusBarStyle, navBarStyles };
+  return { statusBarStyle, navBarStyles, isDarkBackground };
 }
