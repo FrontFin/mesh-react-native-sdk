@@ -164,6 +164,11 @@ describe('isDarkColor', () => {
     expect(isDarkColor('#445566')).toBe(true);
     expect(isDarkColor('#FFFFFF')).toBe(false);
     expect(isDarkColor('#DDEEFF')).toBe(false);
+    // Saturated colors that look bright: pick the side with the better contrast
+    expect(isDarkColor('#00CC00')).toBe(false);
+    expect(isDarkColor('#808080')).toBe(false);
+    expect(isDarkColor('#0000FF')).toBe(true);
+    expect(isDarkColor('#CC0000')).toBe(true);
     for (const colors of [LINK_COLORS, LEGACY_LINK_COLORS]) {
       expect(isDarkColor(colors.dark)).toBe(true);
       expect(isDarkColor(colors.light)).toBe(false);

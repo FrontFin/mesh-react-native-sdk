@@ -56,6 +56,8 @@ describe('SDKContainer', () => {
       { isDarkTheme: false, color: '#000000', barStyle: 'light-content' },
       { isDarkTheme: true, color: '#445566', barStyle: 'light-content' },
       { isDarkTheme: false, color: '#DDEEFF', barStyle: 'dark-content' },
+      // Bright but saturated: black reads better than white (9.6:1 against 2.2:1)
+      { isDarkTheme: true, color: '#00CC00', barStyle: 'dark-content' },
     ];
     for (const { isDarkTheme, color, barStyle } of cases) {
       const { UNSAFE_getByType, unmount } = render(

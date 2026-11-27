@@ -57,12 +57,22 @@ const toOpaqueHex = (value: unknown): string | undefined => {
 
 type ColorPair = { readonly dark: string; readonly light: string };
 
-/** Whether `#RRGGBB` is dark: perceived brightness (ITU-R BT.601) below the middle. */
+/** sRGB channel (0 to 255) as linear light, for WCAG relative luminance. */
+const toLinear = (value: number): number => {
+  const unit = value / 255;
+  return unit <= 0.03928 ? unit / 12.92 : ((unit + 0.055) / 1.055) ** 2.4;
+};
+
+/**
+ * Whether white reads better than black on `#RRGGBB`, by WCAG contrast ratio: white wins when
+ * 1.05 / (L + 0.05) is above (L + 0.05) / 0.05, so when (L + 0.05) squared is below 0.0525.
+ */
 export const isDarkColor = (hex: string): boolean => {
   const [red, green, blue] = [1, 3, 5].map((start) =>
-    Number.parseInt(hex.slice(start, start + 2), 16)
+    toLinear(Number.parseInt(hex.slice(start, start + 2), 16))
   );
-  return 0.299 * red + 0.587 * green + 0.114 * blue < 128;
+  const luminance = 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+  return (luminance + 0.05) ** 2 < 0.0525;
 };
 
 /** The color around Link when the token has no valid page color for the theme. */
